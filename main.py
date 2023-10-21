@@ -1,4 +1,6 @@
 import sys
+import string
+import secrets
 
 import uvicorn
 from argon2 import PasswordHasher
@@ -11,9 +13,14 @@ from loguru import logger
 
 from backend.config import Config, Session
 from backend.database import init_db
+from backend.database.models import Role, User
 from backend.routers import load_routers
 
-FMT = "<green>[{time}]</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+ALPHABET = string.ascii_letters + string.digits
+FMT = (
+    "<green>[{time}]</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:"
+    "<cyan>{line}</cyan> - <level>{message}</level>"
+)
 
 
 # Logger
@@ -74,6 +81,24 @@ async def validation_exception_handler(
             "detail": detail,
         },
     )
+
+
+# creation admin user - if not exist
+@app.on_event("startup")
+async def startup_event():
+    if not await User.exists(username="name"):
+        ph = PasswordHasher()
+        password = "".join(secrets.choice(ALPHABET) for _ in range(8))
+        role = await Role.get_or_create(
+            name="admin",
+            defaults={"can_administration": True, "can_statistics": True},
+        )
+
+        await User.get_or_create(
+            username="admin",
+            defaults={"password": ph.hash(password), "role": role[0]},
+        )
+        logger.info(f"Created the admin user with password {password}")
 
 
 if __name__ == "__main__":

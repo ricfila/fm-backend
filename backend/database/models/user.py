@@ -10,7 +10,7 @@ class User(Model):
     id = fields.IntField(pk=True)
     username = fields.CharField(30, unique=True)
     password = fields.TextField()
-    role = fields.ForeignKeyField("models.Roles")
+    role = fields.ForeignKeyField("models.Role")
 
     class Meta:
         table = "user"
