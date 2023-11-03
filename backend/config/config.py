@@ -1,5 +1,3 @@
-from asyncio import Lock
-
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -18,6 +16,3 @@ class Config(BaseSettings, case_sensitive=True):
 
     # Project
     APP_HOST: str = Field(alias="APP_HOST")
-
-    # Look
-    LOCK: Lock = Lock()
