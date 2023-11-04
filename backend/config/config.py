@@ -1,5 +1,5 @@
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings, case_sensitive=True):
@@ -16,3 +16,5 @@ class Config(BaseSettings, case_sensitive=True):
 
     # Project
     APP_HOST: str = Field(alias="APP_HOST")
+
+    model_config = SettingsConfigDict(env_file=".env")
