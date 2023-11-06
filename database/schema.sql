@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     username varchar(32) UNIQUE NOT NULL,
     password text NOT NULL,
     role_id SERIAL REFERENCES role (id) NOT NULL,
-    created_at BIGINT DEFAULT extract(EPOCH FROM now())::int
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS subcategories (

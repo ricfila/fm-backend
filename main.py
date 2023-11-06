@@ -1,13 +1,21 @@
+import contextlib
+import secrets
+import string
 import sys
 
 import uvicorn
+from argon2 import PasswordHasher
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+from tortoise import connections
 
-from backend.config import Session
 from backend.api import api
+from backend.config import Session
+from backend.database import init_db
+from backend.database.models import Role, User
 
+ALPHABET = string.ascii_letters + string.digits
 FMT = (
     "<green>[{time}]</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:"
     "<cyan>{line}</cyan> - <level>{message}</level>"
@@ -26,12 +34,39 @@ logger.configure(
     ]
 )
 
-# FastAPI - instance
-logger.info("Start FastAPI application")
-app = FastAPI(title="FestivalBackend", docs_url="/")
 
-# Config
+# Create admin user and role - if not exist
+@contextlib.asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Database - TortoiseORM
+    await init_db(app)
+    logger.info(f"Tortoise-ORM started")
+
+    password = "".join(secrets.choice(ALPHABET) for _ in range(8))
+    role, _ = await Role.get_or_create(
+        name="admin", defaults={"can_administer": True}
+    )
+    _, created = await User.get_or_create(
+        username="admin",
+        defaults={"password": PasswordHasher().hash(password), "role": role},
+    )
+
+    if created:
+        logger.info(f"Created the admin user with password {password}")
+
+    yield
+
+    await connections.close_all()
+    logger.info("Tortoise-ORM shutdown")
+
+
+# Config - Pydantic
 Session.set_config()
+logger.info("Initializing Config")
+
+# FastAPI - instance
+app = FastAPI(title="FestivalBackend", docs_url="/", lifespan=lifespan)
+logger.info("Starting FastAPI application")
 
 # CORS
 origins = [
@@ -45,9 +80,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+logger.info("Setting CORS")
 
 # FastAPI - APIRouter
 app.include_router(api)
+logger.info("Initializing API routers")
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    uvicorn.run(app, host=Session.config.APP_HOST)

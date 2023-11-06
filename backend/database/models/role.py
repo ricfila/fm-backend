@@ -11,7 +11,7 @@ class Role(Model):
 
     id = fields.IntField(pk=True)
     name = fields.CharField(30, unique=True)
-    can_administration = fields.BooleanField(default=False)
+    can_administer = fields.BooleanField(default=False)
     can_order = fields.BooleanField(default=False)
     can_statistics = fields.BooleanField(default=False)
     can_priority_statistics = fields.BooleanField(default=False)
