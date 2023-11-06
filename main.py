@@ -8,11 +8,10 @@ from argon2 import PasswordHasher
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-from tortoise import connections
 
 from backend.api import api
 from backend.config import Session
-from backend.database import init_db
+from backend.database import init_db, stop_db
 from backend.database.models import Role, User
 
 ALPHABET = string.ascii_letters + string.digits
@@ -39,7 +38,7 @@ logger.configure(
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
     # Database - TortoiseORM
-    await init_db(app)
+    await init_db()
     logger.info(f"Tortoise-ORM started")
 
     password = "".join(secrets.choice(ALPHABET) for _ in range(8))
@@ -56,7 +55,7 @@ async def lifespan(_: FastAPI):
 
     yield
 
-    await connections.close_all()
+    await stop_db()
     logger.info("Tortoise-ORM shutdown")
 
 

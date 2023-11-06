@@ -1,7 +1,6 @@
 import re
 
-from fastapi import FastAPI
-from tortoise import Tortoise
+from tortoise import Tortoise, connections
 
 from backend.config import Session
 from backend.database import models
@@ -12,7 +11,7 @@ def is_snake_case(string):
     return bool(re.match(pattern, string))
 
 
-async def init_db(app: FastAPI):
+async def init_db():
     conf = Session.config
 
     await Tortoise.init(
@@ -43,3 +42,7 @@ async def init_db(app: FastAPI):
             "timezone": "Europe/Rome",
         }
     )
+
+
+async def stop_db():
+    await connections.close_all()
