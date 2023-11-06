@@ -5,14 +5,17 @@ import sys
 
 import uvicorn
 from argon2 import PasswordHasher
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from loguru import logger
 
 from backend.api import api
 from backend.config import Session
 from backend.database import init_db, stop_db
 from backend.database.models import Role, User
+from backend.models import UnicornException
 
 ALPHABET = string.ascii_letters + string.digits
 FMT = (
@@ -84,6 +87,31 @@ logger.info("Setting CORS")
 # FastAPI - APIRouter
 app.include_router(api)
 logger.info("Initializing API routers")
+
+
+# Handling Errors
+@app.exception_handler(UnicornException)
+async def unicorn_exception_handler(_: Request, exc: UnicornException):
+    return JSONResponse(
+        status_code=exc.status, content={"error": True, "message": exc.message}
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    _: Request, exc: RequestValidationError
+):
+    detail = exc.errors()
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": True,
+            "message": "Request Validation Error",
+            "detail": detail,
+        },
+    )
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host=Session.config.APP_HOST)
