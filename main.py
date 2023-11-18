@@ -10,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
+from starlette.exceptions import HTTPException
 
 from backend.api import api
 from backend.config import Session
@@ -97,6 +98,14 @@ async def unicorn_exception_handler(_: Request, exc: UnicornException):
     )
 
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(_: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": True, "message": exc.detail},
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     _: Request, exc: RequestValidationError
@@ -109,6 +118,19 @@ async def validation_exception_handler(
             "error": True,
             "message": "Request Validation Error",
             "detail": detail,
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def internal_server_error_handler(_: Request, exc: Exception):
+    logger.exception(exc)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": True,
+            "message": "Internal Server Error",
+            "detail": exc.args,
         },
     )
 

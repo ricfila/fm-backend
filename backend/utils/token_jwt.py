@@ -2,11 +2,14 @@ import dataclasses
 import datetime
 
 import jwt
-from fastapi import Header
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import PyJWTError
 
 from backend.config import Session
 from backend.models.error import Unauthorized
+
+OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 
 @dataclasses.dataclass
@@ -45,14 +48,11 @@ def decode_jwt(token: str) -> TokenJwt | None:
 
 
 async def validate_token(
-    access_token: str = Header(alias="Authorization"),
+    access_token: str = Depends(OAUTH2_SCHEME),
 ) -> TokenJwt:
-    try:
-        token = decode_jwt(access_token.split("Bearer ")[1])
+    token = decode_jwt(access_token)
 
-        if not token:
-            raise Unauthorized("Invalid JWT token")
-
-        return token
-    except IndexError:
+    if not token:
         raise Unauthorized("Invalid JWT token")
+
+    return token

@@ -2,4 +2,5 @@ from backend.models import BaseResponse
 
 
 class LoginResponse(BaseResponse):
-    token: str
+    access_token: str
+    token_type: str = "bearer"
