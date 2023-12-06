@@ -23,7 +23,7 @@ class Role(Model):
     async def save(self, *args, **kwargs):
         if self.can_statistics and self.can_priority_statistics:
             raise ValueError(
-                "Only one of `can_statistics` and `can_priority_statistics` can be True."
+                "Only one of `can_statistics` and `can_priority_statistics` can be True"
             )
 
         await super().save(*args, **kwargs)

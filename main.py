@@ -117,7 +117,10 @@ async def validation_exception_handler(
         content={
             "error": True,
             "message": "Request Validation Error",
-            "detail": detail,
+            "detail": [
+                {"type": x["type"], "loc": x["loc"], "msg": x["msg"]}
+                for x in detail
+            ],
         },
     )
 
