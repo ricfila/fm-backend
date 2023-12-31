@@ -14,14 +14,16 @@ OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 @dataclasses.dataclass
 class TokenJwt:
-    username: str
+    user_id: int
     role_id: int
+    permissions: dict[str, bool]
     exp: int = None
 
     def to_dict(self):
         return dict(
-            username=self.username,
+            user_id=self.user_id,
             role_id=self.role_id,
+            permissions=self.permissions,
             exp=self.exp,
         )
 

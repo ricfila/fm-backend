@@ -36,6 +36,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     except (Argon2Error, InvalidHashError):
         raise auth_error
 
-    payload = TokenJwt(form_data.username, user.role_id)
+    payload = TokenJwt(
+        user.id, user.role_id, await (await user.role).get_permissions()
+    )
 
     return LoginResponse(access_token=encode_jwt(payload))

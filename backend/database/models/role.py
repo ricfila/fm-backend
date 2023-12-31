@@ -27,3 +27,11 @@ class Role(Model):
             )
 
         await super().save(*args, **kwargs)
+
+    async def get_permissions(self) -> dict:
+        return {
+            "can_administer": self.can_administer,
+            "can_order": self.can_order,
+            "can_statistics": self.can_statistics,
+            "can_priority_statistics": self.can_priority_statistics,
+        }

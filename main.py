@@ -12,7 +12,6 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.exceptions import HTTPException
 
-from backend.api import api
 from backend.config import Session
 from backend.database import init_db, stop_db
 from backend.database.models import Role, User
@@ -86,6 +85,8 @@ app.add_middleware(
 logger.info("Setting CORS")
 
 # FastAPI - APIRouter
+from backend.api import api
+
 app.include_router(api)
 logger.info("Initializing API routers")
 

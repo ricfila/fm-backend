@@ -16,5 +16,6 @@ class Config(BaseSettings, case_sensitive=True):
 
     # Project
     APP_HOST: str = Field(alias="APP_HOST")
+    DEFAULT_LIMIT_VALUE: int = Field(100, alias="DEFAULT_LIMIT_VALUE")
 
     model_config = SettingsConfigDict(env_file=".env")
