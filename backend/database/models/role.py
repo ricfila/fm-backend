@@ -10,7 +10,7 @@ class Role(Model):
     """
 
     id = fields.IntField(pk=True)
-    name = fields.CharField(30, unique=True)
+    name = fields.CharField(32, unique=True)
     can_administer = fields.BooleanField(default=False)
     can_order = fields.BooleanField(default=False)
     can_statistics = fields.BooleanField(default=False)
