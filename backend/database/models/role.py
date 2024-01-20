@@ -35,3 +35,6 @@ class Role(Model):
             "can_statistics": self.can_statistics,
             "can_priority_statistics": self.can_priority_statistics,
         }
+
+    async def to_dict(self) -> dict:
+        return {"id": self.id, "name": self.name}

@@ -1,6 +1,16 @@
 from pydantic import BaseModel, field_validator
 
+from backend.models import BaseResponse
 from backend.utils import PaperSize, Permission
+
+
+class Role(BaseModel):
+    id: int
+    name: str
+
+
+class GetRolesResponse(BaseResponse):
+    roles: list[Role]
 
 
 class CreateRoleItem(BaseModel):
