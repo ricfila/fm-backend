@@ -22,8 +22,10 @@ async def get_roles(
     **Permission**: can_administer
     """
 
-    roles = (
-        await Role.exclude(id=token.role_id).all().offset(offset).limit(limit)
-    )
+    roles_query = Role.exclude(id=token.role_id)
+    total_count = await roles_query.count()
+    roles = await roles_query.offset(offset).limit(limit)
 
-    return GetRolesResponse(roles=[await role.to_dict() for role in roles])
+    return GetRolesResponse(
+        total_count=total_count, roles=[await role.to_dict() for role in roles]
+    )

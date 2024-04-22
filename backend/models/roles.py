@@ -10,6 +10,7 @@ class Role(BaseModel):
 
 
 class GetRolesResponse(BaseResponse):
+    total_count: int
     roles: list[Role]
 
 
