@@ -26,6 +26,11 @@ class Role(Model):
                 "Only one of `can_statistics` and `can_priority_statistics` can be True"
             )
 
+        if self.can_order and not self.paper_size:
+            raise ValueError(
+                "If `can_order` is `True` then `paper_size` is required"
+            )
+
         await super().save(*args, **kwargs)
 
     async def get_permissions(self) -> dict:

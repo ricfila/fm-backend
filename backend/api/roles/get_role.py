@@ -24,5 +24,8 @@ async def get_role(id: int, token: TokenJwt = Depends(validate_token)):
         raise NotFound("Role not found")
 
     return GetRoleResponse(
-        id=id, name=role.name, permissions=await role.get_permissions()
+        id=id,
+        name=role.name,
+        permissions=await role.get_permissions(),
+        paper_size=role.paper_size,
     )

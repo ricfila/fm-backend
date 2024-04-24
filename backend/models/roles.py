@@ -18,6 +18,7 @@ class GetRoleResponse(BaseResponse):
     id: int
     name: str
     permissions: dict[Permission, bool]
+    paper_size: PaperSize | None
 
 
 class CreateRoleItem(BaseModel):
