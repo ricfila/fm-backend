@@ -14,6 +14,12 @@ class GetRolesResponse(BaseResponse):
     roles: list[Role]
 
 
+class GetRoleResponse(BaseResponse):
+    id: int
+    name: str
+    permissions: dict[Permission, bool]
+
+
 class CreateRoleItem(BaseModel):
     name: str
     permissions: dict[Permission, bool] = dict()
