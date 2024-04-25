@@ -72,7 +72,10 @@ def _validate_name_field(name: str):
 
 
 def _validate_permissions_field(permissions: dict[Permission, bool]):
-    if Permission.CAN_ADMINISTER in permissions:
+    if (
+        Permission.CAN_ADMINISTER in permissions
+        and permissions[Permission.CAN_ADMINISTER]
+    ):
         raise ValueError("The `permissions` field can't be administrators")
 
     return permissions
