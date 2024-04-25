@@ -134,7 +134,6 @@ async def internal_server_error_handler(_: Request, exc: Exception):
         content={
             "error": True,
             "message": "Internal Server Error",
-            "detail": exc.args,
         },
     )
 

@@ -29,20 +29,50 @@ class CreateRoleItem(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name_field(cls, name: str):
-        if not name:
-            raise ValueError("The `name` field can not be empty")
-
-        if len(name) > 32:
-            raise ValueError(
-                "The `name` field must have a maximum length of 32 characters"
-            )
-
-        return name
+        return _validate_name_field(name)
 
     @field_validator("permissions")
     @classmethod
     def validate_permissions_field(cls, permissions: dict[Permission, bool]):
-        if Permission.CAN_ADMINISTER in permissions:
-            raise ValueError("The `permissions` field can't be administrators")
+        return _validate_permissions_field(permissions)
 
-        return permissions
+
+class UpdateRoleNameItem(BaseModel):
+    name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_field(cls, name: str):
+        return _validate_name_field(name)
+
+
+class UpdateRolePermissionsItem(BaseModel):
+    permissions: dict[Permission, bool]
+
+    @field_validator("permissions")
+    @classmethod
+    def validate_permissions_field(cls, permissions: dict[Permission, bool]):
+        return _validate_permissions_field(permissions)
+
+
+class UpdateRolePaperSizeItem(BaseModel):
+    paper_size: PaperSize
+
+
+def _validate_name_field(name: str):
+    if not name:
+        raise ValueError("The `name` field can not be empty")
+
+    if len(name) > 32:
+        raise ValueError(
+            "The `name` field must have a maximum length of 32 characters"
+        )
+
+    return name
+
+
+def _validate_permissions_field(permissions: dict[Permission, bool]):
+    if Permission.CAN_ADMINISTER in permissions:
+        raise ValueError("The `permissions` field can't be administrators")
+
+    return permissions

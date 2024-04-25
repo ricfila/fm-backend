@@ -34,4 +34,7 @@ async def create_role(
     except IntegrityError:
         raise Conflict("Role already exists")
 
+    except ValueError as e:
+        raise Conflict(e.args[0])
+
     return BaseResponse()
