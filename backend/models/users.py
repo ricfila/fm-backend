@@ -3,6 +3,7 @@ import datetime
 from pydantic import BaseModel, field_validator
 
 from backend.models import BaseResponse
+from backend.utils import validate_password_field, validate_username_field
 
 
 class User(BaseModel):
@@ -27,18 +28,7 @@ class UpdateUserNameItem(BaseModel):
     @field_validator("username")
     @classmethod
     def validate_username_field(cls, username: str):
-        if not username:
-            raise ValueError("The `username` field can not be empty")
-
-        if len(username) > 32:
-            raise ValueError(
-                "The `username` field must have a maximum length of 32 characters"
-            )
-
-        if not username.isalpha():
-            raise ValueError("The `username` field has illegal characters")
-
-        return username
+        return validate_username_field(username)
 
 
 class UpdateUserPasswordItem(BaseModel):
@@ -47,12 +37,4 @@ class UpdateUserPasswordItem(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password_field(cls, password: str):
-        if not password:
-            raise ValueError("The `password` field can not be empty")
-
-        if len(password) > 32:
-            raise ValueError(
-                "The `password` field must have a maximum length of 32 characters"
-            )
-
-        return password
+        return validate_password_field(password)
