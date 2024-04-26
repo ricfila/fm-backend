@@ -11,11 +11,11 @@ update_role_paper_size_router = APIRouter()
 
 
 @update_role_paper_size_router.put(
-    "/{id}/paper_size", response_model=BaseResponse
+    "/{role_id}/paper_size", response_model=BaseResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
 async def update_role_paper_size(
-    id: int,
+    role_id: int,
     item: UpdateRolePaperSizeItem,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -25,7 +25,7 @@ async def update_role_paper_size(
      **Permission**: can_administer
     """
 
-    role = await Role.get_or_none(id=id)
+    role = await Role.get_or_none(id=role_id)
 
     if not role:
         raise NotFound("Role not found")

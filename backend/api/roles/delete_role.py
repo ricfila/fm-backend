@@ -9,16 +9,16 @@ from backend.utils import Permission, TokenJwt, validate_token
 delete_role_router = APIRouter()
 
 
-@delete_role_router.delete("/{id}", response_model=BaseResponse)
+@delete_role_router.delete("/{role_id}", response_model=BaseResponse)
 @check_role(Permission.CAN_ADMINISTER)
-async def delete_role(id: int, token: TokenJwt = Depends(validate_token)):
+async def delete_role(role_id: int, token: TokenJwt = Depends(validate_token)):
     """
     Get information about a role.
 
      **Permission**: can_administer
     """
 
-    role = await Role.get_or_none(id=id)
+    role = await Role.get_or_none(id=role_id)
 
     if not role:
         raise NotFound("Role not found")

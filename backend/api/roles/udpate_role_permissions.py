@@ -11,11 +11,11 @@ update_role_permissions_router = APIRouter()
 
 
 @update_role_permissions_router.put(
-    "/{id}/permissions", response_model=BaseResponse
+    "/{role_id}/permissions", response_model=BaseResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
 async def update_role_permissions(
-    id: int,
+    role_id: int,
     item: UpdateRolePermissionsItem,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -25,7 +25,7 @@ async def update_role_permissions(
      **Permission**: can_administer
     """
 
-    role = await Role.get_or_none(id=id)
+    role = await Role.get_or_none(id=role_id)
 
     if not role:
         raise NotFound("Role not found")

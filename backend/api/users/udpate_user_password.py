@@ -1,0 +1,49 @@
+from fastapi import APIRouter, Depends
+from tortoise.exceptions import IntegrityError
+from argon2 import PasswordHasher
+
+from backend.database.models import User
+from backend.models import BaseResponse
+from backend.models.error import Conflict, NotFound, Unauthorized
+from backend.models.users import UpdateUserPasswordItem
+from backend.utils import TokenJwt, validate_token
+from backend.utils.enums import Permission
+
+update_user_password_router = APIRouter()
+
+
+@update_user_password_router.put(
+    "/{user_id}/password", response_model=BaseResponse
+)
+async def update_user_password(
+    user_id: int,
+    item: UpdateUserPasswordItem,
+    token: TokenJwt = Depends(validate_token),
+):
+    """
+    Update password of user.
+
+    **Permission**: can_administer
+    """
+
+    user = await User.get_or_none(id=user_id)
+
+    if not user:
+        raise NotFound("User not found")
+
+    if not (
+        token.permissions.get(Permission.CAN_ADMINISTER, False)
+        or token.user_id == user.id
+    ):
+        raise Unauthorized("You do not have permission to perform this")
+
+    ph = PasswordHasher()
+    user.password = ph.hash(item.password)
+
+    try:
+        await user.save()
+
+    except IntegrityError:
+        raise Conflict("Role already exists")
+
+    return BaseResponse()

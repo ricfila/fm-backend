@@ -16,8 +16,6 @@ async def get_user(
 ):
     """
     Get information about a user.
-
-    **Permission**: can_administer
     """
 
     user = await User.get_or_none(id=user_id)
