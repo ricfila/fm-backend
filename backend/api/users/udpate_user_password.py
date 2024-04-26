@@ -22,8 +22,6 @@ async def update_user_password(
 ):
     """
     Update password of user.
-
-    **Permission**: can_administer
     """
 
     user = await User.get_or_none(id=user_id)
