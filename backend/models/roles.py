@@ -16,6 +16,11 @@ class Role(BaseModel):
     paper_size: PaperSize | None
 
 
+class RoleName(BaseModel):
+    id: int
+    name: str
+
+
 class GetRolesResponse(BaseResponse):
     total_count: int
     roles: list[Role]
@@ -23,6 +28,11 @@ class GetRolesResponse(BaseResponse):
 
 class GetRoleResponse(BaseResponse, Role):
     pass
+
+
+class GetRolesNameResponse(BaseResponse):
+    total_count: int
+    roles: list[RoleName]
 
 
 class CreateRoleItem(BaseModel):
