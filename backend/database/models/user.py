@@ -21,4 +21,5 @@ class User(Model):
             "id": self.id,
             "username": self.username,
             "role_id": self.role_id,
+            "created_at": self.created_at,
         }
