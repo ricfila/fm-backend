@@ -23,18 +23,12 @@ async def create_role(
     **Permission**: can_administer
     """
 
-    new_role = Role(name=item.name, paper_size=item.paper_size)
-
-    for permission, value in item.permissions.items():
-        setattr(new_role, permission, value)
+    new_role = Role(name=item.name)
 
     try:
         await new_role.save()
 
     except IntegrityError:
         raise Conflict("Role already exists")
-
-    except ValueError as e:
-        raise Conflict(e.args[0])
 
     return BaseResponse()

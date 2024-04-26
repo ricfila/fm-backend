@@ -42,4 +42,9 @@ class Role(Model):
         }
 
     async def to_dict(self) -> dict:
-        return {"id": self.id, "name": self.name}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "permissions": await self.get_permissions(),
+            "paper_size": self.paper_size,
+        }

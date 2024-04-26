@@ -7,6 +7,8 @@ from backend.utils import PaperSize, Permission
 class Role(BaseModel):
     id: int
     name: str
+    permissions: dict[Permission, bool]
+    paper_size: PaperSize | None
 
 
 class GetRolesResponse(BaseResponse):
@@ -14,27 +16,17 @@ class GetRolesResponse(BaseResponse):
     roles: list[Role]
 
 
-class GetRoleResponse(BaseResponse):
-    id: int
-    name: str
-    permissions: dict[Permission, bool]
-    paper_size: PaperSize | None
+class GetRoleResponse(BaseResponse, Role):
+    pass
 
 
 class CreateRoleItem(BaseModel):
     name: str
-    permissions: dict[Permission, bool] = dict()
-    paper_size: PaperSize | None = None
 
     @field_validator("name")
     @classmethod
     def validate_name_field(cls, name: str):
         return _validate_name_field(name)
-
-    @field_validator("permissions")
-    @classmethod
-    def validate_permissions_field(cls, permissions: dict[Permission, bool]):
-        return _validate_permissions_field(permissions)
 
 
 class UpdateRoleNameItem(BaseModel):
