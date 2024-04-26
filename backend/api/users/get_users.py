@@ -22,8 +22,10 @@ async def get_users(
     **Permission**: can_administer
     """
 
-    users = (
-        await User.exclude(id=token.user_id).all().offset(offset).limit(limit)
-    )
+    users_query = User.exclude(id=token.user_id)
+    total_count = await users_query.count()
+    users = await users_query.offset(offset).limit(limit)
 
-    return GetUsersResponse(users=[await user.to_dict() for user in users])
+    return GetUsersResponse(
+        total_count=total_count, users=[await user.to_dict() for user in users]
+    )

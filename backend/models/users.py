@@ -13,6 +13,7 @@ class User(BaseModel):
 
 
 class GetUsersResponse(BaseResponse):
+    total_count: int
     users: list[User]
 
 
