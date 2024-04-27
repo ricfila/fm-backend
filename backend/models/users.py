@@ -38,3 +38,7 @@ class UpdateUserPasswordItem(BaseModel):
     @classmethod
     def validate_password_field(cls, password: str):
         return validate_password_field(password)
+
+
+class UpdateUserRoleItem(BaseModel):
+    role_id: int
