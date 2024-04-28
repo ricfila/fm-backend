@@ -23,7 +23,7 @@ class RoleName(BaseModel):
 
 class GetRolesResponse(BaseResponse):
     total_count: int
-    roles: list[Role]
+    roles: list[Role | RoleName]
 
 
 class GetRoleResponse(BaseResponse, Role):
