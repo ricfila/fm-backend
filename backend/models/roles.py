@@ -21,6 +21,15 @@ class RoleName(BaseModel):
     name: str
 
 
+class CreateRoleItem(BaseModel):
+    name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_field(cls, name: str):
+        return validate_name_field(name)
+
+
 class CreateRoleResponse(BaseResponse):
     role: Role
 
@@ -32,15 +41,6 @@ class GetRolesResponse(BaseResponse):
 
 class GetRoleResponse(BaseResponse, Role):
     pass
-
-
-class CreateRoleItem(BaseModel):
-    name: str
-
-    @field_validator("name")
-    @classmethod
-    def validate_name_field(cls, name: str):
-        return validate_name_field(name)
 
 
 class UpdateRoleNameItem(BaseModel):

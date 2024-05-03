@@ -14,5 +14,8 @@ class Subcategory(Model):
     class Meta:
         table = "subcategory"
 
+    async def to_dict_name(self) -> dict:
+        return {"id": self.id, "name": self.name}
+
     async def to_dict(self) -> dict:
         return {"id": self.id, "name": self.name, "order": self.order}

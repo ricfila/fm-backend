@@ -13,7 +13,7 @@ delete_role_router = APIRouter()
 @check_role(Permission.CAN_ADMINISTER)
 async def delete_role(role_id: int, token: TokenJwt = Depends(validate_token)):
     """
-    Get information about a role.
+    Delete a role from the id.
 
      **Permission**: can_administer
     """
