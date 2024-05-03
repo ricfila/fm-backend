@@ -19,10 +19,10 @@ CREATE TABLE IF NOT EXISTS "user" (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS subcategories (
+CREATE TABLE IF NOT EXISTS subcategory (
     id SERIAL PRIMARY KEY,
     name varchar(32) UNIQUE NOT NULL,
-    "order" integer UNIQUE NOT NULL
+    "order" integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product (
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS product (
     is_priority bool DEFAULT FALSE NOT NULL,
     price float NOT NULL,
     category categories NOT NULL,
-    subcategory_id SERIAL REFERENCES subcategories (id) NOT NULL
+    subcategory_id SERIAL REFERENCES subcategory (id) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_ingredient (

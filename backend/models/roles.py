@@ -21,6 +21,10 @@ class RoleName(BaseModel):
     name: str
 
 
+class CreateRoleResponse(BaseResponse):
+    role: Role
+
+
 class GetRolesResponse(BaseResponse):
     total_count: int
     roles: list[Role | RoleName]
@@ -28,11 +32,6 @@ class GetRolesResponse(BaseResponse):
 
 class GetRoleResponse(BaseResponse, Role):
     pass
-
-
-class GetRolesNameResponse(BaseResponse):
-    total_count: int
-    roles: list[RoleName]
 
 
 class CreateRoleItem(BaseModel):

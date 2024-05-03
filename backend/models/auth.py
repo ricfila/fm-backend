@@ -1,12 +1,17 @@
 from pydantic import BaseModel, field_validator
 
 from backend.models import BaseResponse
+from backend.models.users import User
 from backend.utils import validate_password_field, validate_username_field
 
 
 class LoginResponse(BaseResponse):
     access_token: str
     token_type: str = "bearer"
+
+
+class RegisterUserResponse(BaseResponse):
+    user: User
 
 
 class RegisterItem(BaseModel):

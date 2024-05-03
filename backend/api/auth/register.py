@@ -4,15 +4,14 @@ from tortoise.exceptions import IntegrityError
 
 from backend.database.models import Role, User
 from backend.decorators import check_role
-from backend.models import BaseResponse
-from backend.models.auth import RegisterItem
+from backend.models.auth import RegisterItem, RegisterUserResponse
 from backend.models.error import BadRequest, Conflict, NotFound
 from backend.utils import Permission, TokenJwt, validate_token
 
 register_router = APIRouter(prefix="/register")
 
 
-@register_router.post("/", response_model=BaseResponse)
+@register_router.post("/", response_model=RegisterUserResponse)
 @check_role(Permission.CAN_ADMINISTER)
 async def register(
     item: RegisterItem, token: TokenJwt = Depends(validate_token)
@@ -38,4 +37,4 @@ async def register(
     except IntegrityError:
         raise Conflict("User already exists")
 
-    return BaseResponse()
+    return RegisterUserResponse(user=await user.to_dict())

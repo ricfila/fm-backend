@@ -3,15 +3,14 @@ from tortoise.exceptions import IntegrityError
 
 from backend.database.models import Role
 from backend.decorators import check_role
-from backend.models import BaseResponse
 from backend.models.error import Conflict
-from backend.models.roles import CreateRoleItem
+from backend.models.roles import CreateRoleItem, CreateRoleResponse
 from backend.utils import Permission, TokenJwt, validate_token
 
 create_role_router = APIRouter()
 
 
-@create_role_router.post("/", response_model=BaseResponse)
+@create_role_router.post("/", response_model=CreateRoleResponse)
 @check_role(Permission.CAN_ADMINISTER)
 async def create_role(
     item: CreateRoleItem,
@@ -31,4 +30,4 @@ async def create_role(
     except IntegrityError:
         raise Conflict("Role already exists")
 
-    return BaseResponse()
+    return CreateRoleResponse(role=await new_role.to_dict())
