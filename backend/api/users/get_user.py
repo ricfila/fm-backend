@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 
 from backend.database.models import User
-from backend.utils.enums import Permission
+from backend.models.error import NotFound, Unauthorized
 from backend.models.users import GetUserResponse
-from backend.models.error import Unauthorized, NotFound
 from backend.utils import TokenJwt, validate_token
+from backend.utils.enums import Permission
 
 get_user_router = APIRouter()
 

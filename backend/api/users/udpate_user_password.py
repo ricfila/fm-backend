@@ -1,6 +1,6 @@
+from argon2 import PasswordHasher
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
-from argon2 import PasswordHasher
 
 from backend.database.models import User
 from backend.models import BaseResponse
