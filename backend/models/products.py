@@ -1,3 +1,5 @@
+import datetime
+
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
@@ -21,6 +23,25 @@ class Product(BaseModel):
 class ProductName(BaseModel):
     id: int
     name: str
+
+
+class AddProductDateItem(BaseModel):
+    start_date: datetime.datetime
+    end_date: datetime.datetime
+
+
+class AddProductIngredientItem(BaseModel):
+    name: str
+    price: float = Field(ge=0)
+
+
+class AddProductRoleItem(BaseModel):
+    role_id: int
+
+
+class AddProductVariantItem(BaseModel):
+    name: str
+    price: float = Field(ge=0)
 
 
 class CreateProductItem(BaseModel):

@@ -16,6 +16,25 @@ class ProductDate(Model):
         table = "product_date"
         unique_together = ("start_date", "end_date", "product_id")
 
+    async def check_date_overlaps(self):
+        existing_records = await ProductDate.filter(
+            product_id=self.product_id
+        ).all()
+
+        for record in existing_records:
+            if (self.start_date < record.end_date) and (
+                self.end_date > record.start_date
+            ):
+                return True
+
+        return False
+
+    async def save(self, *args, **kwargs):
+        if await self.check_date_overlaps():
+            raise ValueError("Duplicate date")
+
+        await super().save(*args, **kwargs)
+
     async def to_dict(self):
         return {
             "id": self.id,
