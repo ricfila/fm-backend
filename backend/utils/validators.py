@@ -48,3 +48,12 @@ def validate_permissions_field(permissions: dict[Permission, bool]):
         raise ValueError("The `permissions` field can't be administrators")
 
     return permissions
+
+
+def validate_order_field(order: int):
+    if order < 0:
+        raise ValueError(
+            "The `order` field must be greater than or equal to 0"
+        )
+
+    return order
