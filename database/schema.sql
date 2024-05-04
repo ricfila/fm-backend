@@ -35,23 +35,17 @@ CREATE TABLE IF NOT EXISTS product (
     subcategory_id SERIAL REFERENCES subcategory (id) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS product_ingredient (
-    id SERIAL PRIMARY KEY,
-    name varchar(32) UNIQUE NOT NULL,
-    price float NOT NULL,
-    product_id SERIAL REFERENCES product (id) NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS product_date (
     id SERIAL PRIMARY KEY,
-    start_date BIGINT DEFAULT extract(EPOCH FROM now())::int,
-    end_date BIGINT DEFAULT extract(EPOCH FROM now())::int,
+    start_date TIMESTAMPTZ NOT NULL,
+    end_date TIMESTAMPTZ NOT NULL,
     product_id SERIAL REFERENCES product (id) NOT NULL
+    CONSTRAINT valid_date_range CHECK (start_date < end_date)
 );
 
-CREATE TABLE IF NOT EXISTS product_variant (
+CREATE TABLE IF NOT EXISTS product_ingredient (
     id SERIAL PRIMARY KEY,
-    name varchar(32) UNIQUE NOT NULL,
+    name varchar(32) NOT NULL,
     price float NOT NULL,
     product_id SERIAL REFERENCES product (id) NOT NULL
 );
@@ -61,3 +55,22 @@ CREATE TABLE IF NOT EXISTS product_role (
     role_id SERIAL REFERENCES role (id) NOT NULL,
     product_id SERIAL REFERENCES product (id) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS product_variant (
+    id SERIAL PRIMARY KEY,
+    name varchar(32) NOT NULL,
+    price float NOT NULL,
+    product_id SERIAL REFERENCES product (id) NOT NULL
+);
+
+CREATE UNIQUE INDEX idx_unique_product_date
+ON product_date (product_id, start_date, end_date);
+
+CREATE UNIQUE INDEX idx_unique_product_ingredient
+ON product_ingredient (name, product_id);
+
+CREATE UNIQUE INDEX idx_unique_product_role
+ON product_role (role_id, product_id);
+
+CREATE UNIQUE INDEX idx_unique_product_variant
+ON product_variant (name, product_id);

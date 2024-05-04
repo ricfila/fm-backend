@@ -1,4 +1,5 @@
 __all__ = (
+    "Category",
     "PaperSize",
     "Permission",
     "TokenJwt",
@@ -12,7 +13,7 @@ __all__ = (
     "validate_username_field",
 )
 
-from .enums import PaperSize, Permission
+from .enums import Category, PaperSize, Permission
 from .token_jwt import TokenJwt, decode_jwt, encode_jwt, validate_token
 from .validators import (
     validate_name_field,
