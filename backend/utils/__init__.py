@@ -10,6 +10,7 @@ __all__ = (
     "validate_order_field",
     "validate_password_field",
     "validate_permissions_field",
+    "validate_short_name_field",
     "validate_username_field",
 )
 
@@ -20,5 +21,6 @@ from .validators import (
     validate_order_field,
     validate_password_field,
     validate_permissions_field,
+    validate_short_name_field,
     validate_username_field,
 )

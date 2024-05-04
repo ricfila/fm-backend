@@ -10,7 +10,7 @@ class ProductDate(Model):
     id = fields.IntField(pk=True)
     start_date = fields.DatetimeField()
     end_date = fields.DatetimeField()
-    product_id = fields.ForeignKeyField("models.Product")
+    product = fields.ForeignKeyField("models.Product")
 
     class Meta:
         table = "product_date"

@@ -8,8 +8,8 @@ class ProductRole(Model):
     """
 
     id = fields.IntField(pk=True)
-    role_id = fields.ForeignKeyField("models.Role")
-    product_id = fields.ForeignKeyField("models.Product")
+    role = fields.ForeignKeyField("models.Role")
+    product = fields.ForeignKeyField("models.Product")
 
     class Meta:
         table = "product_role"

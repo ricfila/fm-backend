@@ -15,12 +15,19 @@ class Product(Model):
     is_priority = fields.BooleanField(default=False)
     price = fields.FloatField()
     category = fields.CharEnumField(Category)
-    subcategory_id = fields.ForeignKeyField(
+    subcategory = fields.ForeignKeyField(
         "models.Subcategory", related_name="subcategory_id"
     )
 
     class Meta:
         table = "product"
+
+    async def to_dict_name(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "short_name": self.short_name,
+        }
 
     async def to_dict(self):
         return {

@@ -21,7 +21,7 @@ async def update_role_name(
     """
     Update name of role.
 
-     **Permission**: can_administer
+    **Permission**: can_administer
     """
 
     role = await Role.get_or_none(id=role_id)

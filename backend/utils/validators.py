@@ -40,6 +40,18 @@ def validate_name_field(name: str):
     return name
 
 
+def validate_short_name_field(short_name: str):
+    if not short_name:
+        raise ValueError("The `short_name` field can not be empty")
+
+    if len(short_name) > 20:
+        raise ValueError(
+            "The `short_name` field must have a maximum length of 20 characters"
+        )
+
+    return short_name
+
+
 def validate_permissions_field(permissions: dict[Permission, bool]):
     if (
         Permission.CAN_ADMINISTER in permissions

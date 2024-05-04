@@ -22,7 +22,7 @@ async def update_role_paper_size(
     """
     Update paper size of role.
 
-     **Permission**: can_administer
+    **Permission**: can_administer
     """
 
     role = await Role.get_or_none(id=role_id)

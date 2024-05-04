@@ -15,7 +15,7 @@ async def delete_role(role_id: int, token: TokenJwt = Depends(validate_token)):
     """
     Delete a role from the id.
 
-     **Permission**: can_administer
+    **Permission**: can_administer
     """
 
     role = await Role.get_or_none(id=role_id)

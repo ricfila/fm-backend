@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS product_date (
     id SERIAL PRIMARY KEY,
     start_date TIMESTAMPTZ NOT NULL,
     end_date TIMESTAMPTZ NOT NULL,
-    product_id SERIAL REFERENCES product (id) NOT NULL
+    product_id SERIAL REFERENCES product (id) ON DELETE CASCADE NOT NULL
     CONSTRAINT valid_date_range CHECK (start_date < end_date)
 );
 
@@ -47,20 +47,20 @@ CREATE TABLE IF NOT EXISTS product_ingredient (
     id SERIAL PRIMARY KEY,
     name varchar(32) NOT NULL,
     price float NOT NULL,
-    product_id SERIAL REFERENCES product (id) NOT NULL
+    product_id SERIAL REFERENCES product (id) ON DELETE CASCADE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_role (
     id SERIAL PRIMARY KEY,
-    role_id SERIAL REFERENCES role (id) NOT NULL,
-    product_id SERIAL REFERENCES product (id) NOT NULL
+    role_id SERIAL REFERENCES role (id) ON DELETE CASCADE NOT NULL,
+    product_id SERIAL REFERENCES product (id) ON DELETE CASCADE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_variant (
     id SERIAL PRIMARY KEY,
     name varchar(32) NOT NULL,
     price float NOT NULL,
-    product_id SERIAL REFERENCES product (id) NOT NULL
+    product_id SERIAL REFERENCES product (id) ON DELETE CASCADE NOT NULL
 );
 
 CREATE UNIQUE INDEX idx_unique_product_date
