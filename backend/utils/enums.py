@@ -2,8 +2,8 @@ from enum import StrEnum
 
 
 class Category(StrEnum):
-    FOODS = "food"
-    DRINKS = "drink"
+    FOOD = "food"
+    DRINK = "drink"
 
 
 class PaperSize(StrEnum):

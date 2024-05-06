@@ -23,6 +23,7 @@ class Product(BaseModel):
 class ProductName(BaseModel):
     id: int
     name: str
+    short_name: str
 
 
 class AddProductDateItem(BaseModel):
