@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     id SERIAL PRIMARY KEY,
     username varchar(32) UNIQUE NOT NULL,
     password text NOT NULL,
-    role_id SERIAL REFERENCES role (id) NOT NULL,
+    role_id SERIAL REFERENCES role (id) ON DELETE CASCADE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS product (
     is_priority bool DEFAULT FALSE NOT NULL,
     price float NOT NULL,
     category categories NOT NULL,
-    subcategory_id SERIAL REFERENCES subcategory (id) NOT NULL
+    subcategory_id SERIAL REFERENCES subcategory (id) ON DELETE CASCADE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_date (
