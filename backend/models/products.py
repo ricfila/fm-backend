@@ -20,6 +20,29 @@ class Product(BaseModel):
     subcategory_id: int
 
 
+class ProductDate(BaseModel):
+    id: int
+    start_date: datetime.datetime
+    end_date: datetime.datetime
+
+
+class ProductIngredient(BaseModel):
+    id: int
+    name: str
+    price: float
+
+
+class ProductRole(BaseModel):
+    id: int
+    role_id: int
+
+
+class ProductVariant(BaseModel):
+    id: int
+    name: str
+    price: float
+
+
 class ProductName(BaseModel):
     id: int
     name: str
@@ -69,6 +92,22 @@ class CreateProductResponse(BaseResponse):
 
 class GetProductResponse(BaseResponse, Product):
     pass
+
+
+class GetProductDatesResponse(BaseResponse):
+    product_dates: list[ProductDate]
+
+
+class GetProductIngredientsResponse(BaseResponse):
+    product_ingredients: list[ProductIngredient]
+
+
+class GetProductRolesResponse(BaseResponse):
+    product_roles: list[ProductRole]
+
+
+class GetProductVariantsResponse(BaseResponse):
+    product_variants: list[ProductVariant]
 
 
 class GetProductsResponse(BaseResponse):

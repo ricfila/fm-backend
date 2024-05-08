@@ -1,19 +1,21 @@
 from fastapi import APIRouter, Depends
 
-from backend.database.models import Product, ProductRole
+from backend.database.models import Product, ProductRole, ProductDate
 from backend.models.error import NotFound, Unauthorized
-from backend.models.products import GetProductResponse
+from backend.models.products import GetProductDatesResponse
 from backend.utils import TokenJwt, validate_token
 
-get_product_router = APIRouter()
+get_product_date_router = APIRouter()
 
 
-@get_product_router.get("/{product_id}", response_model=GetProductResponse)
-async def get_product(
+@get_product_date_router.get(
+    "/{product_id}/date", response_model=GetProductDatesResponse
+)
+async def get_product_date(
     product_id: int, token: TokenJwt = Depends(validate_token)
 ):
     """
-    Get information about a product.
+    Get information about a product date.
     """
 
     product = await Product.get_or_none(id=product_id)
@@ -31,12 +33,10 @@ async def get_product(
                 "You do not have permission to get this product"
             )
 
-    return GetProductResponse(
-        id=product_id,
-        name=product.name,
-        short_name=product.short_name,
-        is_priority=product.is_priority,
-        price=product.price,
-        category=product.category,
-        subcategory_id=product.subcategory_id,
+    product_dates = await ProductDate.filter(product=product)
+
+    return GetProductDatesResponse(
+        product_dates=[
+            await product_date.to_dict() for product_date in product_dates
+        ]
     )
