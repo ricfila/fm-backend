@@ -12,6 +12,8 @@ class ProductIngredient(Model):
     price = fields.FloatField()
     product = fields.ForeignKeyField("models.Product", "ingredients")
 
+    product_id: int
+
     class Meta:
         table = "product_ingredient"
         unique_together = ("name", "product_id")

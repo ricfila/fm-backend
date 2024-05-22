@@ -101,6 +101,10 @@ class GetProductResponse(BaseResponse, Product):
     pass
 
 
+class GetProductAdministratorResponse(BaseResponse, ProductAdministrator):
+    pass
+
+
 class GetProductsResponse(BaseResponse):
     total_count: int
     products: list[Product | ProductAdministrator | ProductName]

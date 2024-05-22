@@ -139,4 +139,8 @@ async def internal_server_error_handler(_: Request, exc: Exception):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=Session.config.APP_HOST)
+    try:
+        uvicorn.run(app, host=Session.config.APP_HOST)
+
+    except KeyboardInterrupt:
+        pass

@@ -12,6 +12,8 @@ class ProductVariant(Model):
     price = fields.FloatField()
     product = fields.ForeignKeyField("models.Product", "variants")
 
+    product_id: int
+
     class Meta:
         table = "product_variant"
         unique_together = ("name", "product_id")

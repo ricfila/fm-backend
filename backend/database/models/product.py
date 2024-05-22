@@ -29,6 +29,8 @@ class Product(Model):
         "models.Subcategory", related_name="subcategory_id"
     )
 
+    subcategory_id: int
+
     dates: fields.ReverseRelation["ProductDate"]
     ingredients: fields.ReverseRelation["ProductIngredient"]
     roles: fields.ReverseRelation["ProductRole"]
@@ -60,7 +62,7 @@ class Product(Model):
             "is_priority": self.is_priority,
             "price": self.price,
             "category": self.category,
-            "subcategory_id": (await self.subcategory).id,
+            "subcategory_id": self.subcategory_id,
         }
 
         if include_dates:
