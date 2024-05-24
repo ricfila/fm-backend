@@ -6,7 +6,6 @@ from backend.models.error import NotFound, Unauthorized
 from backend.models.products import (
     GetProductsResponse,
     Product as ProductModel,
-    ProductAdministrator,
     ProductName,
 )
 from backend.utils import TokenJwt, validate_token
@@ -68,35 +67,21 @@ async def get_products(
     if not limit:
         limit = total_count - offset
 
-    products_response = []
     products = await products_query.offset(offset).limit(limit)
-
-    for product in products:
-        if only_name:
-            products_response.append(
-                ProductName(**await product.to_dict_name())
-            )
-        elif token.permissions["can_administer"]:
-            products_response.append(
-                ProductAdministrator(
-                    **await product.to_dict(
-                        include_dates,
-                        include_ingredients,
-                        include_roles,
-                        include_variants,
-                    )
-                )
-            )
-        else:
-            products_response.append(
-                ProductModel(
-                    **await product.to_dict(
-                        False, include_ingredients, False, include_variants
-                    )
-                )
-            )
 
     return GetProductsResponse(
         total_count=total_count,
-        products=products_response,
+        products=[
+            ProductName(**await product.to_dict_name())
+            if only_name
+            else ProductModel(
+                **await product.to_dict(
+                    include_dates,
+                    include_ingredients,
+                    include_roles,
+                    include_variants,
+                )
+            )
+            for product in products
+        ],
     )

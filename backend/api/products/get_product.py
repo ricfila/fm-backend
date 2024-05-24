@@ -2,18 +2,13 @@ from fastapi import APIRouter, Depends
 
 from backend.database.models import Product
 from backend.models.error import NotFound, Unauthorized
-from backend.models.products import (
-    GetProductResponse,
-    GetProductAdministratorResponse,
-)
+from backend.models.products import GetProductResponse
 from backend.utils import TokenJwt, validate_token
 
 get_product_router = APIRouter()
 
 
-@get_product_router.get(
-    "/{product_id}", response_model=GetProductAdministratorResponse
-)
+@get_product_router.get("/{product_id}", response_model=GetProductResponse)
 async def get_product(
     product_id: int,
     include_dates: bool = False,
@@ -51,11 +46,7 @@ async def get_product(
                 "You do not have permission to get this product"
             )
 
-    return (
-        GetProductAdministratorResponse
-        if token.permissions["can_administer"]
-        else GetProductResponse
-    )(
+    return GetProductResponse(
         **await product.to_dict(
             include_dates, include_ingredients, include_roles, include_variants
         )

@@ -41,13 +41,10 @@ class Product(BaseModel):
     price: float
     category: Category
     subcategory_id: int
-    ingredients: list[ProductIngredient] | None = None
-    variants: list[ProductVariant] | None = None
-
-
-class ProductAdministrator(Product):
     dates: list[ProductDate] | None = None
+    ingredients: list[ProductIngredient] | None = None
     roles: list[ProductRole] | None = None
+    variants: list[ProductVariant] | None = None
 
 
 class ProductName(BaseModel):
@@ -101,10 +98,6 @@ class GetProductResponse(BaseResponse, Product):
     pass
 
 
-class GetProductAdministratorResponse(BaseResponse, ProductAdministrator):
-    pass
-
-
 class GetProductsResponse(BaseResponse):
     total_count: int
-    products: list[Product | ProductAdministrator | ProductName]
+    products: list[Product | ProductName]
