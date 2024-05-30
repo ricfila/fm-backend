@@ -101,3 +101,37 @@ class GetProductResponse(BaseResponse, Product):
 class GetProductsResponse(BaseResponse):
     total_count: int
     products: list[Product | ProductName]
+
+
+class UpdateProductNameItem(BaseModel):
+    name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_field(cls, name: str):
+        return validate_name_field(name)
+
+
+class UpdateProductShortNameItem(BaseModel):
+    short_name: str
+
+    @field_validator("short_name")
+    @classmethod
+    def validate_short_name_field(cls, short_name: str):
+        return validate_short_name_field(short_name)
+
+
+class UpdateProductIsPriorityItem(BaseModel):
+    is_priority: bool
+
+
+class UpdateProductPriceItem(BaseModel):
+    price: float = Field(ge=0)
+
+
+class UpdateProductCategoryItem(BaseModel):
+    category: Category
+
+
+class UpdateProductSubcategoryItem(BaseModel):
+    subcategory_id: int
