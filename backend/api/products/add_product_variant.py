@@ -5,14 +5,14 @@ from backend.database.models import Product, ProductVariant
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
-from backend.models.products import AddProductVariantItem
+from backend.models.products import AddProductVariantItem, AddProductVariantResponse
 from backend.utils import Permission, TokenJwt, validate_token
 
 add_product_variant_router = APIRouter()
 
 
 @add_product_variant_router.post(
-    "/{product_id}/variant", response_model=BaseResponse
+    "/{product_id}/variant", response_model=AddProductVariantResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
 async def add_product_variant(
@@ -41,4 +41,4 @@ async def add_product_variant(
     except IntegrityError:
         raise Conflict("Product variant already exists")
 
-    return BaseResponse()
+    return AddProductVariantResponse(variant=await new_product_variant.to_dict())

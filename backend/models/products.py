@@ -58,18 +58,34 @@ class AddProductDateItem(BaseModel):
     end_date: datetime.datetime
 
 
+class AddProductDateResponse(BaseResponse):
+    date: ProductDate
+
+
 class AddProductIngredientItem(BaseModel):
     name: str
     price: float = Field(ge=0)
+
+
+class AddProductIngredientResponse(BaseResponse):
+    ingredient: ProductIngredient
 
 
 class AddProductRoleItem(BaseModel):
     role_id: int
 
 
+class AddProductRoleResponse(BaseResponse):
+    role: ProductRole
+
+
 class AddProductVariantItem(BaseModel):
     name: str
     price: float = Field(ge=0)
+
+
+class AddProductVariantResponse(BaseResponse):
+    variant: ProductVariant
 
 
 class CreateProductItem(BaseModel):

@@ -5,14 +5,14 @@ from backend.database.models import Product, ProductRole, Role
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound, Unauthorized
-from backend.models.products import AddProductRoleItem
+from backend.models.products import AddProductRoleItem, AddProductRoleResponse
 from backend.utils import Permission, TokenJwt, validate_token
 
 add_product_role_router = APIRouter()
 
 
 @add_product_role_router.post(
-    "/{product_id}/role", response_model=BaseResponse
+    "/{product_id}/role", response_model=AddProductRoleResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
 async def add_product_role(
@@ -47,4 +47,4 @@ async def add_product_role(
     except IntegrityError:
         raise Conflict("Product role already exists")
 
-    return BaseResponse()
+    return AddProductRoleResponse(role=await new_product_role.to_dict())
