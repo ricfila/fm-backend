@@ -15,6 +15,7 @@ async def get_roles(
     offset: int = 0,
     limit: int | None = None,
     only_name: bool = False,
+    can_order: bool | None = None,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -24,6 +25,10 @@ async def get_roles(
     """
 
     roles_query = Role.exclude(id=token.role_id)
+
+    if can_order is not None:
+        roles_query = roles_query.filter(can_order=can_order)
+
     total_count = await roles_query.count()
 
     if not limit:
