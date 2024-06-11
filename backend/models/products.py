@@ -25,6 +25,7 @@ class ProductIngredient(BaseModel):
 class ProductRole(BaseModel):
     id: int
     role_id: int
+    product_id: int
 
 
 class ProductVariant(BaseModel):
