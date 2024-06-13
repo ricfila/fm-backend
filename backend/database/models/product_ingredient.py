@@ -8,7 +8,7 @@ class ProductIngredient(Model):
     """
 
     id = fields.IntField(pk=True)
-    name = fields.CharField(32, unique=True)
+    name = fields.CharField(32)
     price = fields.FloatField()
     product = fields.ForeignKeyField("models.Product", "ingredients")
 
