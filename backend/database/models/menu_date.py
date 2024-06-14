@@ -1,6 +1,8 @@
 from tortoise import fields
 from tortoise.models import Model
 
+from backend.utils import is_valid_date
+
 
 class MenuDate(Model):
     """
@@ -18,6 +20,9 @@ class MenuDate(Model):
         table = "menu_date"
         unique_together = ("start_date", "end_date", "menu_id")
 
+    async def is_valid_menu_date(self) -> bool:
+        return is_valid_date(self.start_date, self.end_date)
+
     async def check_date_overlaps(self):
         existing_records = await MenuDate.filter(menu_id=self.menu_id).all()
 
@@ -30,6 +35,9 @@ class MenuDate(Model):
         return False
 
     async def save(self, *args, **kwargs):
+        if self.end_date < self.start_date:
+            raise ValueError("End date must be greater than start date")
+
         if await self.check_date_overlaps():
             raise ValueError("Duplicate date")
 

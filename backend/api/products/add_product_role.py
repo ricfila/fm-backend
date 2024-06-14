@@ -3,7 +3,6 @@ from tortoise.exceptions import IntegrityError
 
 from backend.database.models import Product, ProductRole, Role
 from backend.decorators import check_role
-from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound, Unauthorized
 from backend.models.products import AddProductRoleItem, AddProductRoleResponse
 from backend.utils import Permission, TokenJwt, validate_token

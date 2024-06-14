@@ -1,8 +1,7 @@
-import datetime
-import pytz
-
 from tortoise import fields
 from tortoise.models import Model
+
+from backend.utils import is_valid_date
 
 
 class ProductDate(Model):
@@ -22,12 +21,7 @@ class ProductDate(Model):
         unique_together = ("start_date", "end_date", "product_id")
 
     async def is_valid_product_date(self) -> bool:
-        current_time = datetime.datetime.now(pytz.UTC)
-
-        if current_time < self.start_date or current_time > self.end_date:
-            return False
-
-        return True
+        return is_valid_date(self.start_date, self.end_date)
 
     async def check_date_overlaps(self):
         existing_records = await ProductDate.filter(
@@ -43,6 +37,9 @@ class ProductDate(Model):
         return False
 
     async def save(self, *args, **kwargs):
+        if self.end_date < self.start_date:
+            raise ValueError("End date must be greater than start date")
+
         if await self.check_date_overlaps():
             raise ValueError("Duplicate date")
 

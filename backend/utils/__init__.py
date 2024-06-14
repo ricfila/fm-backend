@@ -1,4 +1,5 @@
 __all__ = (
+    "is_valid_date",
     "Category",
     "PaperSize",
     "Permission",
@@ -14,6 +15,7 @@ __all__ = (
     "validate_username_field",
 )
 
+from .date_utils import is_valid_date
 from .enums import Category, PaperSize, Permission
 from .token_jwt import TokenJwt, decode_jwt, encode_jwt, validate_token
 from .validators import (

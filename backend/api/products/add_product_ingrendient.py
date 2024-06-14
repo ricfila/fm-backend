@@ -3,9 +3,11 @@ from tortoise.exceptions import IntegrityError
 
 from backend.database.models import Product, ProductIngredient
 from backend.decorators import check_role
-from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
-from backend.models.products import AddProductIngredientItem, AddProductIngredientResponse
+from backend.models.products import (
+    AddProductIngredientItem,
+    AddProductIngredientResponse,
+)
 from backend.utils import Permission, TokenJwt, validate_token
 
 add_product_ingredient_router = APIRouter()
@@ -41,4 +43,6 @@ async def add_product_ingredient(
     except IntegrityError:
         raise Conflict("Product ingredient already exists")
 
-    return AddProductIngredientResponse(ingredient=await new_product_ingredient.to_dict())
+    return AddProductIngredientResponse(
+        ingredient=await new_product_ingredient.to_dict()
+    )

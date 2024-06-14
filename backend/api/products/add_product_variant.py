@@ -3,9 +3,11 @@ from tortoise.exceptions import IntegrityError
 
 from backend.database.models import Product, ProductVariant
 from backend.decorators import check_role
-from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
-from backend.models.products import AddProductVariantItem, AddProductVariantResponse
+from backend.models.products import (
+    AddProductVariantItem,
+    AddProductVariantResponse,
+)
 from backend.utils import Permission, TokenJwt, validate_token
 
 add_product_variant_router = APIRouter()
@@ -41,4 +43,6 @@ async def add_product_variant(
     except IntegrityError:
         raise Conflict("Product variant already exists")
 
-    return AddProductVariantResponse(variant=await new_product_variant.to_dict())
+    return AddProductVariantResponse(
+        variant=await new_product_variant.to_dict()
+    )
