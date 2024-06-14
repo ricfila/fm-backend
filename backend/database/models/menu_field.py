@@ -14,7 +14,7 @@ class MenuField(Model):
 
     id = fields.IntField(pk=True)
     name = fields.CharField(32)
-    max_element = fields.IntField()
+    max_sortable_elements = fields.IntField()
     is_optional = fields.BooleanField(default=False)
     menu = fields.ForeignKeyField("models.Menu", "menu_fields")
 
@@ -32,7 +32,7 @@ class MenuField(Model):
         return {
             "id": self.id,
             "name": self.name,
-            "max_element": self.max_element,
+            "max_sortable_elements": self.max_sortable_elements,
             "is_optional": self.is_optional,
             "menu_id": self.menu_id,
             "products": [
