@@ -41,6 +41,23 @@ class Menu(BaseModel):
     roles: list[MenuRole] | None = None
 
 
+class AddMenuDateItem(BaseModel):
+    start_date: datetime.datetime
+    end_date: datetime.datetime
+
+
+class AddMenuDateResponse(BaseResponse):
+    date: MenuDate
+
+
+class AddMenuRoleItem(BaseModel):
+    role_id: int
+
+
+class AddMenuRoleResponse(BaseResponse):
+    role: MenuRole
+
+
 class CreateMenuItem(BaseModel):
     name: str
     short_name: str
@@ -68,3 +85,25 @@ class GetMenuResponse(BaseResponse, Menu):
 class GetMenusResponse(BaseResponse):
     total_count: int
     menus: list[Menu]
+
+
+class UpdateMenuNameItem(BaseModel):
+    name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_field(cls, name: str):
+        return validate_name_field(name)
+
+
+class UpdateMenuShortNameItem(BaseModel):
+    short_name: str
+
+    @field_validator("short_name")
+    @classmethod
+    def validate_short_name_field(cls, short_name: str):
+        return validate_short_name_field(short_name)
+
+
+class UpdateMenuPriceItem(BaseModel):
+    price: float = Field(ge=0)
