@@ -1,6 +1,8 @@
 __all__ = (
     "menu",
     "add_menu_date_router",
+    "add_menu_field_router",
+    "add_menu_field_product_router",
     "add_menu_role_router",
     "create_menu_router",
     "delete_menu_router",
@@ -16,6 +18,8 @@ __all__ = (
 from fastapi import APIRouter
 
 from .add_menu_date import add_menu_date_router
+from .add_menu_field import add_menu_field_router
+from .add_menu_field_product import add_menu_field_product_router
 from .add_menu_role import add_menu_role_router
 from .create_menu import create_menu_router
 from .delete_menu import delete_menu_router
@@ -29,6 +33,8 @@ from .update_menu_short_name import update_menu_short_name_router
 
 menu = APIRouter(prefix="/menu", tags=["menu"])
 menu.include_router(add_menu_date_router)
+menu.include_router(add_menu_field_router)
+menu.include_router(add_menu_field_product_router)
 menu.include_router(add_menu_role_router)
 menu.include_router(create_menu_router)
 menu.include_router(delete_menu_router)

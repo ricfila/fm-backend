@@ -50,6 +50,29 @@ class AddMenuDateResponse(BaseResponse):
     date: MenuDate
 
 
+class AddMenuFieldItem(BaseModel):
+    name: str
+    max_sortable_elements: int
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_field(cls, name: str):
+        return validate_name_field(name)
+
+
+class AddMenuFieldResponse(BaseResponse):
+    field: MenuField
+
+
+class AddMenuFieldProductItem(BaseModel):
+    product_id: int
+    price: float = Field(ge=0)
+
+
+class AddMenuFieldProductResponse(BaseResponse):
+    field_product: MenuFieldProduct
+
+
 class AddMenuRoleItem(BaseModel):
     role_id: int
 
