@@ -7,6 +7,8 @@ __all__ = (
     "create_menu_router",
     "delete_menu_router",
     "delete_menu_date_router",
+    "delete_menu_field_router",
+    "delete_menu_field_product_router",
     "delete_menu_role_router",
     "get_menu_router",
     "get_menus_router",
@@ -24,6 +26,8 @@ from .add_menu_role import add_menu_role_router
 from .create_menu import create_menu_router
 from .delete_menu import delete_menu_router
 from .delete_menu_date import delete_menu_date_router
+from .delete_menu_field import delete_menu_field_router
+from .delete_menu_field_product import delete_menu_field_product_router
 from .delete_menu_role import delete_menu_role_router
 from .get_menu import get_menu_router
 from .get_menus import get_menus_router
@@ -39,6 +43,8 @@ menu.include_router(add_menu_role_router)
 menu.include_router(create_menu_router)
 menu.include_router(delete_menu_router)
 menu.include_router(delete_menu_date_router)
+menu.include_router(delete_menu_field_router)
+menu.include_router(delete_menu_field_product_router)
 menu.include_router(delete_menu_role_router)
 menu.include_router(get_menu_router)
 menu.include_router(get_menus_router)
