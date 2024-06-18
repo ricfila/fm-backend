@@ -1,0 +1,48 @@
+from fastapi import APIRouter, Depends
+from tortoise.exceptions import IntegrityError
+
+from backend.database.models import Menu, MenuField
+from backend.decorators import check_role
+from backend.models import BaseResponse
+from backend.models.error import Conflict, NotFound
+from backend.models.menu import UpdateMenuFieldNameItem
+from backend.utils import Permission, TokenJwt, validate_token
+
+update_menu_field_name_router = APIRouter()
+
+
+@update_menu_field_name_router.put(
+    "/{menu_id}/field/{menu_field_id}/name", response_model=BaseResponse
+)
+@check_role(Permission.CAN_ADMINISTER)
+async def update_menu_field_name(
+    menu_id: int,
+    menu_field_id: int,
+    item: UpdateMenuFieldNameItem,
+    token: TokenJwt = Depends(validate_token),
+):
+    """
+    Update name of menu field.
+
+    **Permission**: can_administer
+    """
+
+    menu = await Menu.get_or_none(id=menu_id)
+
+    if not menu:
+        raise NotFound("Menu not found")
+
+    menu_field = await MenuField.get_or_none(id=menu_field_id, menu=menu)
+
+    if not menu_field:
+        raise NotFound("Menu field not found")
+
+    menu_field.name = item.name
+
+    try:
+        await menu_field.save()
+
+    except IntegrityError:
+        raise Conflict("Menu field already exists")
+
+    return BaseResponse()

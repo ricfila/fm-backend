@@ -110,6 +110,23 @@ class GetMenusResponse(BaseResponse):
     menus: list[Menu]
 
 
+class UpdateMenuFieldIsOptionalItem(BaseModel):
+    is_optional: bool
+
+
+class UpdateMenuFieldMaxSortableElementsItem(BaseModel):
+    max_sortable_elements: int
+
+
+class UpdateMenuFieldNameItem(BaseModel):
+    name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_field(cls, name: str):
+        return validate_name_field(name)
+
+
 class UpdateMenuNameItem(BaseModel):
     name: str
 
