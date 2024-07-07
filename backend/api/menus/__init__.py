@@ -1,5 +1,5 @@
 __all__ = (
-    "menu",
+    "menus",
     "add_menu_date_router",
     "add_menu_field_router",
     "add_menu_field_product_router",

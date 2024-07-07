@@ -2,6 +2,7 @@ __all__ = (
     "api",
     "auth",
     "menus",
+    "orders",
     "products",
     "roles",
     "subcategories",
@@ -12,6 +13,7 @@ from fastapi import APIRouter
 
 from .auth import auth
 from .menus import menus
+from .orders import orders
 from .products import products
 from .roles import roles
 from .subcategories import subcategories
@@ -20,6 +22,7 @@ from .users import users
 api = APIRouter()
 api.include_router(auth)
 api.include_router(menus)
+api.include_router(orders)
 api.include_router(products)
 api.include_router(roles)
 api.include_router(subcategories)
