@@ -1,8 +1,11 @@
+import asyncio
+
 from backend.config import Config
 
 
 class Session:
     config: Config = None
+    lock: asyncio.Lock = asyncio.Lock()
 
     @classmethod
     def set_config(cls) -> None:
