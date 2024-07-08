@@ -1,7 +1,7 @@
 from tortoise import fields
 from tortoise.models import Model
 
-from backend.utils import is_valid_date
+from backend.database.utils import is_valid_date
 
 
 class ProductDate(Model):

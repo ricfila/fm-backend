@@ -4,10 +4,15 @@ from backend.config import Session
 from backend.database.models import Order
 from backend.decorators import check_role
 from backend.models import BaseResponse
-from backend.models.error import Conflict
+from backend.models.error import BadRequest, Conflict
 from backend.models.orders import CreateOrderItem
 from backend.utils import Permission, TokenJwt, validate_token
-from backend.utils.order_utils import check_products, create_order_products
+from backend.utils.order_utils import (
+    check_menus,
+    check_products,
+    create_order_menus,
+    create_order_products,
+)
 
 create_order_router = APIRouter()
 
@@ -25,14 +30,25 @@ async def create_order(
     """
 
     async with Session.lock:
-        # TODO: check input order
+        if not item.products and not item.menus:
+            raise BadRequest("NO_PRODUCTS_AND_MENUS")
 
-        has_error, error_code, _ = await check_products(
+        if not item.is_take_away and not item.guests:
+            raise BadRequest("SET_GUESTS_NUMBER")
+
+        has_error_products, error_code_products, _ = await check_products(
             item.products, token.role_id
         )
 
-        if has_error:
-            raise Conflict(error_code)
+        if has_error_products:
+            raise Conflict(error_code_products)
+
+        has_error_menus, error_code_menus, _ = await check_menus(
+            item.menus, token.role_id
+        )
+
+        if has_error_menus:
+            raise Conflict(error_code_menus)
 
         order = await Order.create(
             customer=item.customer,
@@ -43,5 +59,6 @@ async def create_order(
         )
 
         await create_order_products(item.products, order)
+        await create_order_menus(item.menus, order)
 
         return BaseResponse()

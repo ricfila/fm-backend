@@ -7,7 +7,7 @@ class CreateOrderProductItem(BaseModel):
     product_id: int
     variant_id: int | None = None
     ingredients: list[int] | None = []
-    quantity: int = Field(ge=1)
+    quantity: int | None = Field(ge=1, default=None)
 
     _price: int = 0
 
@@ -21,6 +21,8 @@ class CreateOrderMenuItem(BaseModel):
     menu_id: int
     fields: list[CreateOrderMenuFieldItem]
     quantity: int = Field(ge=1)
+
+    _price: int = 0
 
 
 class CreateOrderItem(BaseModel):

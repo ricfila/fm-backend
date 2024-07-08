@@ -10,7 +10,7 @@ class MenuFieldProduct(Model):
     id = fields.IntField(pk=True)
     price = fields.FloatField()
     product = fields.ForeignKeyField("models.Product")
-    menu_field = fields.ForeignKeyField("models.MenuField", "fields_products")
+    menu_field = fields.ForeignKeyField("models.MenuField", "field_products")
 
     product_id: int
     menu_field_id: int

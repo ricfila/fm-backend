@@ -15,7 +15,7 @@ class OrderProduct(Model):
     id = fields.IntField(pk=True)
     product = fields.ForeignKeyField("models.Product")
     price = fields.FloatField()
-    quantity = fields.IntField()
+    quantity = fields.IntField(null=True)
     variant = fields.ForeignKeyField("models.ProductVariant", null=True)
     order = fields.ForeignKeyField("models.Order", "order_products")
     order_menu_field = fields.ForeignKeyField(

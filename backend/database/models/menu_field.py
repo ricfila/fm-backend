@@ -20,14 +20,14 @@ class MenuField(Model):
 
     menu_id: int
 
-    fields_products: fields.ReverseRelation["MenuFieldProduct"]
+    field_products: fields.ReverseRelation["MenuFieldProduct"]
 
     class Meta:
         table = "menu_field"
         unique_together = ("name", "menu_id")
 
     async def to_dict(self):
-        await self.fetch_related("fields_products")
+        await self.fetch_related("field_products")
 
         return {
             "id": self.id,
@@ -36,6 +36,6 @@ class MenuField(Model):
             "is_optional": self.is_optional,
             "menu_id": self.menu_id,
             "products": [
-                await product.to_dict() for product in self.fields_products
+                await product.to_dict() for product in self.field_products
             ],
         }
