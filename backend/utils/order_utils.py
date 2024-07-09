@@ -234,10 +234,10 @@ async def check_menus(
                     },
                 )
 
-            if len(menu_field.field_products) < 1:
+            if len(field.products) < 1:
                 return (
                     True,
-                    "MENU_FIELD_PRODUCTS_NOT_EXISTS",
+                    "MISSING_MENU_FIELD_PRODUCTS",
                     {
                         "menu_id": menu.menu_id,
                         "menu_field_id": field.menu_field_id,
