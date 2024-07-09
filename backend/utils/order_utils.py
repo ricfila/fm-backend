@@ -17,9 +17,12 @@ from backend.models.orders import CreateOrderMenuItem, CreateOrderProductItem
 
 
 async def check_generic_product(
-    product: CreateOrderProductItem, product_db: Product
+    product: CreateOrderProductItem, product_db: Product, is_menu: bool = False
 ) -> tuple[bool, str, dict]:
     product_price = product_db.price
+
+    if is_menu:
+        product_price = 0
 
     if list(product_db.variants) and not product.variant_id:
         return (
@@ -126,8 +129,8 @@ async def create_order_products(
     for product in products:
         order_product = await OrderProduct.create(
             product_id=product.product_id,
-            price=product._price,
-            quantity=None if order_menu_field else product.quantity,
+            price=product._price * product.quantity,
+            quantity=product.quantity,
             variant_id=product.variant_id,
             order=order,
             order_menu_field=order_menu_field,
@@ -142,7 +145,9 @@ async def create_order_products(
 
 
 async def check_menu_products(
-    products: list[CreateOrderProductItem], menu_field: MenuField
+    products: list[CreateOrderProductItem],
+    menu_field: MenuField,
+    quantity: int,
 ) -> tuple[bool, str, dict]:
     for product in products:
         menu_field_product = await MenuFieldProduct.get_or_none(
@@ -165,7 +170,7 @@ async def check_menu_products(
             )
 
         variant_ingredients_check = await check_generic_product(
-            product, menu_field_product.product
+            product, menu_field_product.product, True
         )
 
         if variant_ingredients_check[0]:
@@ -181,7 +186,8 @@ async def check_menu_products(
                 error_details_updated,
             )
 
-        product._price = menu_field_product.price
+        product.quantity = quantity
+        product._price += menu_field_product.price
 
     return False, "", {}
 
@@ -255,7 +261,7 @@ async def check_menus(
                 )
 
             check_menu_field_products = await check_menu_products(
-                field.products, menu_field
+                field.products, menu_field, menu.quantity
             )
 
             if check_menu_field_products[0]:
@@ -275,7 +281,7 @@ async def create_order_menus(
     for menu in menus:
         order_menu = await OrderMenu.create(
             menu_id=menu.menu_id,
-            price=menu._price,
+            price=menu._price * menu.quantity,
             quantity=menu.quantity,
             order=order,
         )
