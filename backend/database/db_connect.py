@@ -1,9 +1,15 @@
 import re
 
+from asyncpg.connection import Connection
 from tortoise import Tortoise, connections
 
 from backend.config import Session
 from backend.database import models
+
+
+class MyConnection(Connection):
+    def transaction(self, *, isolation=None, readonly=False, deferrable=False):
+        return super().transaction(isolation="serializable")
 
 
 def is_snake_case(string):
@@ -25,6 +31,9 @@ async def init_db():
                         "user": conf.DB_USERNAME,
                         "password": conf.DB_PASSWORD,
                         "database": conf.DB_NAME,
+                        "minsize": 1,
+                        "maxsize": 1,
+                        "connection_class": MyConnection,
                     },
                 }
             },

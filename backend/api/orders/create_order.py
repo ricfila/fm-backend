@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
-from backend.config import Session
 from backend.database.models import Order
 from backend.decorators import check_role
 from backend.models import BaseResponse
@@ -29,13 +29,13 @@ async def create_order(
     **Permission**: can_order
     """
 
-    async with Session.lock:
-        if not item.products and not item.menus:
-            raise BadRequest("NO_PRODUCTS_AND_MENUS")
+    if not item.products and not item.menus:
+        raise BadRequest("NO_PRODUCTS_AND_MENUS")
 
-        if not item.is_take_away and not item.guests:
-            raise BadRequest("SET_GUESTS_NUMBER")
+    if not item.is_take_away and not item.guests:
+        raise BadRequest("SET_GUESTS_NUMBER")
 
+    async with in_transaction():
         has_error_products, error_code_products, _ = await check_products(
             item.products, token.role_id
         )
@@ -61,4 +61,4 @@ async def create_order(
         await create_order_products(item.products, order)
         await create_order_menus(item.menus, order)
 
-        return BaseResponse()
+    return BaseResponse()
