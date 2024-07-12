@@ -1,0 +1,26 @@
+from enum import Enum, auto
+
+
+class ErrorCodes(Enum):
+    # Order
+    # Create
+    INPUT_MENU_FIELD_PRODUCT_VARIANT = auto()
+    INPUT_PRODUCT_VARIANT = auto()
+    MENU_DATE_NOT_VALID = auto()
+    MENU_FIELD_NOT_EXIST = auto()
+    MENU_FIELD_PRODUCT_INGREDIENT_NOT_EXIST = auto()
+    MENU_FIELD_PRODUCT_VARIANT_NOT_EXIST = auto()
+    MENU_FIELD_PRODUCT_NOT_EXIST = auto()
+    MENU_FIELD_TOO_MANY_PRODUCTS = auto()
+    MENU_NOT_EXIST = auto()
+    MENU_ROLE_NOT_EXIST = auto()
+    MISSING_MENU_FIELD_PRODUCTS = auto()
+    MISSING_OBLIGATORY_MENU_FIELDS = auto()
+    MISSING_PRODUCT_QUANTITY = auto()
+    NO_PRODUCTS_AND_MENUS = auto()
+    PRODUCT_DATE_NOT_VALID = auto()
+    PRODUCT_INGREDIENT_NOT_EXIST = auto()
+    PRODUCT_NOT_EXIST = auto()
+    PRODUCT_ROLE_NOT_EXIST = auto()
+    PRODUCT_VARIANT_NOT_EXIST = auto()
+    SET_GUESTS_NUMBER = auto()

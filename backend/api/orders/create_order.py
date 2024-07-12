@@ -6,7 +6,7 @@ from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import BadRequest, Conflict
 from backend.models.orders import CreateOrderItem
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 from backend.utils.order_utils import (
     check_menus,
     check_products,
@@ -30,25 +30,31 @@ async def create_order(
     """
 
     if not item.products and not item.menus:
-        raise BadRequest("NO_PRODUCTS_AND_MENUS")
+        raise BadRequest(code=ErrorCodes.NO_PRODUCTS_AND_MENUS)
 
     if not item.is_take_away and not item.guests:
-        raise BadRequest("SET_GUESTS_NUMBER")
+        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
 
     async with in_transaction():
-        has_error_products, error_code_products, _ = await check_products(
-            item.products, token.role_id
-        )
+        (
+            has_error_products,
+            error_code_products,
+            error_details_products,
+        ) = await check_products(item.products, token.role_id)
 
         if has_error_products:
-            raise Conflict(error_code_products)
+            raise Conflict(
+                code=error_code_products, details=error_details_products
+            )
 
-        has_error_menus, error_code_menus, _ = await check_menus(
-            item.menus, token.role_id
-        )
+        (
+            has_error_menus,
+            error_code_menus,
+            error_details_menus,
+        ) = await check_menus(item.menus, token.role_id)
 
         if has_error_menus:
-            raise Conflict(error_code_menus)
+            raise Conflict(code=error_code_menus, details=error_details_menus)
 
         order = await Order.create(
             customer=item.customer,

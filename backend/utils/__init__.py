@@ -2,6 +2,7 @@ __all__ = (
     "Category",
     "PaperSize",
     "Permission",
+    "ErrorCodes",
     "TokenJwt",
     "decode_jwt",
     "encode_jwt",
@@ -15,6 +16,7 @@ __all__ = (
 )
 
 from .enums import Category, PaperSize, Permission
+from .error_codes import ErrorCodes
 from .token_jwt import TokenJwt, decode_jwt, encode_jwt, validate_token
 from .validators import (
     validate_name_field,
