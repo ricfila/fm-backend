@@ -35,7 +35,11 @@ async def create_order(
     if not item.is_take_away and not item.guests:
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
 
-    async with in_transaction():
+    async with in_transaction() as conn:
+        await conn.execute_query(
+            "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
+        )
+
         (
             has_error_products,
             error_code_products,

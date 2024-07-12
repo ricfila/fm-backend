@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from pydantic import BaseModel, Field, field_validator
 
 from backend.utils import validate_name_field
@@ -9,7 +11,7 @@ class CreateOrderProductItem(BaseModel):
     ingredients: list[int] = []
     quantity: int | None = Field(ge=1, default=None)
 
-    _price: int = 0
+    _price: Decimal = Decimal("0.00")
 
 
 class CreateOrderMenuFieldItem(BaseModel):
@@ -22,7 +24,7 @@ class CreateOrderMenuItem(BaseModel):
     fields: list[CreateOrderMenuFieldItem]
     quantity: int = Field(ge=1)
 
-    _price: int = 0
+    _price: Decimal = Decimal("0.00")
 
 
 class CreateOrderItem(BaseModel):

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from tortoise.query_utils import Prefetch
 
 from backend.database.models import (
@@ -16,14 +18,16 @@ from backend.database.models import (
 from backend.models.orders import CreateOrderMenuItem, CreateOrderProductItem
 from backend.utils import ErrorCodes
 
+ZERO_DECIMAL = Decimal("0.00")
+
 
 async def check_generic_product(
     product: CreateOrderProductItem, product_db: Product, is_menu: bool = False
 ) -> tuple[bool, ErrorCodes | None, dict | None]:
-    product_price = product_db.price
+    product_price = Decimal(product_db.price).quantize(ZERO_DECIMAL)
 
     if is_menu:
-        product_price = 0
+        product_price = ZERO_DECIMAL
 
     if list(product_db.variants) and not product.variant_id:
         return (
@@ -54,7 +58,7 @@ async def check_generic_product(
                 },
             )
 
-        product_price += product_variant.price
+        product_price += Decimal(product_variant.price).quantize(ZERO_DECIMAL)
 
     for ingredient in product.ingredients:
         product_ingredient = await ProductIngredient.get_or_none(
@@ -73,7 +77,9 @@ async def check_generic_product(
                 },
             )
 
-        product_price += product_ingredient.price
+        product_price += Decimal(product_ingredient.price).quantize(
+            ZERO_DECIMAL
+        )
 
     product._price = product_price
 
@@ -136,7 +142,7 @@ async def create_order_products(
     for product in products:
         order_product = await OrderProduct.create(
             product_id=product.product_id,
-            price=product._price * product.quantity,
+            price=product._price * Decimal(product.quantity),
             quantity=product.quantity,
             variant_id=product.variant_id,
             order=order,
@@ -194,7 +200,9 @@ async def check_menu_products(
             )
 
         product.quantity = quantity
-        product._price += menu_field_product.price
+        product._price += Decimal(menu_field_product.price).quantize(
+            ZERO_DECIMAL
+        )
 
     return False, None, None
 
@@ -210,7 +218,7 @@ async def check_menus(
         if not menu_db:
             return True, ErrorCodes.MENU_NOT_EXIST, {"menu_id": menu.menu_id}
 
-        menu_price = menu_db.price
+        menu_price = Decimal(menu_db.price).quantize(ZERO_DECIMAL)
 
         if not any(role.role_id == role_id for role in menu_db.roles):
             return (
