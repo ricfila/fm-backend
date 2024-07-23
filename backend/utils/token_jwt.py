@@ -8,6 +8,7 @@ from jwt.exceptions import PyJWTError
 
 from backend.config import Session
 from backend.models.error import Unauthorized
+from backend.utils import ErrorCodes
 
 OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="auth/token")
 
@@ -55,6 +56,6 @@ async def validate_token(
     token = decode_jwt(access_token)
 
     if not token:
-        raise Unauthorized("Invalid JWT token")
+        raise Unauthorized(code=ErrorCodes.INVALID_JWT_TOKEN)
 
     return token

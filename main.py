@@ -15,7 +15,8 @@ from starlette.exceptions import HTTPException
 from backend.config import Session
 from backend.database import init_db, stop_db
 from backend.database.models import Role, User
-from backend.models import UnicornException
+from backend.models import BaseResponse, UnicornException
+from backend.utils import ErrorCodes, to_snake_case
 
 ALPHABET = string.ascii_letters + string.digits
 FMT = (
@@ -102,14 +103,28 @@ async def unicorn_exception_handler(_: Request, exc: UnicornException):
             "details": exc.details,
         }
 
-    return JSONResponse(status_code=exc.status, content=response_content)
+    return JSONResponse(
+        status_code=exc.status, content=BaseResponse(**response_content).dict()
+    )
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(_: Request, exc: HTTPException):
+    error_code = to_snake_case(exc.detail)
     return JSONResponse(
         status_code=exc.status_code,
-        content={"error": True, "message": exc.detail},
+        content=BaseResponse(
+            **{
+                "error": {
+                    "code": getattr(
+                        ErrorCodes,
+                        error_code,
+                        ErrorCodes.GENERIC_HTTP_EXCEPTION,
+                    ).value,
+                    "details": {"message": exc.detail},
+                }
+            }
+        ).dict(),
     )
 
 
@@ -121,14 +136,23 @@ async def validation_exception_handler(
 
     return JSONResponse(
         status_code=422,
-        content={
-            "error": True,
-            "message": "Request Validation Error",
-            "detail": [
-                {"type": x["type"], "loc": x["loc"], "msg": x["msg"]}
-                for x in detail
-            ],
-        },
+        content=BaseResponse(
+            **{
+                "error": {
+                    "code": ErrorCodes.REQUEST_VALIDATION_ERROR,
+                    "detail": {
+                        "errors": [
+                            {
+                                "type": x["type"],
+                                "loc": x["loc"],
+                                "msg": x["msg"],
+                            }
+                            for x in detail
+                        ]
+                    },
+                },
+            }
+        ).dict(),
     )
 
 
@@ -137,10 +161,14 @@ async def internal_server_error_handler(_: Request, exc: Exception):
     logger.exception(exc)
     return JSONResponse(
         status_code=500,
-        content={
-            "error": True,
-            "message": "Internal Server Error",
-        },
+        content=BaseResponse(
+            **{
+                "error": {
+                    "code": ErrorCodes.INTERNAL_ERROR_SERVER,
+                    "details": {},
+                }
+            }
+        ).dict(),
     )
 
 

@@ -34,3 +34,15 @@ class ErrorCodes(Enum):
     PRODUCT_ROLE_NOT_EXIST = auto()
     PRODUCT_VARIANT_NOT_EXIST = auto()
     SET_GUESTS_NUMBER = auto()
+
+    # Token
+    INVALID_JWT_TOKEN = auto()
+
+    # Permission
+    NOT_ALLOWED = auto()
+    NOT_AUTHENTICATED = auto()
+
+    # Default
+    GENERIC_HTTP_EXCEPTION = auto()
+    INTERNAL_ERROR_SERVER = auto()
+    REQUEST_VALIDATION_ERROR = auto()
