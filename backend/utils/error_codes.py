@@ -2,6 +2,16 @@ from enum import Enum, auto
 
 
 class ErrorCodes(Enum):
+    # Auth
+    # Login
+    INVALID_USERNAME_OR_PASSWORD = auto()
+    USERNAME_TOO_LONG = auto()
+
+    # Register
+    CANNOT_CREATE_ADMIN_USER = auto()
+    ROLE_NOT_FOUND = auto()
+    USER_ALREADY_EXISTS = auto()
+
     # Order
     # Create
     INPUT_MENU_FIELD_PRODUCT_VARIANT = auto()
