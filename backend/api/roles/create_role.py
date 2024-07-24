@@ -5,7 +5,7 @@ from backend.database.models import Role
 from backend.decorators import check_role
 from backend.models.error import Conflict
 from backend.models.roles import CreateRoleItem, CreateRoleResponse
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 create_role_router = APIRouter()
 
@@ -28,6 +28,6 @@ async def create_role(
         await new_role.save()
 
     except IntegrityError:
-        raise Conflict("Role already exists")
+        raise Conflict(code=ErrorCodes.ROLE_ALREADY_EXISTS)
 
     return CreateRoleResponse(role=await new_role.to_dict())

@@ -5,7 +5,7 @@ from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import NotFound, Unauthorized
 from backend.models.roles import UpdateRolePaperSizeItem
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 update_role_paper_size_router = APIRouter()
 
@@ -28,10 +28,10 @@ async def update_role_paper_size(
     role = await Role.get_or_none(id=role_id)
 
     if not role:
-        raise NotFound("Role not found")
+        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
     if role.name == "admin":
-        raise Unauthorized("Admin role cannot be updated")
+        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     role.paper_size = item.paper_size
 

@@ -5,7 +5,7 @@ from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound, Unauthorized
 from backend.models.roles import UpdateRolePermissionsItem
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 update_role_permissions_router = APIRouter()
 
@@ -28,10 +28,10 @@ async def update_role_permissions(
     role = await Role.get_or_none(id=role_id)
 
     if not role:
-        raise NotFound("Role not found")
+        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
     if role.name == "admin":
-        raise Unauthorized("Admin role cannot be updated")
+        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     for permission, value in item.permissions.items():
         setattr(role, permission, value)
@@ -40,6 +40,6 @@ async def update_role_permissions(
         await role.save()
 
     except ValueError as e:
-        raise Conflict(e.args[0])
+        raise Conflict(code=e.args[0])
 
     return BaseResponse()

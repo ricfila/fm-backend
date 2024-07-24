@@ -1,7 +1,7 @@
 from tortoise import fields
 from tortoise.models import Model
 
-from backend.utils import PaperSize
+from backend.utils import ErrorCodes, PaperSize
 
 
 class Role(Model):
@@ -22,14 +22,10 @@ class Role(Model):
 
     async def save(self, *args, **kwargs):
         if self.can_statistics and self.can_priority_statistics:
-            raise ValueError(
-                "Only one of `can_statistics` and `can_priority_statistics` can be True"
-            )
+            raise ValueError(ErrorCodes.ONLY_ONE_STATISTICS_CAN_BE_TRUE)
 
         if self.can_order and not self.paper_size:
-            raise ValueError(
-                "If `can_order` is `True` then `paper_size` is required"
-            )
+            raise ValueError(ErrorCodes.PAPER_SIZE_REQUIRED_IF_CAN_ORDER)
 
         await super().save(*args, **kwargs)
 

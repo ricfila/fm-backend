@@ -4,7 +4,7 @@ from backend.database.models import Role
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import NotFound, Unauthorized
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 delete_role_router = APIRouter()
 
@@ -21,10 +21,10 @@ async def delete_role(role_id: int, token: TokenJwt = Depends(validate_token)):
     role = await Role.get_or_none(id=role_id)
 
     if not role:
-        raise NotFound("Role not found")
+        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
     if role.name == "admin":
-        raise Unauthorized("You do not have permission to delete this role")
+        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     await role.delete()
 

@@ -11,10 +11,9 @@ class ErrorCodes(Enum):
 
     # Register
     CANNOT_CREATE_ADMIN_USER = auto()
-    ROLE_NOT_FOUND = auto()
     USER_ALREADY_EXISTS = auto()
 
-    # Order
+    # Orders
     # Create
     INPUT_MENU_FIELD_PRODUCT_VARIANT = auto()
     INPUT_PRODUCT_VARIANT = auto()
@@ -37,12 +36,21 @@ class ErrorCodes(Enum):
     PRODUCT_VARIANT_NOT_EXIST = auto()
     SET_GUESTS_NUMBER = auto()
 
+    # Roles
+    ROLE_NOT_FOUND = auto()
+    # Create
+    ROLE_ALREADY_EXISTS = auto()
+
     # Token
     INVALID_JWT_TOKEN = auto()
 
     # Permission
     NOT_ALLOWED = auto()
     NOT_AUTHENTICATED = auto()
+
+    # Validation
+    ONLY_ONE_STATISTICS_CAN_BE_TRUE = auto()
+    PAPER_SIZE_REQUIRED_IF_CAN_ORDER = auto()
 
     # Default
     GENERIC_HTTP_EXCEPTION = auto()
