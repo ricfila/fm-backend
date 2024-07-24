@@ -95,64 +95,41 @@ logger.info("Initializing API routers")
 # Handling Errors
 @app.exception_handler(UnicornException)
 async def unicorn_exception_handler(_: Request, exc: UnicornException):
-    response_content = {
-        "error": {"code": ErrorCodes.GENERIC_HTTP_EXCEPTION, "details": {}},
-        "message": exc.message,
-    }
-
-    if exc.code:
-        response_content["error"]["code"] = exc.code.value
-        response_content["error"]["details"] = exc.details
-
     return JSONResponse(
-        status_code=exc.status, content=BaseResponse(**response_content).dict()
+        status_code=exc.status,
+        content=BaseResponse(
+            error=True,
+            message=exc.message,
+            code=exc.code.value
+            if exc.code
+            else ErrorCodes.GENERIC_HTTP_EXCEPTION,
+        ).dict(),
     )
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(_: Request, exc: HTTPException):
     error_code = to_snake_case(exc.detail)
+
     return JSONResponse(
         status_code=exc.status_code,
         content=BaseResponse(
-            **{
-                "error": {
-                    "code": getattr(
-                        ErrorCodes,
-                        error_code,
-                        ErrorCodes.GENERIC_HTTP_EXCEPTION,
-                    ).value,
-                    "details": {"message": exc.detail},
-                }
-            }
+            error=True,
+            code=getattr(
+                ErrorCodes,
+                error_code,
+                ErrorCodes.GENERIC_HTTP_EXCEPTION,
+            ).value,
         ).dict(),
     )
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    _: Request, exc: RequestValidationError
-):
-    detail = exc.errors()
-
+async def validation_exception_handler(_: Request, __: RequestValidationError):
     return JSONResponse(
         status_code=422,
         content=BaseResponse(
-            **{
-                "error": {
-                    "code": ErrorCodes.REQUEST_VALIDATION_ERROR,
-                    "detail": {
-                        "errors": [
-                            {
-                                "type": x["type"],
-                                "loc": x["loc"],
-                                "msg": x["msg"],
-                            }
-                            for x in detail
-                        ]
-                    },
-                },
-            }
+            error=True, code=ErrorCodes.REQUEST_VALIDATION_ERROR.value
         ).dict(),
     )
 
@@ -163,12 +140,8 @@ async def internal_server_error_handler(_: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content=BaseResponse(
-            **{
-                "error": {
-                    "code": ErrorCodes.INTERNAL_ERROR_SERVER,
-                    "details": {},
-                }
-            }
+            error=True,
+            code=ErrorCodes.INTERNAL_ERROR_SERVER.value,
         ).dict(),
     )
 

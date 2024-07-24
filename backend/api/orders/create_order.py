@@ -40,25 +40,19 @@ async def create_order(
             "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
         )
 
-        (
-            has_error_products,
-            error_code_products,
-            error_details_products,
-        ) = await check_products(item.products, token.role_id)
+        (has_error_products, error_code_products) = await check_products(
+            item.products, token.role_id
+        )
 
         if has_error_products:
-            raise Conflict(
-                code=error_code_products, details=error_details_products
-            )
+            raise Conflict(code=error_code_products)
 
-        (
-            has_error_menus,
-            error_code_menus,
-            error_details_menus,
-        ) = await check_menus(item.menus, token.role_id)
+        (has_error_menus, error_code_menus) = await check_menus(
+            item.menus, token.role_id
+        )
 
         if has_error_menus:
-            raise Conflict(code=error_code_menus, details=error_details_menus)
+            raise Conflict(code=error_code_menus)
 
         order = await Order.create(
             customer=item.customer,

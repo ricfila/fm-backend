@@ -1,17 +1,11 @@
-from typing import Any
-
 from pydantic import BaseModel
 
 from backend.utils import ErrorCodes
 
 
-class BaseResponseError(BaseModel):
-    code: int
-    details: dict[str, Any]
-
-
 class BaseResponse(BaseModel):
-    error: bool | BaseResponseError = False
+    error: bool = False
+    code: int = ErrorCodes.GENERIC_HTTP_EXCEPTION
     message: str = ""
 
 
@@ -21,9 +15,7 @@ class UnicornException(Exception):
         status: int,
         message: str = "",
         code: ErrorCodes = None,
-        details: dict[str, Any] = None,
     ):
         self.status = status
         self.message = message
         self.code = code
-        self.details = details or dict()

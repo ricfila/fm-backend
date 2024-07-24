@@ -1,5 +1,3 @@
-from typing import Any
-
 from fastapi import status
 
 from backend.models import UnicornException
@@ -11,9 +9,8 @@ class BadRequest(UnicornException):
         self,
         message: str = "",
         code: ErrorCodes = None,
-        details: dict[str, Any] = None,
     ):
-        super().__init__(status.HTTP_400_BAD_REQUEST, message, code, details)
+        super().__init__(status.HTTP_400_BAD_REQUEST, message, code)
 
 
 class Unauthorized(UnicornException):
@@ -21,9 +18,8 @@ class Unauthorized(UnicornException):
         self,
         message: str = "",
         code: ErrorCodes = None,
-        details: dict[str, Any] = None,
     ):
-        super().__init__(status.HTTP_401_UNAUTHORIZED, message, code, details)
+        super().__init__(status.HTTP_401_UNAUTHORIZED, message, code)
 
 
 class Forbidden(UnicornException):
@@ -31,9 +27,8 @@ class Forbidden(UnicornException):
         self,
         message: str = "",
         code: ErrorCodes = None,
-        details: dict[str, Any] = None,
     ):
-        super().__init__(status.HTTP_403_FORBIDDEN, message, code, details)
+        super().__init__(status.HTTP_403_FORBIDDEN, message, code)
 
 
 class NotFound(UnicornException):
@@ -41,9 +36,8 @@ class NotFound(UnicornException):
         self,
         message: str = "",
         code: ErrorCodes = None,
-        details: dict[str, Any] = None,
     ):
-        super().__init__(status.HTTP_404_NOT_FOUND, message, code, details)
+        super().__init__(status.HTTP_404_NOT_FOUND, message, code)
 
 
 class Conflict(UnicornException):
@@ -51,6 +45,5 @@ class Conflict(UnicornException):
         self,
         message: str = "",
         code: ErrorCodes = None,
-        details: dict[str, Any] = None,
     ):
-        super().__init__(status.HTTP_409_CONFLICT, message, code, details)
+        super().__init__(status.HTTP_409_CONFLICT, message, code)
