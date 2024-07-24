@@ -95,13 +95,14 @@ logger.info("Initializing API routers")
 # Handling Errors
 @app.exception_handler(UnicornException)
 async def unicorn_exception_handler(_: Request, exc: UnicornException):
-    response_content = {"error": True, "message": exc.message}
+    response_content = {
+        "error": {"code": ErrorCodes.GENERIC_HTTP_EXCEPTION, "details": {}},
+        "message": exc.message,
+    }
 
     if exc.code:
-        response_content["error"] = {
-            "code": exc.code.value,
-            "details": exc.details,
-        }
+        response_content["error"]["code"] = exc.code.value
+        response_content["error"]["details"] = exc.details
 
     return JSONResponse(
         status_code=exc.status, content=BaseResponse(**response_content).dict()
