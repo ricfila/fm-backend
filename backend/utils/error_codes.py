@@ -2,6 +2,8 @@ from enum import Enum, auto
 
 
 class ErrorCodes(Enum):
+    SUCCESS = 0
+
     # Auth
     # Login
     INVALID_USERNAME_OR_PASSWORD = auto()

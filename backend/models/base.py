@@ -5,7 +5,7 @@ from backend.utils import ErrorCodes
 
 class BaseResponse(BaseModel):
     error: bool = False
-    code: int = ErrorCodes.GENERIC_HTTP_EXCEPTION
+    code: int = ErrorCodes.SUCCESS.value
     message: str = ""
 
 
