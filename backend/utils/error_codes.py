@@ -41,6 +41,9 @@ class ErrorCodes(Enum):
     # Create
     ROLE_ALREADY_EXISTS = auto()
 
+    # Users
+    USER_NOT_FOUND = auto()
+
     # Token
     INVALID_JWT_TOKEN = auto()
 

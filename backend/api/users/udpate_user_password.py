@@ -6,7 +6,7 @@ from backend.database.models import User
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound, Unauthorized
 from backend.models.users import UpdateUserPasswordItem
-from backend.utils import TokenJwt, validate_token
+from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.enums import Permission
 
 update_user_password_router = APIRouter()
@@ -27,13 +27,13 @@ async def update_user_password(
     user = await User.get_or_none(id=user_id)
 
     if not user:
-        raise NotFound("User not found")
+        raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
 
     if not (
         token.permissions.get(Permission.CAN_ADMINISTER, False)
         or token.user_id == user.id
     ):
-        raise Unauthorized("You do not have permission to perform this")
+        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     ph = PasswordHasher()
     user.password = ph.hash(item.password)
@@ -42,6 +42,6 @@ async def update_user_password(
         await user.save()
 
     except IntegrityError:
-        raise Conflict("Role already exists")
+        raise Conflict(code=ErrorCodes.USER_ALREADY_EXISTS)
 
     return BaseResponse()

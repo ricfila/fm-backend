@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from backend.database.models import User
 from backend.models.error import NotFound, Unauthorized
 from backend.models.users import GetUserResponse
-from backend.utils import TokenJwt, validate_token
+from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.enums import Permission
 
 get_user_router = APIRouter()
@@ -21,13 +21,13 @@ async def get_user(
     user = await User.get_or_none(id=user_id)
 
     if not user:
-        raise NotFound("User not found")
+        raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
 
     if not (
         token.permissions.get(Permission.CAN_ADMINISTER, False)
         or token.user_id == user.id
     ):
-        raise Unauthorized("You do not have permission to perform this")
+        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     return GetUserResponse(
         id=user.id,
