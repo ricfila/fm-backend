@@ -4,7 +4,7 @@ from backend.database.models import Subcategory
 from backend.decorators import check_role
 from backend.models.error import NotFound
 from backend.models.subcategories import GetSubcategoryResponse
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import Permission, TokenJwt, validate_token, ErrorCodes
 
 get_subcategory_router = APIRouter()
 
@@ -25,7 +25,7 @@ async def get_subcategory(
     subcategory = await Subcategory.get_or_none(id=subcategory_id)
 
     if not subcategory:
-        raise NotFound("Subcategory not found")
+        raise NotFound(code=ErrorCodes.SUBCATEGORY_NOT_FOUND)
 
     return GetSubcategoryResponse(
         id=subcategory_id, name=subcategory.name, order=subcategory.order

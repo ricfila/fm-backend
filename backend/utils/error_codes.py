@@ -41,6 +41,11 @@ class ErrorCodes(Enum):
     # Create
     ROLE_ALREADY_EXISTS = auto()
 
+    # Subcategories
+    SUBCATEGORY_NOT_FOUND = auto()
+    # Create
+    SUBCATEGORY_ALREADY_EXISTS = auto()
+
     # Users
     USER_NOT_FOUND = auto()
 
@@ -54,6 +59,7 @@ class ErrorCodes(Enum):
     # Validation
     ONLY_ONE_STATISTICS_CAN_BE_TRUE = auto()
     PAPER_SIZE_REQUIRED_IF_CAN_ORDER = auto()
+    UNKNOWN_ORDER_BY_PARAMETER = auto()
 
     # Default
     GENERIC_HTTP_EXCEPTION = auto()

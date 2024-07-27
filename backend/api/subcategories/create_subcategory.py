@@ -8,7 +8,7 @@ from backend.models.subcategories import (
     CreateSubcategoryItem,
     CreateSubcategoryResponse,
 )
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import Permission, TokenJwt, validate_token, ErrorCodes
 
 create_subcategory_router = APIRouter()
 
@@ -31,7 +31,7 @@ async def create_subcategory(
         await new_subcategory.save()
 
     except IntegrityError:
-        raise Conflict("Subcategory already exists")
+        raise Conflict(code=ErrorCodes.SUBCATEGORY_ALREADY_EXISTS)
 
     return CreateSubcategoryResponse(
         subcategory=await new_subcategory.to_dict()

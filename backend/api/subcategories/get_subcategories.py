@@ -9,7 +9,7 @@ from backend.models.subcategories import (
     Subcategory as SubcategoryModel,
     SubcategoryName,
 )
-from backend.utils import TokenJwt, validate_token
+from backend.utils import TokenJwt, validate_token, ErrorCodes
 
 get_subcategories_router = APIRouter()
 
@@ -34,7 +34,7 @@ async def get_subcategories(
         try:
             subcategories_query = subcategories_query.order_by(order_by)
         except FieldError:
-            raise NotFound("Unknown order_by parameter")
+            raise NotFound(code=ErrorCodes.UNKNOWN_ORDER_BY_PARAMETER)
 
     total_count = await subcategories_query.count()
 

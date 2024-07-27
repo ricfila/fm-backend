@@ -6,7 +6,7 @@ from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
 from backend.models.subcategories import UpdateSubcategoryNameItem
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import Permission, TokenJwt, validate_token, ErrorCodes
 
 update_subcategory_name_router = APIRouter()
 
@@ -29,7 +29,7 @@ async def update_subcategory_name(
     subcategory = await Subcategory.get_or_none(id=subcategory_id)
 
     if not subcategory:
-        raise NotFound("Subcategory not found")
+        raise NotFound(code=ErrorCodes.SUBCATEGORY_NOT_FOUND)
 
     subcategory.name = item.name
 
@@ -37,6 +37,6 @@ async def update_subcategory_name(
         await subcategory.save()
 
     except IntegrityError:
-        raise Conflict("Subcategory already exists")
+        raise Conflict(code=ErrorCodes.SUBCATEGORY_ALREADY_EXISTS)
 
     return BaseResponse()
