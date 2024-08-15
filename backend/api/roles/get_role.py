@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Role
 from backend.decorators import check_role
@@ -18,14 +19,17 @@ async def get_role(role_id: int, token: TokenJwt = Depends(validate_token)):
     **Permission**: can_administer
     """
 
-    role = await Role.get_or_none(id=role_id)
+    async with in_transaction() as connection:
+        role = await Role.get_or_none(id=role_id, using_db=connection)
 
-    if not role:
-        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
+        if not role:
+            raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
+
+        permissions = await role.get_permissions()
 
     return GetRoleResponse(
         id=role_id,
         name=role.name,
-        permissions=await role.get_permissions(),
+        permissions=permissions,
         paper_size=role.paper_size,
     )

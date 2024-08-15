@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Role
 from backend.decorators import check_role
@@ -22,12 +23,13 @@ async def create_role(
     **Permission**: can_administer
     """
 
-    new_role = Role(name=item.name)
+    async with in_transaction() as connection:
+        new_role = Role(name=item.name)
 
-    try:
-        await new_role.save()
+        try:
+            await new_role.save(using_db=connection)
 
-    except IntegrityError:
-        raise Conflict(code=ErrorCodes.ROLE_ALREADY_EXISTS)
+        except IntegrityError:
+            raise Conflict(code=ErrorCodes.ROLE_ALREADY_EXISTS)
 
     return CreateRoleResponse(role=await new_role.to_dict())

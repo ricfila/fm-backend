@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Role
 from backend.decorators import check_role
@@ -18,14 +19,15 @@ async def delete_role(role_id: int, token: TokenJwt = Depends(validate_token)):
     **Permission**: can_administer
     """
 
-    role = await Role.get_or_none(id=role_id)
+    async with in_transaction() as connection:
+        role = await Role.get_or_none(id=role_id, using_db=connection)
 
-    if not role:
-        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
+        if not role:
+            raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
-    if role.name == "admin":
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+        if role.name == "admin":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
-    await role.delete()
+        await role.delete(using_db=connection)
 
     return BaseResponse()

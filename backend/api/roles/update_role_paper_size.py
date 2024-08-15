@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Role
 from backend.decorators import check_role
@@ -25,16 +26,17 @@ async def update_role_paper_size(
     **Permission**: can_administer
     """
 
-    role = await Role.get_or_none(id=role_id)
+    async with in_transaction() as connection:
+        role = await Role.get_or_none(id=role_id, using_db=connection)
 
-    if not role:
-        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
+        if not role:
+            raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
-    if role.name == "admin":
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+        if role.name == "admin":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
-    role.paper_size = item.paper_size
+        role.paper_size = item.paper_size
 
-    await role.save()
+        await role.save(using_db=connection)
 
     return BaseResponse()

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Role
 from backend.decorators import check_role
@@ -25,21 +26,22 @@ async def update_role_permissions(
     **Permission**: can_administer
     """
 
-    role = await Role.get_or_none(id=role_id)
+    async with in_transaction() as connection:
+        role = await Role.get_or_none(id=role_id, using_db=connection)
 
-    if not role:
-        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
+        if not role:
+            raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
-    if role.name == "admin":
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+        if role.name == "admin":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
-    for permission, value in item.permissions.items():
-        setattr(role, permission, value)
+        for permission, value in item.permissions.items():
+            setattr(role, permission, value)
 
-    try:
-        await role.save()
+        try:
+            await role.save(using_db=connection)
 
-    except ValueError as e:
-        raise Conflict(code=e.args[0])
+        except ValueError as e:
+            raise Conflict(code=e.args[0])
 
     return BaseResponse()
