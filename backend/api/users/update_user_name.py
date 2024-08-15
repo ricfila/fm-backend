@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
+from tortoise.transactions import in_transaction
 
 from backend.database.models import User
 from backend.decorators import check_role
@@ -25,20 +26,21 @@ async def update_user_name(
     **Permission**: can_administer
     """
 
-    user = await User.get_or_none(id=user_id)
+    async with in_transaction() as connection:
+        user = await User.get_or_none(id=user_id, using_db=connection)
 
-    if not user:
-        raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
+        if not user:
+            raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
 
-    if user.username == "admin":
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+        if user.username == "admin":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
-    user.username = item.username
+        user.username = item.username
 
-    try:
-        await user.save()
+        try:
+            await user.save(using_db=connection)
 
-    except IntegrityError:
-        raise Conflict(code=ErrorCodes.USER_ALREADY_EXISTS)
+        except IntegrityError:
+            raise Conflict(code=ErrorCodes.USER_ALREADY_EXISTS)
 
     return BaseResponse()

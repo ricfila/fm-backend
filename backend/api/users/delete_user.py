@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import User
 from backend.decorators import check_role
@@ -22,14 +23,15 @@ async def delete_user(
     **Permission**: can_administer
     """
 
-    user = await User.get_or_none(id=user_id)
+    async with in_transaction() as connection:
+        user = await User.get_or_none(id=user_id, using_db=connection)
 
-    if not user:
-        raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
+        if not user:
+            raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
 
-    if user.username == "admin":
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+        if user.username == "admin":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
-    await user.delete()
+        await user.delete(using_db=connection)
 
     return BaseResponse()

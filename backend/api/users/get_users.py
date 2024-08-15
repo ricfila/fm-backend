@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.config import Session
 from backend.database.models import User
@@ -22,10 +23,11 @@ async def get_users(
     **Permission**: can_administer
     """
 
-    users_query = User.exclude(id=token.user_id)
-    total_count = await users_query.count()
-    users = await users_query.offset(offset).limit(limit)
+    async with in_transaction() as connection:
+        users_query = User.exclude(id=token.user_id).using_db(connection)
+        total_count = await users_query.count()
+        users = await users_query.offset(offset).limit(limit)
 
-    return GetUsersResponse(
-        total_count=total_count, users=[await user.to_dict() for user in users]
-    )
+        users_list = [await user.to_dict() for user in users]
+
+    return GetUsersResponse(total_count=total_count, users=users_list)

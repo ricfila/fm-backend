@@ -1,6 +1,7 @@
 from argon2 import PasswordHasher
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
+from tortoise.transactions import in_transaction
 
 from backend.database.models import User
 from backend.models import BaseResponse
@@ -24,24 +25,25 @@ async def update_user_password(
     Update password of user.
     """
 
-    user = await User.get_or_none(id=user_id)
+    async with in_transaction() as connection:
+        user = await User.get_or_none(id=user_id, using_db=connection)
 
-    if not user:
-        raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
+        if not user:
+            raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
 
-    if not (
-        token.permissions.get(Permission.CAN_ADMINISTER, False)
-        or token.user_id == user.id
-    ):
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+        if not (
+            token.permissions.get(Permission.CAN_ADMINISTER, False)
+            or token.user_id == user.id
+        ):
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
-    ph = PasswordHasher()
-    user.password = ph.hash(item.password)
+        ph = PasswordHasher()
+        user.password = ph.hash(item.password)
 
-    try:
-        await user.save()
+        try:
+            await user.save(using_db=connection)
 
-    except IntegrityError:
-        raise Conflict(code=ErrorCodes.USER_ALREADY_EXISTS)
+        except IntegrityError:
+            raise Conflict(code=ErrorCodes.USER_ALREADY_EXISTS)
 
     return BaseResponse()

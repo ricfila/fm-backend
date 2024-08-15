@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import User
 from backend.models.error import NotFound, Unauthorized
@@ -18,16 +19,17 @@ async def get_user(
     Get information about a user.
     """
 
-    user = await User.get_or_none(id=user_id)
+    async with in_transaction() as connection:
+        user = await User.get_or_none(id=user_id, using_db=connection)
 
-    if not user:
-        raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
+        if not user:
+            raise NotFound(code=ErrorCodes.USER_NOT_FOUND)
 
-    if not (
-        token.permissions.get(Permission.CAN_ADMINISTER, False)
-        or token.user_id == user.id
-    ):
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+        if not (
+            token.permissions.get(Permission.CAN_ADMINISTER, False)
+            or token.user_id == user.id
+        ):
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     return GetUserResponse(
         id=user.id,
