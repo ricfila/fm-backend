@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Subcategory
 from backend.decorators import check_role
@@ -8,7 +9,7 @@ from backend.models.subcategories import (
     CreateSubcategoryItem,
     CreateSubcategoryResponse,
 )
-from backend.utils import Permission, TokenJwt, validate_token, ErrorCodes
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 create_subcategory_router = APIRouter()
 
@@ -25,13 +26,14 @@ async def create_subcategory(
     **Permission**: can_administer
     """
 
-    new_subcategory = Subcategory(name=item.name)
+    async with in_transaction() as connection:
+        new_subcategory = Subcategory(name=item.name)
 
-    try:
-        await new_subcategory.save()
+        try:
+            await new_subcategory.save(using_db=connection)
 
-    except IntegrityError:
-        raise Conflict(code=ErrorCodes.SUBCATEGORY_ALREADY_EXISTS)
+        except IntegrityError:
+            raise Conflict(code=ErrorCodes.SUBCATEGORY_ALREADY_EXISTS)
 
     return CreateSubcategoryResponse(
         subcategory=await new_subcategory.to_dict()
