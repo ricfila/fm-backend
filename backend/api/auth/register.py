@@ -17,26 +17,30 @@ register_router = APIRouter(prefix="/register")
 async def register(
     item: RegisterItem, token: TokenJwt = Depends(validate_token)
 ):
-    role = await Role.get_or_none(id=item.role_id)
+    """
+    Register a new user.
+    """
 
-    if not role:
-        raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
+    async with in_transaction() as connection:
+        role = await Role.get_or_none(id=item.role_id, using_db=connection)
 
-    if role.can_administer:
-        raise BadRequest(code=ErrorCodes.CANNOT_CREATE_ADMIN_USER)
+        if not role:
+            raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
-    try:
-        ph = PasswordHasher()
+        if role.can_administer:
+            raise BadRequest(code=ErrorCodes.CANNOT_CREATE_ADMIN_USER)
 
-        async with in_transaction():
+        try:
+            ph = PasswordHasher()
+
             user = User(
                 username=item.username,
                 password=ph.hash(item.password),
                 role=role,
             )
 
-            await user.save()
-    except IntegrityError:
-        raise Conflict(code=ErrorCodes.USER_ALREADY_EXISTS)
+            await user.save(using_db=connection)
+        except IntegrityError:
+            raise Conflict(code=ErrorCodes.USER_ALREADY_EXISTS)
 
     return RegisterUserResponse(user=await user.to_dict())
