@@ -35,20 +35,20 @@ async def create_order(
     if not item.is_take_away and not item.guests:
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
 
-    async with in_transaction() as conn:
-        await conn.execute_query(
+    async with in_transaction() as connection:
+        await connection.execute_query(
             "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
         )
 
         (has_error_products, error_code_products) = await check_products(
-            item.products, token.role_id
+            item.products, token.role_id, connection
         )
 
         if has_error_products:
             raise Conflict(code=error_code_products)
 
         (has_error_menus, error_code_menus) = await check_menus(
-            item.menus, token.role_id
+            item.menus, token.role_id, connection
         )
 
         if has_error_menus:
@@ -62,7 +62,7 @@ async def create_order(
             user_id=token.user_id,
         )
 
-        await create_order_products(item.products, order)
-        await create_order_menus(item.menus, order)
+        await create_order_products(item.products, order, connection)
+        await create_order_menus(item.menus, order, connection)
 
     return BaseResponse()
