@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Product, ProductIngredient
 from backend.decorators import check_role
@@ -8,7 +9,7 @@ from backend.models.products import (
     AddProductIngredientItem,
     AddProductIngredientResponse,
 )
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 add_product_ingredient_router = APIRouter()
 
@@ -28,20 +29,21 @@ async def add_product_ingredient(
     **Permission**: can_administer
     """
 
-    product = await Product.get_or_none(id=product_id)
+    async with in_transaction() as connection:
+        product = await Product.get_or_none(id=product_id, using_db=connection)
 
-    if not product:
-        raise NotFound("Product not found")
+        if not product:
+            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-    new_product_ingredient = ProductIngredient(
-        name=item.name, price=item.price, product=product
-    )
+        new_product_ingredient = ProductIngredient(
+            name=item.name, price=item.price, product=product
+        )
 
-    try:
-        await new_product_ingredient.save()
+        try:
+            await new_product_ingredient.save(using_db=connection)
 
-    except IntegrityError:
-        raise Conflict("Product ingredient already exists")
+        except IntegrityError:
+            raise Conflict(code=ErrorCodes.PRODUCT_INGREDIENT_ALREADY_EXISTS)
 
     return AddProductIngredientResponse(
         ingredient=await new_product_ingredient.to_dict()

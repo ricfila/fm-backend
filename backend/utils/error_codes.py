@@ -36,7 +36,31 @@ class ErrorCodes(Enum):
     PRODUCT_VARIANT_NOT_EXIST = auto()
     SET_GUESTS_NUMBER = auto()
 
+    # Products
+    PRODUCT_ALREADY_EXISTS = auto()
+    PRODUCT_NOT_FOUND = auto()
+    PRODUCT_SHORT_NAME_ALREADY_EXISTS = auto()
+    # Add product date
+    DATE_RANGE_INVALID = auto()
+    DUPLICATE_DATE = auto()
+    PRODUCT_DATE_ALREADY_EXISTS = auto()
+    # Add product ingredient
+    PRODUCT_INGREDIENT_ALREADY_EXISTS = auto()
+    # Add product role
+    PRODUCT_ROLE_ALREADY_EXISTS = auto()
+    # Add product variant
+    PRODUCT_VARIANT_ALREADY_EXISTS = auto()
+    # Delete product date
+    PRODUCT_DATE_NOT_FOUND = auto()
+    # Delete product ingredient
+    PRODUCT_INGREDIENT_NOT_FOUND = auto()
+    # Delete product role
+    PRODUCT_ROLE_NOT_FOUND = auto()
+    # Delete product variant
+    PRODUCT_VARIANT_NOT_FOUND = auto()
+
     # Roles
+    ROLE_CANNOT_ORDER = auto()
     ROLE_NOT_FOUND = auto()
     # Create
     ROLE_ALREADY_EXISTS = auto()
@@ -53,6 +77,7 @@ class ErrorCodes(Enum):
     INVALID_JWT_TOKEN = auto()
 
     # Permission
+    ADMIN_OPTION_REQUIRED = auto()
     NOT_ALLOWED = auto()
     NOT_AUTHENTICATED = auto()
 

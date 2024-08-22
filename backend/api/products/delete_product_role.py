@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Product, ProductRole
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import NotFound
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 delete_product_role_router = APIRouter()
 
@@ -24,18 +25,19 @@ async def delete_product_role(
     **Permission**: can_administer
     """
 
-    product = await Product.get_or_none(id=product_id)
+    async with in_transaction() as connection:
+        product = await Product.get_or_none(id=product_id, using_db=connection)
 
-    if not product:
-        raise NotFound("Product not found")
+        if not product:
+            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-    product_role = await ProductRole.get_or_none(
-        id=product_role_id, product=product
-    )
+        product_role = await ProductRole.get_or_none(
+            id=product_role_id, product=product, using_db=connection
+        )
 
-    if not product_role:
-        raise NotFound("Product role not found")
+        if not product_role:
+            raise NotFound(code=ErrorCodes.PRODUCT_ROLE_NOT_FOUND)
 
-    await product_role.delete()
+        await product_role.delete(using_db=connection)
 
     return BaseResponse()

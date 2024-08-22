@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Product
 from backend.models.error import NotFound, Unauthorized
 from backend.models.products import GetProductResponse
-from backend.utils import TokenJwt, validate_token
+from backend.utils import ErrorCodes, TokenJwt, validate_token
 
 get_product_router = APIRouter()
 
@@ -21,30 +22,27 @@ async def get_product(
     Get information about a product.
     """
 
-    product = await Product.get_or_none(id=product_id).prefetch_related(
-        "dates", "roles"
-    )
+    async with in_transaction() as connection:
+        product = await Product.get_or_none(
+            id=product_id, using_db=connection
+        ).prefetch_related("dates", "roles")
 
-    if not product:
-        raise NotFound("Product not found")
+        if not product:
+            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-    if not token.permissions["can_administer"]:
-        if include_dates or include_roles:
-            raise Unauthorized(
-                "Only an administrator can use `include_dates` or `include_roles` option"
-            )
+        if not token.permissions["can_administer"]:
+            if include_dates or include_roles:
+                raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
 
-        if not any([role.role_id == token.role_id for role in product.roles]):
-            raise Unauthorized(
-                "You do not have permission to get this product"
-            )
+            if not any(
+                [role.role_id == token.role_id for role in product.roles]
+            ):
+                raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
-        if not any(
-            [await date.is_valid_product_date() for date in product.dates]
-        ):
-            raise Unauthorized(
-                "You do not have permission to get this product"
-            )
+            if not any(
+                [await date.is_valid_product_date() for date in product.dates]
+            ):
+                raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     return GetProductResponse(
         **await product.to_dict(

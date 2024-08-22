@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Product, ProductVariant
 from backend.decorators import check_role
@@ -8,7 +9,7 @@ from backend.models.products import (
     AddProductVariantItem,
     AddProductVariantResponse,
 )
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 add_product_variant_router = APIRouter()
 
@@ -28,20 +29,21 @@ async def add_product_variant(
     **Permission**: can_administer
     """
 
-    product = await Product.get_or_none(id=product_id)
+    async with in_transaction() as connection:
+        product = await Product.get_or_none(id=product_id, using_db=connection)
 
-    if not product:
-        raise NotFound("Product not found")
+        if not product:
+            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-    new_product_variant = ProductVariant(
-        name=item.name, price=item.price, product=product
-    )
+        new_product_variant = ProductVariant(
+            name=item.name, price=item.price, product=product
+        )
 
-    try:
-        await new_product_variant.save()
+        try:
+            await new_product_variant.save(using_db=connection)
 
-    except IntegrityError:
-        raise Conflict("Product variant already exists")
+        except IntegrityError:
+            raise Conflict(code=ErrorCodes.PRODUCT_VARIANT_ALREADY_EXISTS)
 
     return AddProductVariantResponse(
         variant=await new_product_variant.to_dict()

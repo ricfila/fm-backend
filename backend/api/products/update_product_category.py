@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Product
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import NotFound
 from backend.models.products import UpdateProductCategoryItem
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 update_product_category_router = APIRouter()
 
@@ -25,13 +26,14 @@ async def update_product_category(
      **Permission**: can_administer
     """
 
-    product = await Product.get_or_none(id=product_id)
+    async with in_transaction() as connection:
+        product = await Product.get_or_none(id=product_id, using_db=connection)
 
-    if not product:
-        raise NotFound("Product not found")
+        if not product:
+            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-    product.category = item.category
+        product.category = item.category
 
-    await product.save()
+        await product.save(using_db=connection)
 
     return BaseResponse()

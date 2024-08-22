@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Product, ProductVariant
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import NotFound
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 delete_product_variant_router = APIRouter()
 
@@ -24,18 +25,19 @@ async def delete_product_variant(
     **Permission**: can_administer
     """
 
-    product = await Product.get_or_none(id=product_id)
+    async with in_transaction() as connection:
+        product = await Product.get_or_none(id=product_id, using_db=connection)
 
-    if not product:
-        raise NotFound("Product not found")
+        if not product:
+            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-    product_variant = await ProductVariant.get_or_none(
-        id=product_variant_id, product=product
-    )
+        product_variant = await ProductVariant.get_or_none(
+            id=product_variant_id, product=product, using_db=connection
+        )
 
-    if not product_variant:
-        raise NotFound("Product variant not found")
+        if not product_variant:
+            raise NotFound(code=ErrorCodes.PRODUCT_VARIANT_NOT_FOUND)
 
-    await product_variant.delete()
+        await product_variant.delete(using_db=connection)
 
     return BaseResponse()
