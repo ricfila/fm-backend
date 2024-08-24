@@ -8,10 +8,30 @@ class ErrorCodes(Enum):
     # Login
     INVALID_USERNAME_OR_PASSWORD = auto()
     USERNAME_TOO_LONG = auto()
-
     # Register
     CANNOT_CREATE_ADMIN_USER = auto()
     USER_ALREADY_EXISTS = auto()
+
+    # Menus
+    MENU_ALREADY_EXISTS = auto()
+    MENU_NOT_FOUND = auto()
+    MENU_SHORT_NAME_ALREADY_EXISTS = auto()
+    # Add menu date
+    MENU_DATE_ALREADY_EXISTS = auto()
+    # Add menu field
+    MENU_FIELD_ALREADY_EXISTS = auto()
+    # Add menu field product
+    MENU_FIELD_PRODUCT_ALREADY_EXISTS = auto()
+    # Add menu role
+    MENU_ROLE_ALREADY_EXISTS = auto()
+    # Delete menu date
+    MENU_DATE_NOT_FOUND = auto()
+    # Delete menu field
+    MENU_FIELD_NOT_FOUND = auto()
+    # Delete menu field product
+    MENU_FIELD_PRODUCT_NOT_FOUND = auto()
+    # Delete menu role
+    MENU_ROLE_NOT_FOUND = auto()
 
     # Orders
     # Create
@@ -41,8 +61,6 @@ class ErrorCodes(Enum):
     PRODUCT_NOT_FOUND = auto()
     PRODUCT_SHORT_NAME_ALREADY_EXISTS = auto()
     # Add product date
-    DATE_RANGE_INVALID = auto()
-    DUPLICATE_DATE = auto()
     PRODUCT_DATE_ALREADY_EXISTS = auto()
     # Add product ingredient
     PRODUCT_INGREDIENT_ALREADY_EXISTS = auto()
@@ -82,6 +100,8 @@ class ErrorCodes(Enum):
     NOT_AUTHENTICATED = auto()
 
     # Validation
+    DATE_RANGE_INVALID = auto()
+    DUPLICATE_DATE = auto()
     ONLY_ONE_STATISTICS_CAN_BE_TRUE = auto()
     PAPER_SIZE_REQUIRED_IF_CAN_ORDER = auto()
     UNKNOWN_ORDER_BY_PARAMETER = auto()

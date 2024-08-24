@@ -2,6 +2,7 @@ from tortoise import fields
 from tortoise.models import Model
 
 from backend.database.utils import is_valid_date
+from backend.utils import ErrorCodes
 
 
 class MenuDate(Model):
@@ -36,10 +37,10 @@ class MenuDate(Model):
 
     async def save(self, *args, **kwargs):
         if self.end_date < self.start_date:
-            raise ValueError("End date must be greater than start date")
+            raise ValueError(ErrorCodes.DATE_RANGE_INVALID)
 
         if await self.check_date_overlaps():
-            raise ValueError("Duplicate date")
+            raise ValueError(ErrorCodes.DUPLICATE_DATE)
 
         await super().save(*args, **kwargs)
 

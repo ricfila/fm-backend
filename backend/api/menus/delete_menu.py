@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
+from tortoise.transactions import in_transaction
 
 from backend.database.models import Menu
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import NotFound
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 delete_menu_router = APIRouter()
 
@@ -18,11 +19,12 @@ async def delete_menu(menu_id: int, token: TokenJwt = Depends(validate_token)):
     **Permission**: can_administer
     """
 
-    menu = await Menu.get_or_none(id=menu_id)
+    async with in_transaction() as connection:
+        menu = await Menu.get_or_none(id=menu_id, using_db=connection)
 
-    if not menu:
-        raise NotFound("Menu not found")
+        if not menu:
+            raise NotFound(code=ErrorCodes.MENU_NOT_FOUND)
 
-    await menu.delete()
+        await menu.delete(using_db=connection)
 
     return BaseResponse()
