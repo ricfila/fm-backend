@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
+from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Product
+from backend.database.utils import get_current_time
 from backend.models.error import NotFound, Unauthorized
 from backend.models.products import GetProductResponse
 from backend.utils import ErrorCodes, TokenJwt, validate_token
@@ -23,26 +25,31 @@ async def get_product(
     """
 
     async with in_transaction() as connection:
-        product = await Product.get_or_none(
-            id=product_id, using_db=connection
-        ).prefetch_related("dates", "roles")
-
-        if not product:
-            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
+        query_filter = Q(id=product_id)
+        current_time = get_current_time()
 
         if not token.permissions["can_administer"]:
             if include_dates or include_roles:
                 raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
 
-            if not any(
-                [role.role_id == token.role_id for role in product.roles]
-            ):
-                raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+            # Add a filter for the role
+            query_filter &= Q(roles__role_id=token.role_id)
 
-            if not any(
-                [await date.is_valid_product_date() for date in product.dates]
-            ):
-                raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+            # Add a filter for valid dates
+            query_filter &= Q(
+                dates__start_date__lt=current_time,
+                dates__end_date__gt=current_time,
+            )
+
+        product = (
+            await Product.filter(query_filter)
+            .prefetch_related("dates", "ingredients", "roles", "variants")
+            .using_db(connection)
+            .first()
+        )
+
+        if not product:
+            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
     return GetProductResponse(
         **await product.to_dict(

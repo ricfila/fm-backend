@@ -105,6 +105,7 @@ class ErrorCodes(Enum):
     ONLY_ONE_STATISTICS_CAN_BE_TRUE = auto()
     PAPER_SIZE_REQUIRED_IF_CAN_ORDER = auto()
     UNKNOWN_ORDER_BY_PARAMETER = auto()
+    INVALID_OFFSET_OR_LIMIT_NEGATIVE = auto()
 
     # Default
     GENERIC_HTTP_EXCEPTION = auto()

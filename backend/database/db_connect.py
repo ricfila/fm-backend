@@ -41,7 +41,8 @@ async def init_db():
                     "default_connection": "default",
                 }
             },
-            "timezone": "Europe/Rome",
+            "use_tz": True,
+            "timezone": "UTC",
         }
     )
     await Tortoise.generate_schemas(True)

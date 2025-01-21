@@ -25,9 +25,7 @@ class Product(Model):
     is_priority = fields.BooleanField(default=False)
     price = fields.FloatField()
     category = fields.CharEnumField(Category)
-    subcategory = fields.ForeignKeyField(
-        "models.Subcategory", related_name="subcategory_id"
-    )
+    subcategory = fields.ForeignKeyField("models.Subcategory")
 
     subcategory_id: int
 
@@ -53,8 +51,7 @@ class Product(Model):
         include_roles: bool = False,
         include_variants: bool = False,
     ):
-        await self.fetch_related("dates", "ingredients", "roles", "variants")
-
+        # Build the base result
         result = {
             "id": self.id,
             "name": self.name,
@@ -65,18 +62,22 @@ class Product(Model):
             "subcategory_id": self.subcategory_id,
         }
 
-        if include_dates:
+        # Add dates if pre-fetched and requested
+        if include_dates and hasattr(self, "dates"):
             result["dates"] = [await date.to_dict() for date in self.dates]
 
-        if include_ingredients:
+        # Add ingredients if pre-fetched and requested
+        if include_ingredients and hasattr(self, "ingredients"):
             result["ingredients"] = [
                 await ingredient.to_dict() for ingredient in self.ingredients
             ]
 
-        if include_roles:
+        # Add roles if pre-fetched and requested
+        if include_roles and hasattr(self, "roles"):
             result["roles"] = [await role.to_dict() for role in self.roles]
 
-        if include_variants:
+        # Add variants if pre-fetched and requested
+        if include_variants and hasattr(self, "variants"):
             result["variants"] = [
                 await variant.to_dict() for variant in self.variants
             ]

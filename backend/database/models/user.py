@@ -13,6 +13,8 @@ class User(Model):
     role = fields.ForeignKeyField("models.Role")
     created_at = fields.DatetimeField(auto_now_add=True)
 
+    role_id: int
+
     class Meta:
         table = "user"
 

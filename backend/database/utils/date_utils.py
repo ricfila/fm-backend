@@ -1,11 +1,15 @@
 import datetime
 
-import pytz
+from tortoise import timezone
+
+
+def get_current_time() -> datetime.datetime:
+    return timezone.now()
 
 
 def is_valid_date(
     start_date: datetime.datetime, end_date: datetime.datetime
 ) -> bool:
-    current_time = datetime.datetime.now(pytz.UTC)
+    current_time = get_current_time()
 
-    return not (current_time < start_date or current_time > end_date)
+    return start_date < current_time < end_date
