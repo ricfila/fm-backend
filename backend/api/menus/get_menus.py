@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends
-from tortoise.exceptions import FieldError
+from tortoise.exceptions import FieldError, ParamsError
+from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Menu
-from backend.models.error import NotFound, Unauthorized
-from backend.models.menu import GetMenusResponse
+from backend.database.utils import get_current_time
+from backend.models.error import NotFound, Unauthorized, BadRequest
+from backend.models.menu import GetMenusResponse, Menu as MenuModel
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 
 get_menus_router = APIRouter()
@@ -25,9 +27,28 @@ async def get_menus(
     """
 
     async with in_transaction() as connection:
-        menus_query = Menu.all(using_db=connection).prefetch_related(
-            "dates", "roles"
-        )
+        menus_query_filter = Q()
+        current_time = get_current_time()
+
+        if not token.permissions["can_administer"]:
+            if include_dates or include_roles:
+                raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
+
+            # Add a filter for the role
+            menus_query_filter &= Q(roles__role_id=token.role_id)
+
+            # Add a filter for valid dates
+            menus_query_filter &= Q(
+                dates__start_date__lt=current_time,
+                dates__end_date__gt=current_time,
+            )
+
+        menus_query = Menu.filter(menus_query_filter).using_db(connection)
+
+        total_count = await menus_query.count()
+
+        if not limit:
+            limit = total_count - offset
 
         if order_by:
             try:
@@ -35,39 +56,26 @@ async def get_menus(
             except FieldError:
                 raise NotFound(code=ErrorCodes.UNKNOWN_ORDER_BY_PARAMETER)
 
-        if not token.permissions["can_administer"]:
-            if include_dates or include_roles:
-                raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
-
-            invalid_menu_ids = set()
-
-            async for menu in menus_query:
-                if not any(
-                    [await date.is_valid_menu_date() for date in menu.dates]
-                ):
-                    invalid_menu_ids.add(menu.id)
-
-                if not any(
-                    [role.role_id == token.role_id for role in menu.roles]
-                ):
-                    invalid_menu_ids.add(menu.id)
-
-            menus_query = menus_query.exclude(id__in=invalid_menu_ids)
-
-        total_count = await menus_query.count()
-
-        if not limit:
-            limit = total_count - offset
-
-        menus = await menus_query.offset(offset).limit(limit)
+        try:
+            menus = (
+                await menus_query.prefetch_related(
+                    "dates", "menu_fields", "roles"
+                )
+                .offset(offset)
+                .limit(limit)
+            )
+        except ParamsError:
+            raise BadRequest(code=ErrorCodes.INVALID_OFFSET_OR_LIMIT_NEGATIVE)
 
     return GetMenusResponse(
         total_count=total_count,
         menus=[
-            await menu.to_dict(
-                include_dates,
-                include_fields,
-                include_roles,
+            MenuModel(
+                **await menu.to_dict(
+                    include_dates,
+                    include_fields,
+                    include_roles,
+                )
             )
             for menu in menus
         ],

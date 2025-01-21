@@ -30,8 +30,7 @@ class Menu(Model):
         include_fields: bool = False,
         include_roles: bool = False,
     ) -> dict:
-        await self.fetch_related("dates", "menu_fields")
-
+        # Build the base result
         result = {
             "id": self.id,
             "name": self.name,
@@ -39,15 +38,18 @@ class Menu(Model):
             "price": self.price,
         }
 
-        if include_dates:
+        # Add dates if pre-fetched and requested
+        if include_dates and hasattr(self, "dates"):
             result["dates"] = [await date.to_dict() for date in self.dates]
 
-        if include_fields:
+        # Add fields if pre-fetched and requested
+        if include_fields and hasattr(self, "menu_fields"):
             result["fields"] = [
                 await field.to_dict() for field in self.menu_fields
             ]
 
-        if include_roles:
+        # Add roles if pre-fetched and requested
+        if include_roles and hasattr(self, "roles"):
             result["roles"] = [await role.to_dict() for role in self.roles]
 
         return result
