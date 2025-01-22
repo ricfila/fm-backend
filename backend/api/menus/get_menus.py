@@ -59,7 +59,7 @@ async def get_menus(
         try:
             menus = (
                 await menus_query.prefetch_related(
-                    "dates", "menu_fields", "roles"
+                    "dates", "menu_fields__field_products", "roles"
                 )
                 .offset(offset)
                 .limit(limit)

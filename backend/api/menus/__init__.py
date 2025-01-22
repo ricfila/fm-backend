@@ -12,6 +12,7 @@ __all__ = (
     "delete_menu_role_router",
     "get_menu_router",
     "get_menus_router",
+    "update_menu_field_additional_cost_router",
     "update_menu_field_is_optional_router",
     "update_menu_field_max_sortable_elements_router",
     "update_menu_field_name_router",
@@ -34,6 +35,9 @@ from .delete_menu_field_product import delete_menu_field_product_router
 from .delete_menu_role import delete_menu_role_router
 from .get_menu import get_menu_router
 from .get_menus import get_menus_router
+from .update_menu_field_additional_cost import (
+    update_menu_field_additional_cost_router,
+)
 from .update_menu_field_is_optional import update_menu_field_is_optional_router
 from .update_menu_field_max_sortable_elements import (
     update_menu_field_max_sortable_elements_router,
@@ -56,6 +60,7 @@ menus.include_router(delete_menu_field_product_router)
 menus.include_router(delete_menu_role_router)
 menus.include_router(get_menu_router)
 menus.include_router(get_menus_router)
+menus.include_router(update_menu_field_additional_cost_router)
 menus.include_router(update_menu_field_is_optional_router)
 menus.include_router(update_menu_field_max_sortable_elements_router)
 menus.include_router(update_menu_field_name_router)

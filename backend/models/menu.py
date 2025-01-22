@@ -22,8 +22,9 @@ class MenuField(BaseModel):
     id: int
     name: str
     max_sortable_elements: int
+    additional_cost: float
     is_optional: bool
-    products: list[MenuFieldProduct]
+    products: list[MenuFieldProduct] | None = None
 
 
 class MenuRole(BaseModel):
@@ -52,7 +53,8 @@ class AddMenuDateResponse(BaseResponse):
 
 class AddMenuFieldItem(BaseModel):
     name: str
-    max_sortable_elements: int
+    max_sortable_elements: int = Field(ge=1)
+    additional_cost: float = Field(ge=0)
 
     @field_validator("name")
     @classmethod
@@ -110,12 +112,16 @@ class GetMenusResponse(BaseResponse):
     menus: list[Menu]
 
 
+class UpdateMenuFieldAdditionalCostItem(BaseModel):
+    additional_cost: float = Field(ge=0)
+
+
 class UpdateMenuFieldIsOptionalItem(BaseModel):
     is_optional: bool
 
 
 class UpdateMenuFieldMaxSortableElementsItem(BaseModel):
-    max_sortable_elements: int
+    max_sortable_elements: int = Field(ge=1)
 
 
 class UpdateMenuFieldNameItem(BaseModel):

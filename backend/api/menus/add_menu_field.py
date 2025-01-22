@@ -35,6 +35,7 @@ async def add_menu_field(
         new_menu_field = MenuField(
             name=item.name,
             max_sortable_elements=item.max_sortable_elements,
+            additional_cost=item.additional_cost,
             menu=menu,
         )
 

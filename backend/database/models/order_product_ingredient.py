@@ -12,6 +12,7 @@ class OrderProductIngredient(Model):
         "models.OrderProduct", related_name="order_product_ingredients"
     )
     product_ingredient = fields.ForeignKeyField("models.ProductIngredient")
+    quantity = fields.IntField()
 
     order_product_id: int
     product_ingredient_id: int
@@ -28,4 +29,5 @@ class OrderProductIngredient(Model):
             "id": self.id,
             "order_product_id": self.order_product_id,
             "product_ingredient_id": self.product_ingredient_id,
+            "quantity": self.quantity,
         }

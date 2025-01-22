@@ -42,7 +42,7 @@ async def get_menu(
 
         menu = (
             await Menu.filter(query_filter)
-            .prefetch_related("dates", "menu_fields", "roles")
+            .prefetch_related("dates", "menu_fields__field_products", "roles")
             .using_db(connection)
             .first()
         )

@@ -45,7 +45,7 @@ class Menu(Model):
         # Add fields if pre-fetched and requested
         if include_fields and hasattr(self, "menu_fields"):
             result["fields"] = [
-                await field.to_dict() for field in self.menu_fields
+                await field.to_dict(True) for field in self.menu_fields
             ]
 
         # Add roles if pre-fetched and requested
