@@ -1,39 +1,43 @@
 from decimal import Decimal
 
 from tortoise import BaseDBAsyncClient
-from tortoise.query_utils import Prefetch
 
 from backend.database.models import (
     Menu,
     MenuField,
-    MenuFieldProduct,
     Order,
     OrderMenu,
     OrderMenuField,
     OrderProduct,
     OrderProductIngredient,
     Product,
-    ProductIngredient,
-    ProductVariant,
 )
-from backend.models.orders import CreateOrderMenuItem, CreateOrderProductItem
+from backend.models.orders import (
+    CreateOrderMenuItem,
+    CreateOrderProductItem,
+    CreateOrderMenuFieldItem,
+)
 from backend.utils import ErrorCodes
 
 ZERO_DECIMAL = Decimal("0.00")
 
 
-async def check_generic_product(
-    product: CreateOrderProductItem,
+async def _check_generic_product(
     product_db: Product,
-    connection: BaseDBAsyncClient,
+    product: CreateOrderProductItem,
     is_menu: bool = False,
 ) -> tuple[bool, ErrorCodes | None]:
+    # Calculate the base price of the product
     product_price = Decimal(product_db.price).quantize(ZERO_DECIMAL)
 
     if is_menu:
         product_price = ZERO_DECIMAL
 
-    if list(product_db.variants) and not product.variant_id:
+    # Extract variants and their IDs
+    product_variants = {variant.id: variant for variant in product_db.variants}
+
+    # Validate variants
+    if product_variants and not product.variant_id:
         return (
             True,
             ErrorCodes.INPUT_MENU_FIELD_PRODUCT_VARIANT
@@ -42,10 +46,7 @@ async def check_generic_product(
         )
 
     if product.variant_id:
-        product_variant = await ProductVariant.get_or_none(
-            id=product.variant_id, product=product_db, using_db=connection
-        )
-
+        product_variant = product_variants.get(product.variant_id)
         if not product_variant:
             return (
                 True,
@@ -56,11 +57,24 @@ async def check_generic_product(
 
         product_price += Decimal(product_variant.price).quantize(ZERO_DECIMAL)
 
-    for ingredient in product.ingredients:
-        product_ingredient = await ProductIngredient.get_or_none(
-            id=ingredient, product=product_db, using_db=connection
+    # Extract ingredients and their IDs
+    product_ingredients = {
+        ingredient.id: ingredient for ingredient in product_db.ingredients
+    }
+
+    # Validate ingredients
+    if len(set(x.ingredient_id for x in product.ingredients)) != len(
+        product.ingredients
+    ):
+        return (
+            True,
+            ErrorCodes.INPUT_DUPLICATE_MENU_FIELD_PRODUCT_INGREDIENT
+            if is_menu
+            else ErrorCodes.INPUT_DUPLICATE_PRODUCT_INGREDIENT,
         )
 
+    for ingredient in product.ingredients:
+        product_ingredient = product_ingredients.get(ingredient.ingredient_id)
         if not product_ingredient:
             return (
                 True,
@@ -69,10 +83,11 @@ async def check_generic_product(
                 else ErrorCodes.PRODUCT_INGREDIENT_NOT_EXIST,
             )
 
-        product_price += Decimal(product_ingredient.price).quantize(
-            ZERO_DECIMAL
-        )
+        product_price += Decimal(
+            product_ingredient.price * ingredient.quantity
+        ).quantize(ZERO_DECIMAL)
 
+    # Assign calculated price to the product
     product._price = product_price
 
     return False, None
@@ -83,31 +98,44 @@ async def check_products(
     role_id: int,
     connection: BaseDBAsyncClient,
 ) -> tuple[bool, ErrorCodes | None]:
-    for product in products:
-        product_db = await Product.get_or_none(
-            id=product.product_id, using_db=connection
-        ).prefetch_related("dates", "roles", "variants")
+    product_ids = {x.product_id for x in products}  # Extract product IDs
 
-        if not product_db:
-            return True, ErrorCodes.PRODUCT_NOT_EXIST
+    # Get products from DB
+    products_db = (
+        Product.filter(id__in=product_ids)
+        .prefetch_related("dates", "ingredients", "roles", "variants")
+        .using_db(connection)
+    )
 
-        if not product.quantity:
-            return True, ErrorCodes.MISSING_PRODUCT_QUANTITY
+    # Check if all products exist
+    total_count = await products_db.count()
+    if total_count != len(product_ids):
+        return True, ErrorCodes.PRODUCT_NOT_EXIST
 
-        if not any(role.role_id == role_id for role in product_db.roles):
+    for product in await products_db:
+        # Check if role is valid for the product
+        if not any(role.role_id == role_id for role in product.roles):
             return True, ErrorCodes.PRODUCT_ROLE_NOT_EXIST
 
+        # Check if any product date is valid
         if not any(
-            [await date.is_valid_product_date() for date in product_db.dates]
+            [await date.is_valid_product_date() for date in product.dates]
         ):
             return True, ErrorCodes.PRODUCT_DATE_NOT_VALID
 
-        variant_ingredients_check = await check_generic_product(
-            product, product_db, connection
-        )
+        # Validate each relevant product in the order
+        relevant_products = [p for p in products if p.product_id == product.id]
+        for product_order in relevant_products:
+            is_invalid, error_code = await _check_generic_product(
+                product, product_order
+            )
 
-        if variant_ingredients_check[0]:
-            return variant_ingredients_check
+            if is_invalid:
+                return is_invalid, error_code
+
+            product_order._price = Decimal(
+                product_order._price * product_order.quantity
+            ).quantize(ZERO_DECIMAL)
 
     return False, None
 
@@ -121,7 +149,7 @@ async def create_order_products(
     for product in products:
         order_product = await OrderProduct.create(
             product_id=product.product_id,
-            price=product._price * Decimal(product.quantity),
+            price=product._price,
             quantity=product.quantity,
             variant_id=product.variant_id,
             order=order,
@@ -129,50 +157,120 @@ async def create_order_products(
             using_db=connection,
         )
 
-        for ingredient in set(product.ingredients):
+        for ingredient in product.ingredients:
             await OrderProductIngredient.create(
                 order_product=order_product,
-                product_ingredient_id=ingredient,
+                product_ingredient_id=ingredient.ingredient_id,
+                quantity=ingredient.quantity,
                 using_db=connection,
             )
 
     return True
 
 
-async def check_menu_products(
-    products: list[CreateOrderProductItem],
-    menu_field: MenuField,
-    quantity: int,
-    connection: BaseDBAsyncClient,
+async def _check_menu_field_products(
+    menu_field: MenuField, order_menu_field: CreateOrderMenuFieldItem
 ) -> tuple[bool, ErrorCodes | None]:
-    for product in products:
-        menu_field_product = await MenuFieldProduct.get_or_none(
-            product_id=product.product_id,
-            menu_field=menu_field,
-            using_db=connection,
-        ).prefetch_related(
-            Prefetch(
-                "product", queryset=Product.all().prefetch_related("variants")
-            )
+    menu_field_product_ids = {
+        product.id for product in menu_field.field_products
+    }
+    order_menu_field_product_ids = {
+        product.product_id for product in order_menu_field.products
+    }
+
+    # Check for duplicate product IDs in the order
+    if len(order_menu_field_product_ids) != len(order_menu_field.products):
+        return True, ErrorCodes.DUPLICATE_MENU_FIELDS_PRODUCT
+
+    # Check if all products in the order exist in the menu field
+    if not order_menu_field_product_ids.issubset(menu_field_product_ids):
+        return True, ErrorCodes.MENU_FIELD_PRODUCT_NOT_EXIST
+
+    max_free_quantity = menu_field.max_sortable_elements
+    menu_field_total_quantity = sum(
+        p.quantity for p in order_menu_field.products
+    )
+    excess = menu_field_total_quantity - max_free_quantity
+
+    menu_field_product = {
+        product.id: product for product in menu_field.field_products
+    }
+
+    for product in reversed(order_menu_field.products):
+        # Validate each product using the generic product checker
+        is_invalid, error_code = await _check_generic_product(
+            menu_field_product[product.id].product, product, True
         )
 
-        if not menu_field_product:
-            return True, ErrorCodes.MENU_FIELD_PRODUCT_NOT_EXIST
+        if is_invalid:
+            return is_invalid, error_code
 
-        variant_ingredients_check = await check_generic_product(
-            product, menu_field_product.product, connection, True
-        )
-
-        if variant_ingredients_check[0]:
-            return (
-                True,
-                variant_ingredients_check[1],
-            )
-
-        product.quantity = quantity
-        product._price += Decimal(menu_field_product.price).quantize(
+        # Calculate product price based on quantity
+        product._price = Decimal(product._price * product.quantity).quantize(
             ZERO_DECIMAL
         )
+
+        # Apply additional cost for excess quantities
+        if excess > 0:
+            if product.quantity <= excess:
+                product._price += Decimal(
+                    menu_field.additional_cost * product.quantity
+                ).quantize(ZERO_DECIMAL)
+                excess -= product.quantity
+            else:
+                product._price += Decimal(
+                    menu_field.additional_cost * excess
+                ).quantize(ZERO_DECIMAL)
+                excess = 0
+
+    return False, None
+
+
+async def _check_menu_fields(
+    menu: Menu, order_menu: CreateOrderMenuItem
+) -> tuple[bool, ErrorCodes | None]:
+    menu_field_ids = {field.id for field in menu.menu_fields}
+    menu_field_obligatory_ids = {
+        field.id for field in menu.menu_fields if not field.is_optional
+    }
+    order_menu_field_ids = {field.menu_field_id for field in order_menu.fields}
+
+    # Check for duplicate field IDs in the order
+    if len(order_menu_field_ids) != len(order_menu.fields):
+        return True, ErrorCodes.DUPLICATE_MENU_FIELDS
+
+    # Ensure all obligatory menu fields are present in the order
+    if not menu_field_obligatory_ids.issubset(order_menu_field_ids):
+        return True, ErrorCodes.MISSING_OBLIGATORY_MENU_FIELDS
+
+    # Validate that all menu fields in the order exist in the menu
+    if not order_menu_field_ids.issubset(menu_field_ids):
+        return True, ErrorCodes.MENU_FIELD_NOT_EXIST
+
+    menu_fields = {field.id: field for field in menu.menu_fields}
+    menu_price = Decimal(menu.price).quantize(ZERO_DECIMAL)
+
+    for field in order_menu.fields:
+        # Ensure that each field has at least one product
+        if len(field.products) < 1:
+            return True, ErrorCodes.MISSING_MENU_FIELD_PRODUCTS
+
+        menu_field = menu_fields[field.menu_field_id]
+
+        # Validate products within the field
+        is_invalid, error_code = await _check_menu_field_products(
+            menu_field, field
+        )
+
+        if is_invalid:
+            return is_invalid, error_code
+
+        # Add the price of the products to the menu price
+        for product in field.products:
+            menu_price += Decimal(product._price).quantize(ZERO_DECIMAL)
+
+    # Assign the calculated menu price to the order
+    order_menu._price = Decimal(menu_price).quantize(ZERO_DECIMAL)
 
     return False, None
 
@@ -182,57 +280,49 @@ async def check_menus(
     role_id: int,
     connection: BaseDBAsyncClient,
 ) -> tuple[bool, ErrorCodes | None]:
-    for menu in menus:
-        menu_db = await Menu.get_or_none(
-            id=menu.menu_id, using_db=connection
-        ).prefetch_related("dates", "menu_fields", "roles")
+    menu_ids = {menu.menu_id for menu in menus}
 
-        if not menu_db:
-            return True, ErrorCodes.MENU_NOT_EXIST
+    # Get menus from DB
+    menu_db = (
+        Menu.filter(id__in=menu_ids)
+        .prefetch_related(
+            "dates",
+            "menu_fields",
+            "menu_fields__field_products",
+            "menu_fields__field_products__product__ingredients",
+            "menu_fields__field_products__product__variants",
+            "roles",
+        )
+        .using_db(connection)
+    )
 
-        menu_price = Decimal(menu_db.price).quantize(ZERO_DECIMAL)
+    # Check if all products exist
+    total_count = await menu_db.count()
+    if total_count != len(menu_ids):
+        return True, ErrorCodes.MENU_NOT_EXIST
 
-        if not any(role.role_id == role_id for role in menu_db.roles):
+    for menu in await menu_db:
+        # Check if role is valid for the product
+        if not any(role.role_id == role_id for role in menu.roles):
             return True, ErrorCodes.MENU_ROLE_NOT_EXIST
 
-        if not any(
-            [await date.is_valid_menu_date() for date in menu_db.dates]
-        ):
+        # Check if any product date is valid
+        if not any([await date.is_valid_menu_date() for date in menu.dates]):
             return True, ErrorCodes.MENU_DATE_NOT_VALID
 
-        menu_fields_obligatory = {
-            field.id for field in menu_db.menu_fields if not field.is_optional
-        }
-        menu_field_ids = {field.menu_field_id for field in menu.fields}
+        # Filter relevant menus for the order
+        relevant_menus = [m for m in menus if m.menu_id == menu.id]
+        for order_menu in relevant_menus:
+            # Validate menu fields
+            is_invalid, error_code = await _check_menu_fields(menu, order_menu)
 
-        if not menu_fields_obligatory.issubset(menu_field_ids):
-            return True, ErrorCodes.MISSING_OBLIGATORY_MENU_FIELDS
+            if is_invalid:
+                return is_invalid, error_code
 
-        for field in menu.fields:
-            menu_field = await MenuField.get_or_none(
-                id=field.menu_field_id, using_db=connection
-            ).prefetch_related("field_products")
-
-            if not menu_field:
-                return True, ErrorCodes.MENU_FIELD_NOT_EXIST
-
-            if len(field.products) < 1:
-                return True, ErrorCodes.MISSING_MENU_FIELD_PRODUCTS
-
-            if len(field.products) > menu_field.max_sortable_elements:
-                return True, ErrorCodes.MENU_FIELD_TOO_MANY_PRODUCTS
-
-            check_menu_field_products = await check_menu_products(
-                field.products, menu_field, menu.quantity, connection
-            )
-
-            if check_menu_field_products[0]:
-                return check_menu_field_products
-
-            for product in field.products:
-                menu_price += product._price
-
-        menu._price = menu_price
+            # Calculate the total menu price based on quantity
+            order_menu._price = Decimal(
+                order_menu._price * order_menu.quantity
+            ).quantize(ZERO_DECIMAL)
 
     return False, None
 
@@ -245,7 +335,7 @@ async def create_order_menus(
     for menu in menus:
         order_menu = await OrderMenu.create(
             menu_id=menu.menu_id,
-            price=menu._price * menu.quantity,
+            price=menu._price,
             quantity=menu.quantity,
             order=order,
             using_db=connection,
