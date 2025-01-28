@@ -3,6 +3,7 @@ import datetime
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
+from backend.models.products import Product
 from backend.utils import validate_name_field, validate_short_name_field
 
 
@@ -105,6 +106,10 @@ class CreateMenuResponse(BaseResponse):
 
 class GetMenuResponse(BaseResponse, Menu):
     pass
+
+
+class GetMenuProductsResponse(BaseResponse):
+    products: list[Product]
 
 
 class GetMenusResponse(BaseResponse):
