@@ -83,8 +83,8 @@ async def _check_generic_product(
                 else ErrorCodes.PRODUCT_INGREDIENT_NOT_EXIST,
             )
 
-        product_price += Decimal(
-            product_ingredient.price * ingredient.quantity
+        product_price += (
+            Decimal(product_ingredient.price) * Decimal(ingredient.quantity)
         ).quantize(ZERO_DECIMAL)
 
     # Assign calculated price to the product
@@ -133,8 +133,8 @@ async def check_products(
             if is_invalid:
                 return is_invalid, error_code
 
-            product_order._price = Decimal(
-                product_order._price * product_order.quantity
+            product_order._price = (
+                Decimal(product_order._price) * Decimal(product_order.quantity)
             ).quantize(ZERO_DECIMAL)
 
     return False, None
@@ -206,21 +206,27 @@ async def _check_menu_field_products(
             return is_invalid, error_code
 
         # Calculate product price based on quantity
-        product._price = Decimal(product._price * product.quantity).quantize(
-            ZERO_DECIMAL
-        )
+        product._price = (
+            Decimal(product._price) * Decimal(product.quantity)
+        ).quantize(ZERO_DECIMAL)
+        product._price += (
+            Decimal(menu_field_product[product.id].price)
+            * Decimal(product.quantity)
+        ).quantize(ZERO_DECIMAL)
 
         # Apply additional cost for excess quantities
         if excess > 0:
+            additional_cost = Decimal(menu_field.additional_cost)
+
             if product.quantity <= excess:
-                product._price += Decimal(
-                    menu_field.additional_cost * product.quantity
+                product._price += (
+                    additional_cost * Decimal(product.quantity)
                 ).quantize(ZERO_DECIMAL)
                 excess -= product.quantity
             else:
-                product._price += Decimal(
-                    menu_field.additional_cost * excess
-                ).quantize(ZERO_DECIMAL)
+                product._price += (additional_cost * Decimal(excess)).quantize(
+                    ZERO_DECIMAL
+                )
                 excess = 0
 
     return False, None
@@ -320,8 +326,8 @@ async def check_menus(
                 return is_invalid, error_code
 
             # Calculate the total menu price based on quantity
-            order_menu._price = Decimal(
-                order_menu._price * order_menu.quantity
+            order_menu._price = (
+                Decimal(order_menu._price) * Decimal(order_menu.quantity)
             ).quantize(ZERO_DECIMAL)
 
     return False, None
