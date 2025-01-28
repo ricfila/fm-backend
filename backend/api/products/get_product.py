@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends
-from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Product
-from backend.database.utils import get_current_time
-from backend.models.error import NotFound, Unauthorized
+from backend.models.error import NotFound
 from backend.models.products import GetProductResponse
 from backend.utils import ErrorCodes, TokenJwt, validate_token
+from backend.utils.query_filters import build_single_query_filter
 
 get_product_router = APIRouter()
 
@@ -25,21 +24,9 @@ async def get_product(
     """
 
     async with in_transaction() as connection:
-        query_filter = Q(id=product_id)
-        current_time = get_current_time()
-
-        if not token.permissions["can_administer"]:
-            if include_dates or include_roles:
-                raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
-
-            # Add a filter for the role
-            query_filter &= Q(roles__role_id=token.role_id)
-
-            # Add a filter for valid dates
-            query_filter &= Q(
-                dates__start_date__lt=current_time,
-                dates__end_date__gt=current_time,
-            )
+        query_filter = build_single_query_filter(
+            product_id, token, include_dates, include_roles
+        )
 
         product = (
             await Product.filter(query_filter)

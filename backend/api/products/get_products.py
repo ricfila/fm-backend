@@ -1,17 +1,18 @@
 from fastapi import APIRouter, Depends
-from tortoise.exceptions import FieldError, ParamsError
+from tortoise.exceptions import ParamsError
 from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Product
-from backend.database.utils import get_current_time
-from backend.models.error import NotFound, Unauthorized, BadRequest
+from backend.models.error import BadRequest
 from backend.models.products import (
     GetProductsResponse,
     Product as ProductModel,
     ProductName,
 )
 from backend.utils import ErrorCodes, TokenJwt, validate_token
+from backend.utils.query_filters import build_multiple_query_filter
+from backend.utils.query_utils import process_query_with_pagination
 
 get_products_router = APIRouter()
 
@@ -34,39 +35,20 @@ async def get_products(
     """
 
     async with in_transaction() as connection:
-        products_query_filter = Q()
-        current_time = get_current_time()
+        products_query_filter = build_multiple_query_filter(
+            token, include_dates, include_roles
+        )
 
         if subcategory_id:
             products_query_filter &= Q(subcategory_id=subcategory_id)
 
-        if not token.permissions["can_administer"]:
-            if include_dates or include_roles:
-                raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
-
-            # Add a filter for the role
-            products_query_filter &= Q(roles__role_id=token.role_id)
-
-            # Add a filter for valid dates
-            products_query_filter &= Q(
-                dates__start_date__lt=current_time,
-                dates__end_date__gt=current_time,
-            )
-
-        products_query = Product.filter(products_query_filter).using_db(
-            connection
+        (
+            products_query,
+            total_count,
+            limit,
+        ) = await process_query_with_pagination(
+            Product, products_query_filter, connection, offset, limit, order_by
         )
-
-        total_count = await products_query.count()
-
-        if not limit:
-            limit = total_count - offset
-
-        if order_by:
-            try:
-                products_query = products_query.order_by(order_by)
-            except FieldError:
-                raise NotFound(code=ErrorCodes.UNKNOWN_ORDER_BY_PARAMETER)
 
         try:
             products = (

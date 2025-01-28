@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
-from tortoise.exceptions import FieldError, ParamsError
-from tortoise.expressions import Q
+from tortoise.exceptions import ParamsError
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Menu
-from backend.database.utils import get_current_time
-from backend.models.error import NotFound, Unauthorized, BadRequest
+from backend.models.error import BadRequest
 from backend.models.menu import GetMenusResponse, Menu as MenuModel
 from backend.utils import ErrorCodes, TokenJwt, validate_token
+from backend.utils.query_filters import build_multiple_query_filter
+from backend.utils.query_utils import process_query_with_pagination
 
 get_menus_router = APIRouter()
 
@@ -27,34 +27,13 @@ async def get_menus(
     """
 
     async with in_transaction() as connection:
-        menus_query_filter = Q()
-        current_time = get_current_time()
+        menus_query_filter = build_multiple_query_filter(
+            token, include_dates, include_roles
+        )
 
-        if not token.permissions["can_administer"]:
-            if include_dates or include_roles:
-                raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
-
-            # Add a filter for the role
-            menus_query_filter &= Q(roles__role_id=token.role_id)
-
-            # Add a filter for valid dates
-            menus_query_filter &= Q(
-                dates__start_date__lt=current_time,
-                dates__end_date__gt=current_time,
-            )
-
-        menus_query = Menu.filter(menus_query_filter).using_db(connection)
-
-        total_count = await menus_query.count()
-
-        if not limit:
-            limit = total_count - offset
-
-        if order_by:
-            try:
-                menus_query = menus_query.order_by(order_by)
-            except FieldError:
-                raise NotFound(code=ErrorCodes.UNKNOWN_ORDER_BY_PARAMETER)
+        menus_query, total_count, limit = await process_query_with_pagination(
+            Menu, menus_query_filter, connection, offset, limit, order_by
+        )
 
         try:
             menus = (
