@@ -172,7 +172,7 @@ async def _check_menu_field_products(
     menu_field: MenuField, order_menu_field: CreateOrderMenuFieldItem
 ) -> tuple[bool, ErrorCodes | None]:
     menu_field_product_ids = {
-        product.id for product in menu_field.field_products
+        product.product_id for product in menu_field.field_products
     }
     order_menu_field_product_ids = {
         product.product_id for product in order_menu_field.products
@@ -193,13 +193,13 @@ async def _check_menu_field_products(
     excess = menu_field_total_quantity - max_free_quantity
 
     menu_field_product = {
-        product.id: product for product in menu_field.field_products
+        product.product_id: product for product in menu_field.field_products
     }
 
     for product in reversed(order_menu_field.products):
         # Validate each product using the generic product checker
         is_invalid, error_code = await _check_generic_product(
-            menu_field_product[product.id].product, product, True
+            menu_field_product[product.product_id].product, product, True
         )
 
         if is_invalid:
@@ -210,7 +210,7 @@ async def _check_menu_field_products(
             Decimal(product._price) * Decimal(product.quantity)
         ).quantize(ZERO_DECIMAL)
         product._price += (
-            Decimal(menu_field_product[product.id].price)
+            Decimal(menu_field_product[product.product_id].price)
             * Decimal(product.quantity)
         ).quantize(ZERO_DECIMAL)
 
