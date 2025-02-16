@@ -19,6 +19,11 @@ async def get_menus(
     order_by: str = None,
     include_dates: bool = False,
     include_fields: bool = False,
+    include_fields_products: bool = False,
+    include_fields_products_dates: bool = False,
+    include_fields_products_ingredients: bool = False,
+    include_fields_products_roles: bool = False,
+    include_fields_products_variants: bool = False,
     include_roles: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -28,7 +33,11 @@ async def get_menus(
 
     async with in_transaction() as connection:
         menus_query_filter = build_multiple_query_filter(
-            token, include_dates, include_roles
+            token,
+            include_dates,
+            include_roles,
+            include_fields_products_dates,
+            include_fields_products_roles,
         )
 
         menus_query, total_count, limit = await process_query_with_pagination(
@@ -38,7 +47,13 @@ async def get_menus(
         try:
             menus = (
                 await menus_query.prefetch_related(
-                    "dates", "menu_fields__field_products", "roles"
+                    "dates",
+                    "menu_fields__field_products",
+                    "menu_fields__field_products__product__dates",
+                    "menu_fields__field_products__product__ingredients",
+                    "menu_fields__field_products__product__roles",
+                    "menu_fields__field_products__product__variants",
+                    "roles",
                 )
                 .offset(offset)
                 .limit(limit)
@@ -53,6 +68,11 @@ async def get_menus(
                 **await menu.to_dict(
                     include_dates,
                     include_fields,
+                    include_fields_products,
+                    include_fields_products_dates,
+                    include_fields_products_ingredients,
+                    include_fields_products_roles,
+                    include_fields_products_variants,
                     include_roles,
                 )
             )

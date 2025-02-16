@@ -19,10 +19,21 @@ class MenuFieldProduct(Model):
         table = "menu_field_product"
         unique_together = ("product_id", "menu_field_id")
 
-    async def to_dict(self):
+    async def to_dict(
+        self,
+        include_fields_products_dates: bool = False,
+        include_fields_products_ingredients: bool = False,
+        include_fields_products_roles: bool = False,
+        include_fields_products_variants: bool = False,
+    ):
         return {
             "id": self.id,
             "price": self.price,
-            "product_id": self.product_id,
+            "product": await self.product.to_dict(
+                include_fields_products_dates,
+                include_fields_products_ingredients,
+                include_fields_products_roles,
+                include_fields_products_variants,
+            ),
             "menu_field_id": self.menu_field_id,
         }

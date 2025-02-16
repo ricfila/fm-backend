@@ -6,13 +6,22 @@ from backend.utils import ErrorCodes, TokenJwt
 
 
 def build_common_filters(
-    token: TokenJwt, include_dates: bool, include_roles: bool
+    token: TokenJwt,
+    include_dates: bool,
+    include_roles: bool,
+    include_fields_products_dates: bool,
+    include_fields_products_roles: bool,
 ):
     query_filter = Q()
     current_time = get_current_time()
 
     if not token.permissions["can_administer"]:
-        if include_dates or include_roles:
+        if (
+            include_dates
+            or include_roles
+            or include_fields_products_dates
+            or include_fields_products_roles
+        ):
             raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
 
         # Add a filter for the role
@@ -28,16 +37,37 @@ def build_common_filters(
 
 
 def build_single_query_filter(
-    item_id: int, token: TokenJwt, include_dates: bool, include_roles: bool
+    item_id: int,
+    token: TokenJwt,
+    include_dates: bool,
+    include_roles: bool,
+    include_fields_products_dates: bool = False,
+    include_fields_products_roles: bool = False,
 ) -> Q:
     query_filter = Q(id=item_id)
 
-    query_filter &= build_common_filters(token, include_dates, include_roles)
+    query_filter &= build_common_filters(
+        token,
+        include_dates,
+        include_roles,
+        include_fields_products_dates,
+        include_fields_products_roles,
+    )
 
     return query_filter
 
 
 def build_multiple_query_filter(
-    token: TokenJwt, include_dates: bool, include_roles: bool
+    token: TokenJwt,
+    include_dates: bool,
+    include_roles: bool,
+    include_fields_products_dates: bool = False,
+    include_fields_products_roles: bool = False,
 ) -> Q:
-    return build_common_filters(token, include_dates, include_roles)
+    return build_common_filters(
+        token,
+        include_dates,
+        include_roles,
+        include_fields_products_dates,
+        include_fields_products_roles,
+    )

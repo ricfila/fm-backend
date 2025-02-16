@@ -28,6 +28,11 @@ class Menu(Model):
         self,
         include_dates: bool = False,
         include_fields: bool = False,
+        include_fields_products: bool = False,
+        include_fields_products_dates: bool = False,
+        include_fields_products_ingredients: bool = False,
+        include_fields_products_roles: bool = False,
+        include_fields_products_variants: bool = False,
         include_roles: bool = False,
     ) -> dict:
         # Build the base result
@@ -45,7 +50,14 @@ class Menu(Model):
         # Add fields if pre-fetched and requested
         if include_fields and hasattr(self, "menu_fields"):
             result["fields"] = [
-                await field.to_dict(True) for field in self.menu_fields
+                await field.to_dict(
+                    include_fields_products,
+                    include_fields_products_dates,
+                    include_fields_products_ingredients,
+                    include_fields_products_roles,
+                    include_fields_products_variants,
+                )
+                for field in self.menu_fields
             ]
 
         # Add roles if pre-fetched and requested

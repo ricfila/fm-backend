@@ -15,6 +15,11 @@ async def get_menu(
     menu_id: int,
     include_dates: bool = False,
     include_fields: bool = False,
+    include_fields_products: bool = False,
+    include_fields_products_dates: bool = False,
+    include_fields_products_ingredients: bool = False,
+    include_fields_products_roles: bool = False,
+    include_fields_products_variants: bool = False,
     include_roles: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -24,12 +29,25 @@ async def get_menu(
 
     async with in_transaction() as connection:
         query_filter = build_single_query_filter(
-            menu_id, token, include_dates, include_roles
+            menu_id,
+            token,
+            include_dates,
+            include_roles,
+            include_fields_products_dates,
+            include_fields_products_roles,
         )
 
         menu = (
             await Menu.filter(query_filter)
-            .prefetch_related("dates", "menu_fields__field_products", "roles")
+            .prefetch_related(
+                "dates",
+                "menu_fields__field_products",
+                "menu_fields__field_products__product__dates",
+                "menu_fields__field_products__product__ingredients",
+                "menu_fields__field_products__product__roles",
+                "menu_fields__field_products__product__variants",
+                "roles",
+            )
             .using_db(connection)
             .first()
         )
@@ -38,5 +56,14 @@ async def get_menu(
             raise NotFound(code=ErrorCodes.MENU_NOT_FOUND)
 
     return GetMenuResponse(
-        **await menu.to_dict(include_dates, include_fields, include_roles)
+        **await menu.to_dict(
+            include_dates,
+            include_fields,
+            include_fields_products,
+            include_fields_products_dates,
+            include_fields_products_ingredients,
+            include_fields_products_roles,
+            include_fields_products_variants,
+            include_roles,
+        )
     )

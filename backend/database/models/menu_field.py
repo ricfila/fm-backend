@@ -27,7 +27,14 @@ class MenuField(Model):
         table = "menu_field"
         unique_together = ("name", "menu_id")
 
-    async def to_dict(self, include_products: bool = False) -> dict:
+    async def to_dict(
+        self,
+        include_fields_products: bool = False,
+        include_fields_products_dates: bool = False,
+        include_fields_products_ingredients: bool = False,
+        include_fields_products_roles: bool = False,
+        include_fields_products_variants: bool = False,
+    ) -> dict:
         result = {
             "id": self.id,
             "name": self.name,
@@ -37,9 +44,15 @@ class MenuField(Model):
             "menu_id": self.menu_id,
         }
 
-        if include_products and hasattr(self, "field_products"):
+        if include_fields_products and hasattr(self, "field_products"):
             result["products"] = [
-                await product.to_dict() for product in self.field_products
+                await product.to_dict(
+                    include_fields_products_dates,
+                    include_fields_products_ingredients,
+                    include_fields_products_roles,
+                    include_fields_products_variants,
+                )
+                for product in self.field_products
             ]
 
         return result

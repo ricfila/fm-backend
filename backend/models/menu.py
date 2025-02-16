@@ -16,7 +16,7 @@ class MenuDate(BaseModel):
 class MenuFieldProduct(BaseModel):
     id: int
     price: float
-    product_id: int
+    product: Product
 
 
 class MenuField(BaseModel):
