@@ -15,7 +15,9 @@ get_menu_products_router = APIRouter()
 )
 async def get_menu_products(
     menu_id: int,
+    include_dates: bool = False,
     include_ingredients: bool = False,
+    include_roles: bool = False,
     include_variants: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -25,14 +27,18 @@ async def get_menu_products(
 
     async with in_transaction() as connection:
         # Build a query filter
-        query_filter = build_single_query_filter(menu_id, token, False, False)
+        query_filter = build_single_query_filter(
+            menu_id, token, include_dates, include_roles
+        )
 
         # Fetch the menu with related products, ingredients, and variants
         menu = (
             await Menu.filter(query_filter)
             .prefetch_related(
                 "menu_fields__field_products",
+                "menu_fields__field_products__product__dates",
                 "menu_fields__field_products__product__ingredients",
+                "menu_fields__field_products__product__roles",
                 "menu_fields__field_products__product__variants",
             )
             .using_db(connection)
@@ -45,7 +51,10 @@ async def get_menu_products(
         # Get product details
         menu_products = [
             await field_product.product.to_dict(
-                False, include_ingredients, False, include_variants
+                include_dates,
+                include_ingredients,
+                include_roles,
+                include_variants,
             )
             for field in menu.menu_fields
             for field_product in field.field_products
