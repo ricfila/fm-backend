@@ -22,6 +22,8 @@ class OrderProduct(Model):
         "models.OrderMenuField", "order_menu_field_products", null=True
     )
 
+    order_menu_field_id: int
+
     product_id: int
     variant_id: int
 
@@ -30,16 +32,20 @@ class OrderProduct(Model):
     class Meta:
         table = "order_product"
 
-    async def to_dict(self):
-        await self.fetch_related("order_product_ingredients")
-
-        return {
+    async def to_dict(self, include_products_ingredients: bool = False) -> dict:
+        result = {
             "id": self.id,
             "product_id": self.product_id,
-            "variant_id": self.variant_id,
-            "ingredients": [
-                await ingredient.get_ingredient()
-                for ingredient in self.order_product_ingredients
-            ],
             "price": self.price,
+            "quantity": self.quantity,
+            "variant_id": self.variant_id,
+            "order_menu_field_id": self.order_menu_field_id,
         }
+
+        if include_products_ingredients and hasattr(self, "order_product_ingredients"):
+            result["ingredients"] = [
+                await ingredient.to_dict()
+                for ingredient in self.order_product_ingredients
+            ]
+
+        return result

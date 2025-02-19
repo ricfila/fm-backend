@@ -27,15 +27,17 @@ class OrderMenuField(Model):
         table = "order_menu_field"
         unique_together = ("order_menu_id", "menu_field_id")
 
-    async def to_dict(self):
-        await self.fetch_related("order_menu_field_products")
-
-        return {
+    async def to_dict(self, include_menus_fields_products: bool = False) -> dict:
+        result = {
             "id": self.id,
             "order_menu_id": self.order_menu_id,
             "menu_field_id": self.menu_field_id,
-            "products": [
+        }
+
+        if include_menus_fields_products and hasattr(self, "order_menu_field_products"):
+            result["products"] = [
                 await product.to_dict()
                 for product in self.order_menu_field_products
-            ],
-        }
+            ]
+
+        return result

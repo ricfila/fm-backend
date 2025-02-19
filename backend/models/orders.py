@@ -1,8 +1,49 @@
+import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, Field, field_validator
 
+from backend.models import BaseResponse
 from backend.utils import validate_name_field
+
+
+class OrderProductIngredient(BaseModel):
+    id: int
+    product_ingredient_id: int
+    quantity: int
+
+
+class OrderProduct(BaseModel):
+    id: int
+    product_id: int
+    price: float
+    quantity: int
+    variant_id: int
+    ingredients: list[OrderProductIngredient]
+
+
+class OrderMenuField(BaseModel):
+    id: int
+    menu_field_id: int
+    products: list[OrderProduct]
+
+
+class OrderMenu(BaseModel):
+    id: int
+    price: float
+    quantity: int
+    fields: list[OrderMenuField]
+
+
+class Order(BaseModel):
+    id: int
+    customer: str
+    guests: int
+    is_take_away: bool
+    table: int
+    user_id: int
+    created_at: datetime.datetime
+    menus: list[OrderMenu]
 
 
 class CreateOrderProductIngredientItem(BaseModel):
@@ -44,3 +85,9 @@ class CreateOrderItem(BaseModel):
     @classmethod
     def validate_customer_field(cls, customer: str):
         return validate_name_field(customer)
+
+
+
+class GetOrdersResponse(BaseResponse):
+    total_count: int
+    orders: list[Order]

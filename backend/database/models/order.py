@@ -28,10 +28,15 @@ class Order(Model):
     class Meta:
         table = "order"
 
-    async def to_dict(self) -> dict:
-        await self.fetch_related("order_menus", "order_products")
-
-        return {
+    async def to_dict(
+        self,
+        include_menus: bool = False,
+        include_menus_fields: bool = False,
+        include_menus_fields_products: bool = False,
+        include_products: bool = False,
+        include_products_ingredients: bool = False
+    ) -> dict:
+        result =  {
             "id": self.id,
             "customer": self.customer,
             "guests": self.guests,
@@ -39,8 +44,14 @@ class Order(Model):
             "table": self.table,
             "user_id": self.user_id,
             "created_at": self.created_at,
-            "menus": [await menu.to_dict() for menu in self.order_menus],
-            "products": [
-                await product.to_dict() for product in self.order_products
-            ],
         }
+
+        if include_menus and hasattr(self, "order_menus"):
+            result["menus"] = [await menu.to_dict(include_menus_fields, include_menus_fields_products) for menu in self.order_menus]
+
+        if include_products and hasattr(self, "order_products"):
+            result["products"] = [
+                await product.to_dict(include_products_ingredients) for product in self.order_products
+            ]
+
+        return result

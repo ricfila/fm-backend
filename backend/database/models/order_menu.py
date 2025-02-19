@@ -25,12 +25,15 @@ class OrderMenu(Model):
     class Meta:
         table = "order_menu"
 
-    async def to_dict(self):
-        return {
+    async def to_dict(self, include_menus_fields: bool = False, include_menus_fields_products: bool = False) -> dict:
+        result =  {
             "id": self.id,
             "menu_id": self.menu_id,
             "price": self.price,
-            "fields": [
-                await field.to_dict() for field in self.order_menu_fields
-            ],
+            "quantity": self.quantity,
         }
+
+        if include_menus_fields and hasattr(self, "order_menu_fields"):
+            result["fields"] = [await field.to_dict(include_menus_fields_products) for field in self.order_menu_fields]
+
+        return result

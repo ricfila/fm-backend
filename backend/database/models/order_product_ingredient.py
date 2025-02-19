@@ -21,9 +21,6 @@ class OrderProductIngredient(Model):
         table = "order_product_ingredient"
         unique_together = ("order_product_id", "product_ingredient_id")
 
-    async def get_ingredient(self) -> int:
-        return self.product_ingredient_id
-
     async def to_dict(self) -> dict:
         return {
             "id": self.id,
