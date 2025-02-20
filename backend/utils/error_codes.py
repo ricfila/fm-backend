@@ -34,6 +34,7 @@ class ErrorCodes(Enum):
     MENU_ROLE_NOT_FOUND = auto()
 
     # Orders
+    ORDER_NOT_FOUND = auto()
     # Create
     DUPLICATE_MENU_FIELDS = auto()
     DUPLICATE_MENU_FIELDS_PRODUCT = auto()

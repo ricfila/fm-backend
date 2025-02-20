@@ -28,6 +28,8 @@ async def get_orders(
 ):
     """
     Get list of orders.
+
+    **Permission**: can_administer
     """
 
     async with in_transaction() as connection:
