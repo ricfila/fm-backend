@@ -19,20 +19,20 @@ class OrderProduct(BaseModel):
     price: float
     quantity: int
     variant_id: int
-    ingredients: list[OrderProductIngredient]
+    ingredients: list[OrderProductIngredient] | None = None
 
 
 class OrderMenuField(BaseModel):
     id: int
     menu_field_id: int
-    products: list[OrderProduct]
+    products: list[OrderProduct] | None = None
 
 
 class OrderMenu(BaseModel):
     id: int
     price: float
     quantity: int
-    fields: list[OrderMenuField]
+    fields: list[OrderMenuField] | None = None
 
 
 class Order(BaseModel):
@@ -43,7 +43,8 @@ class Order(BaseModel):
     table: int
     user_id: int
     created_at: datetime.datetime
-    menus: list[OrderMenu]
+    menus: list[OrderMenu] | None = None
+    products: list[OrderProduct] | None = None
 
 
 class CreateOrderProductIngredientItem(BaseModel):
@@ -86,6 +87,9 @@ class CreateOrderItem(BaseModel):
     def validate_customer_field(cls, customer: str):
         return validate_name_field(customer)
 
+
+class CreateOrderResponse(BaseResponse):
+    order: Order
 
 
 class GetOrdersResponse(BaseResponse):

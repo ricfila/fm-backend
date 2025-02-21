@@ -5,7 +5,7 @@ from backend.database.models import Order
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import BadRequest, Conflict
-from backend.models.orders import CreateOrderItem
+from backend.models.orders import CreateOrderItem, CreateOrderResponse
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 from backend.utils.order_utils import (
     check_menus,
@@ -65,4 +65,4 @@ async def create_order(
         await create_order_products(item.products, order, connection)
         await create_order_menus(item.menus, order, connection)
 
-    return BaseResponse()
+    return CreateOrderResponse(order=await order.to_dict(True, True, True, True, True))
