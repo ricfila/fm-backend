@@ -38,9 +38,9 @@ class OrderMenu(BaseModel):
 class Order(BaseModel):
     id: int
     customer: str
-    guests: int
+    guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
-    table: int
+    table: int | None = Field(ge=1, default=None)
     user_id: int
     created_at: datetime.datetime
     menus: list[OrderMenu] | None = None
