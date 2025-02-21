@@ -3,7 +3,6 @@ from tortoise.transactions import in_transaction
 
 from backend.database.models import Order
 from backend.decorators import check_role
-from backend.models import BaseResponse
 from backend.models.error import BadRequest, Conflict
 from backend.models.orders import CreateOrderItem, CreateOrderResponse
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
