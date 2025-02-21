@@ -17,7 +17,7 @@ from backend.utils.order_utils import (
 create_order_router = APIRouter()
 
 
-@create_order_router.post("/", response_model=BaseResponse)
+@create_order_router.post("/", response_model=CreateOrderResponse)
 @check_role(Permission.CAN_ORDER)
 async def create_order(
     item: CreateOrderItem,
