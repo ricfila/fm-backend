@@ -64,11 +64,4 @@ async def create_order(
         await create_order_products(item.products, order, connection)
         await create_order_menus(item.menus, order, connection)
 
-        order_save = await Order.get(id=order.id).prefetch_related(
-            "order_menus__order_menu_fields__order_menu_field_products",
-            "order_products__order_product_ingredients",
-        )
-
-    return CreateOrderResponse(
-        order=await order_save.to_dict(True, True, True, True, True)
-    )
+    return CreateOrderResponse(order=await order.to_dict())

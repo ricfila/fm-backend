@@ -4,6 +4,8 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
+from backend.models.menu import Menu
+from backend.models.products import Product
 from backend.utils import validate_name_field
 
 
@@ -18,7 +20,9 @@ class OrderProduct(BaseModel):
     product_id: int
     price: float
     quantity: int
-    variant_id: int
+    variant_id: int | None = None
+    order_menu_field_id: int | None = None
+    product: Product | None = None
     ingredients: list[OrderProductIngredient] | None = None
 
 
@@ -32,6 +36,7 @@ class OrderMenu(BaseModel):
     id: int
     price: float
     quantity: int
+    menu: Menu | None = None
     fields: list[OrderMenuField] | None = None
 
 

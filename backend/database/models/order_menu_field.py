@@ -27,16 +27,22 @@ class OrderMenuField(Model):
         table = "order_menu_field"
         unique_together = ("order_menu_id", "menu_field_id")
 
-    async def to_dict(self, include_menus_fields_products: bool = False) -> dict:
+    async def to_dict(
+        self,
+        include_products: bool = False,
+        include_products_ingredients: bool = False,
+    ) -> dict:
         result = {
             "id": self.id,
             "order_menu_id": self.order_menu_id,
             "menu_field_id": self.menu_field_id,
         }
 
-        if include_menus_fields_products and hasattr(self, "order_menu_field_products"):
+        if include_products and hasattr(self, "order_menu_field_products"):
             result["products"] = [
-                await product.to_dict()
+                await product.to_dict(
+                    include_ingredients=include_products_ingredients
+                )
                 for product in self.order_menu_field_products
             ]
 

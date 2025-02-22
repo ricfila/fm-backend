@@ -22,9 +22,11 @@ class OrderProductIngredient(Model):
         unique_together = ("order_product_id", "product_ingredient_id")
 
     async def to_dict(self) -> dict:
-        return {
+        result = {
             "id": self.id,
             "order_product_id": self.order_product_id,
             "product_ingredient_id": self.product_ingredient_id,
             "quantity": self.quantity,
         }
+
+        return result
