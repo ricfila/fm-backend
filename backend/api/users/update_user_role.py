@@ -14,7 +14,7 @@ update_user_role_router = APIRouter()
 
 @update_user_role_router.put("/{user_id}/role", response_model=BaseResponse)
 @check_role(Permission.CAN_ADMINISTER)
-async def update_user_name(
+async def update_user_role(
     user_id: int,
     item: UpdateUserRoleItem,
     token: TokenJwt = Depends(validate_token),
