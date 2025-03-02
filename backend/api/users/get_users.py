@@ -1,11 +1,15 @@
 from fastapi import APIRouter, Depends
+from tortoise.exceptions import ParamsError
+from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from backend.config import Session
 from backend.database.models import User
 from backend.decorators import check_role
+from backend.models.error import BadRequest
 from backend.models.users import GetUsersResponse
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import Permission, TokenJwt, validate_token, ErrorCodes
+from backend.utils.query_utils import process_query_with_pagination
 
 get_users_router = APIRouter()
 
@@ -24,10 +28,17 @@ async def get_users(
     """
 
     async with in_transaction() as connection:
-        users_query = User.exclude(id=token.user_id).using_db(connection)
-        total_count = await users_query.count()
-        users = await users_query.offset(offset).limit(limit)
+        query = ~Q(id=token.user_id)
 
-        users_list = [await user.to_dict() for user in users]
+        users_query, total_count, limit = await process_query_with_pagination(
+            User, query, connection, offset, limit, ""
+        )
 
-    return GetUsersResponse(total_count=total_count, users=users_list)
+        try:
+            users = await users_query.offset(offset).limit(limit)
+        except ParamsError:
+            raise BadRequest(code=ErrorCodes.INVALID_OFFSET_OR_LIMIT_NEGATIVE)
+
+    return GetUsersResponse(
+        total_count=total_count, users=[await user.to_dict() for user in users]
+    )
