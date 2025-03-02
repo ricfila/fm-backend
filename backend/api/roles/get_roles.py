@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends
+from tortoise.exceptions import ParamsError
+from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
-from backend.config import Session
 from backend.database.models import Role
 from backend.decorators import check_role
+from backend.models.error import BadRequest
 from backend.models.roles import GetRolesResponse, Role as RoleModel, RoleName
-from backend.utils import Permission, TokenJwt, validate_token
+from backend.utils import Permission, TokenJwt, validate_token, ErrorCodes
+from backend.utils.query_utils import process_query_with_pagination
 
 get_roles_router = APIRouter()
 
@@ -26,30 +29,26 @@ async def get_roles(
     """
 
     async with in_transaction() as connection:
-        roles_query = Role.exclude(id=token.role_id).using_db(connection)
+        query = ~Q(id=token.role_id)
 
         if can_order is not None:
-            roles_query = roles_query.filter(can_order=can_order)
+            query &= Q(can_order=can_order)
 
-        total_count = await roles_query.count()
+        roles_query, total_count, limit = await process_query_with_pagination(
+            Role, query, connection, offset, limit, ""
+        )
 
-        if not limit:
-            limit = (
-                total_count - offset
-                if only_name
-                else Session.config.DEFAULT_LIMIT_VALUE
-            )
+        try:
+            roles = await roles_query.offset(offset).limit(limit)
+        except ParamsError:
+            raise BadRequest(code=ErrorCodes.INVALID_OFFSET_OR_LIMIT_NEGATIVE)
 
-        roles = await roles_query.offset(offset).limit(limit)
-
-        roles_list = [
+    return GetRolesResponse(
+        total_count=total_count,
+        roles=[
             RoleName(**await role.to_dict_name())
             if only_name
             else RoleModel(**await role.to_dict())
             for role in roles
-        ]
-
-    return GetRolesResponse(
-        total_count=total_count,
-        roles=roles_list,
+        ],
     )
