@@ -35,7 +35,7 @@ async def get_subcategories(
             subcategories_query,
             total_count,
             limit,
-        ) = process_query_with_pagination(
+        ) = await process_query_with_pagination(
             Subcategory, Q(), connection, offset, limit, order_by
         )
 
