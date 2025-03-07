@@ -50,6 +50,7 @@ class Order(Model):
         include_products_product_roles: bool = False,
         include_products_product_variants: bool = False,
         include_products_ingredients: bool = False,
+        include_user: bool = False,
     ) -> dict:
         result = {
             "id": self.id,
@@ -57,7 +58,6 @@ class Order(Model):
             "guests": self.guests,
             "is_take_away": self.is_take_away,
             "table": self.table,
-            "user_id": self.user_id,
             "created_at": self.created_at,
         }
 
@@ -93,5 +93,8 @@ class Order(Model):
                 for product in self.order_products
                 if not product.order_menu_field_id
             ]
+
+        if include_user and hasattr(self, "user"):
+            result["user"] = await self.user.to_dict()
 
         return result

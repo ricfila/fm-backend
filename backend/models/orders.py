@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, field_validator
 from backend.models import BaseResponse
 from backend.models.menu import Menu
 from backend.models.products import Product
+from backend.models.users import User
 from backend.utils import validate_name_field
 
 
@@ -46,10 +47,10 @@ class Order(BaseModel):
     guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
     table: int | None = Field(ge=1, default=None)
-    user_id: int
-    created_at: datetime.datetime
+    user: User | None = None
     menus: list[OrderMenu] | None = None
     products: list[OrderProduct] | None = None
+    created_at: datetime.datetime
 
 
 class CreateOrderProductIngredientItem(BaseModel):
@@ -95,6 +96,10 @@ class CreateOrderItem(BaseModel):
 
 class CreateOrderResponse(BaseResponse):
     order: Order
+
+
+class GetOrderResponse(BaseResponse, Order):
+    pass
 
 
 class GetOrdersResponse(BaseResponse):
