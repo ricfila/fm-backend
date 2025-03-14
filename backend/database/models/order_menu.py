@@ -48,7 +48,7 @@ class OrderMenu(Model):
         }
 
         if include_menu:
-            result["menu"] = await self.menu.to_dict(
+            result["menu"] = await (await self.menu).to_dict(
                 include_menu_dates,
                 include_menu_fields,
                 include_menu_fields_products,

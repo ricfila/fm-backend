@@ -68,6 +68,15 @@ async def get_orders(
             orders = (
                 await orders_query.prefetch_related(
                     "order_menus__order_menu_fields__order_menu_field_products",
+                    "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients",
+                    "order_menus__menu__dates",
+                    "order_menus__menu__menu_fields",
+                    "order_menus__menu__menu_fields__field_products",
+                    "order_menus__menu__menu_fields__field_products__product__dates",
+                    "order_menus__menu__menu_fields__field_products__product__ingredients",
+                    "order_menus__menu__menu_fields__field_products__product__roles",
+                    "order_menus__menu__menu_fields__field_products__product__variants",
+                    "order_menus__menu__roles",
                     "order_products__order_product_ingredients",
                     "order_products__product__dates",
                     "order_products__product__ingredients",
