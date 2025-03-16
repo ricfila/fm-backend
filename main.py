@@ -49,6 +49,9 @@ async def lifespan(_: FastAPI):
     role, _ = await Role.get_or_create(
         name="admin", defaults={"can_administer": True}
     )
+
+    await Role.get_or_create(name="base")
+
     _, created = await User.get_or_create(
         username="admin",
         defaults={"password": PasswordHasher().hash(password), "role": role},

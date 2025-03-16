@@ -28,6 +28,9 @@ async def delete_role(role_id: int, token: TokenJwt = Depends(validate_token)):
         if role.name == "admin":
             raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
+        if role.name == "base":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+
         await role.delete(using_db=connection)
 
     return BaseResponse()

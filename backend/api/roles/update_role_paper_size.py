@@ -35,6 +35,9 @@ async def update_role_paper_size(
         if role.name == "admin":
             raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
+        if role.name == "base":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+
         role.paper_size = item.paper_size
 
         await role.save(using_db=connection)

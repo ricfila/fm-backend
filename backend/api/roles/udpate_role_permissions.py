@@ -35,6 +35,9 @@ async def update_role_permissions(
         if role.name == "admin":
             raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
+        if role.name == "base":
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+
         for permission, value in item.permissions.items():
             setattr(role, permission, value)
 

@@ -10,7 +10,9 @@ class User(Model):
     id = fields.IntField(pk=True)
     username = fields.CharField(32, unique=True)
     password = fields.TextField()
-    role = fields.ForeignKeyField("models.Role")
+    role = fields.ForeignKeyField(
+        "models.Role", on_delete=fields.SET_DEFAULT, default=2
+    )
     created_at = fields.DatetimeField(auto_now_add=True)
 
     role_id: int
