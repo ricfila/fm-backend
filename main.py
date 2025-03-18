@@ -14,7 +14,7 @@ from starlette.exceptions import HTTPException
 
 from backend.config import Session
 from backend.database import init_db, stop_db
-from backend.database.models import Role, User
+from backend.database.models import Role, User, Setting
 from backend.models import BaseResponse, UnicornException
 from backend.utils import ErrorCodes, to_snake_case
 
@@ -45,13 +45,21 @@ async def lifespan(_: FastAPI):
     await init_db()
     logger.info(f"Tortoise-ORM started")
 
-    password = "".join(secrets.choice(ALPHABET) for _ in range(8))
+    # Create settings row
+    setting = await Setting.first()
+
+    if not setting:
+        await Setting.create()
+
+    # Create admin and base role
     role, _ = await Role.get_or_create(
         name="admin", defaults={"can_administer": True}
     )
 
     await Role.get_or_create(name="base")
 
+    # Create admin user
+    password = "".join(secrets.choice(ALPHABET) for _ in range(8))
     _, created = await User.get_or_create(
         username="admin",
         defaults={"password": PasswordHasher().hash(password), "role": role},
@@ -106,7 +114,7 @@ async def unicorn_exception_handler(_: Request, exc: UnicornException):
             code=exc.code.value
             if exc.code
             else ErrorCodes.GENERIC_HTTP_EXCEPTION,
-        ).dict(),
+        ).model_dump(),
     )
 
 
@@ -123,7 +131,7 @@ async def http_exception_handler(_: Request, exc: HTTPException):
                 error_code,
                 ErrorCodes.GENERIC_HTTP_EXCEPTION,
             ).value,
-        ).dict(),
+        ).model_dump(),
     )
 
 
@@ -133,7 +141,7 @@ async def validation_exception_handler(_: Request, __: RequestValidationError):
         status_code=422,
         content=BaseResponse(
             error=True, code=ErrorCodes.REQUEST_VALIDATION_ERROR.value
-        ).dict(),
+        ).model_dump(),
     )
 
 
@@ -145,7 +153,7 @@ async def internal_server_error_handler(_: Request, exc: Exception):
         content=BaseResponse(
             error=True,
             code=ErrorCodes.INTERNAL_ERROR_SERVER.value,
-        ).dict(),
+        ).model_dump(),
     )
 
 

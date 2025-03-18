@@ -15,6 +15,7 @@ __all__ = (
     "ProductRole",
     "ProductVariant",
     "Role",
+    "Setting",
     "Subcategory",
     "User",
 )
@@ -35,5 +36,6 @@ from .product_ingredient import ProductIngredient
 from .product_role import ProductRole
 from .product_variant import ProductVariant
 from .role import Role
+from .setting import Setting
 from .subcategory import Subcategory
 from .user import User
