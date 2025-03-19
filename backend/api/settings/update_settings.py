@@ -10,7 +10,7 @@ from backend.utils import Permission, TokenJwt, validate_token
 update_settings_router = APIRouter()
 
 
-@update_settings_router.put("/")
+@update_settings_router.put("/", response_model=BaseResponse)
 @check_role(Permission.CAN_ADMINISTER)
 async def update_settings(
     item: UpdateSettingsItem, token: TokenJwt = Depends(validate_token)
