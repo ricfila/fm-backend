@@ -11,11 +11,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.exceptions import HTTPException
+from tortoise.transactions import in_transaction
 
 from backend.config import Session
 from backend.database import init_db, stop_db
 from backend.database.models import Role, User, Setting
 from backend.models import BaseResponse, UnicornException
+from backend.models.settings import Settings
 from backend.utils import ErrorCodes, to_snake_case
 
 ALPHABET = string.ascii_letters + string.digits
@@ -45,25 +47,35 @@ async def lifespan(_: FastAPI):
     await init_db()
     logger.info(f"Tortoise-ORM started")
 
-    # Create settings row
-    setting = await Setting.first()
+    async with in_transaction() as connection:
+        # Create settings row
+        setting = await Setting.first(using_db=connection)
 
-    if not setting:
-        await Setting.create()
+        if not setting:
+            setting = await Setting.create(using_db=connection)
 
-    # Create admin and base role
-    role, _ = await Role.get_or_create(
-        name="admin", defaults={"can_administer": True}
-    )
+        # Settings
+        Session.settings = Settings(**await setting.to_dict())
 
-    await Role.get_or_create(name="base")
+        # Create admin and base role
+        role, _ = await Role.get_or_create(
+            name="admin",
+            defaults={"can_administer": True},
+            using_db=connection,
+        )
 
-    # Create admin user
-    password = "".join(secrets.choice(ALPHABET) for _ in range(8))
-    _, created = await User.get_or_create(
-        username="admin",
-        defaults={"password": PasswordHasher().hash(password), "role": role},
-    )
+        await Role.get_or_create(name="base", using_db=connection)
+
+        # Create admin user
+        password = "".join(secrets.choice(ALPHABET) for _ in range(8))
+        _, created = await User.get_or_create(
+            username="admin",
+            defaults={
+                "password": PasswordHasher().hash(password),
+                "role": role,
+            },
+            using_db=connection,
+        )
 
     if created:
         logger.info(f"Created the admin user with password {password}")

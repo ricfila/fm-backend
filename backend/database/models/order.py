@@ -17,6 +17,7 @@ class Order(Model):
     guests = fields.IntField(null=True)
     is_take_away = fields.BooleanField()
     table = fields.IntField(null=True)
+    is_confirm = fields.BooleanField(default=False)
     user = fields.ForeignKeyField("models.User")
     created_at = fields.DatetimeField(auto_now_add=True)
 
@@ -58,6 +59,7 @@ class Order(Model):
             "guests": self.guests,
             "is_take_away": self.is_take_away,
             "table": self.table,
+            "is_confirm": self.is_confirm,
             "created_at": self.created_at,
         }
 

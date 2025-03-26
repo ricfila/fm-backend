@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
+from backend.config import Session
 from backend.database.models import Setting
 from backend.decorators import check_role
 from backend.models import BaseResponse
@@ -27,5 +28,7 @@ async def update_settings(
         await setting.update_from_dict(item.model_dump()).save(
             using_db=connection
         )
+
+        Session.settings = item.model_copy()
 
     return BaseResponse()

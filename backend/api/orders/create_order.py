@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
+from backend.config import Session
 from backend.database.models import Order
 from backend.decorators import check_role
 from backend.models.error import BadRequest, Conflict
-from backend.models.orders import CreateOrderItem, CreateOrderResponse
+from backend.models.orders import (
+    CreateOrderItem,
+    CreateOrderResponse,
+    Order as OrderModel,
+)
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 from backend.utils.order_utils import (
     check_menus,
@@ -58,10 +63,13 @@ async def create_order(
             guests=item.guests,
             is_take_away=item.is_take_away,
             table=item.table,
+            is_confirm=False
+            if Session.settings.order_requires_confirmation
+            else True,
             user_id=token.user_id,
         )
 
         await create_order_products(item.products, order, connection)
         await create_order_menus(item.menus, order, connection)
 
-    return CreateOrderResponse(order=await order.to_dict())
+    return CreateOrderResponse(order=OrderModel(**await order.to_dict()))
