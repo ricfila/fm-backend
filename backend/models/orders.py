@@ -47,6 +47,7 @@ class Order(BaseModel):
     guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
     table: int | None = Field(ge=1, default=None)
+    is_confirm: bool
     user: User | None = None
     menus: list[OrderMenu] | None = None
     products: list[OrderProduct] | None = None

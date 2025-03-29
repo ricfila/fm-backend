@@ -15,7 +15,7 @@ def check_role(*permission: Permission):
             if not role:
                 raise error
 
-            if not all(map(lambda x: getattr(role, x, False), permission)):
+            if not any(map(lambda x: getattr(role, x, False), permission)):
                 raise error
 
             return await func(token=token, *args, **kwargs)
