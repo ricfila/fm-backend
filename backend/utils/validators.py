@@ -1,3 +1,5 @@
+import ipaddress
+
 from backend.utils.enums import Permission
 
 
@@ -69,3 +71,16 @@ def validate_order_field(order: int):
         )
 
     return order
+
+
+def validate_ip_address_field(ip_address: str):
+    if not ip_address:
+        raise ValueError("The `ip_address` field can not be empty")
+
+    try:
+        ipaddress.IPv4Address(ip_address)
+        return ip_address
+    except ipaddress.AddressValueError:
+        raise ValueError(
+            "The `ip_address` field can only contain IPv4 addresses"
+        )

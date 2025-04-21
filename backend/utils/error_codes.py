@@ -59,6 +59,11 @@ class ErrorCodes(Enum):
     PRODUCT_VARIANT_NOT_EXIST = auto()
     SET_GUESTS_NUMBER = auto()
 
+    # Printers
+    PRINTER_NOT_FOUND = auto()
+    # Create
+    PRINTER_ALREADY_EXISTS = auto()
+
     # Products
     PRODUCT_ALREADY_EXISTS = auto()
     PRODUCT_NOT_FOUND = auto()
