@@ -2,7 +2,6 @@ from pydantic import BaseModel, field_validator
 
 from backend.models import BaseResponse
 from backend.utils import (
-    PaperSize,
     Permission,
     validate_name_field,
     validate_permissions_field,
@@ -20,7 +19,6 @@ class Role(BaseModel):
     id: int
     name: str
     permissions: dict[Permission, bool]
-    paper_size: PaperSize | None
 
 
 class RoleName(BaseModel):
@@ -75,7 +73,3 @@ class UpdateRolePermissionsItem(BaseModel):
     @classmethod
     def validate_permissions_field(cls, permissions: dict[Permission, bool]):
         return validate_permissions_field(permissions)
-
-
-class UpdateRolePaperSizeItem(BaseModel):
-    paper_size: PaperSize

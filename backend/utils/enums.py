@@ -6,10 +6,6 @@ class Category(StrEnum):
     DRINK = "drink"
 
 
-class PaperSize(StrEnum):
-    A4 = "A4"
-
-
 class Permission(StrEnum):
     CAN_ADMINISTER = "can_administer"
     CAN_ORDER = "can_order"

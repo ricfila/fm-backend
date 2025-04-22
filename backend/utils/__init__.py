@@ -1,6 +1,5 @@
 __all__ = (
     "Category",
-    "PaperSize",
     "Permission",
     "PrinterType",
     "ErrorCodes",
@@ -18,7 +17,7 @@ __all__ = (
     "validate_ip_address_field",
 )
 
-from .enums import Category, PaperSize, Permission, PrinterType
+from .enums import Category, Permission, PrinterType
 from .error_codes import ErrorCodes
 from .text_utils import to_snake_case
 from .token_jwt import TokenJwt, decode_jwt, encode_jwt, validate_token

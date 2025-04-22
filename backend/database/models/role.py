@@ -1,7 +1,7 @@
 from tortoise import fields
 from tortoise.models import Model
 
-from backend.utils import ErrorCodes, PaperSize
+from backend.utils import ErrorCodes
 
 
 class Role(Model):
@@ -15,7 +15,7 @@ class Role(Model):
     can_order = fields.BooleanField(default=False)
     can_statistics = fields.BooleanField(default=False)
     can_priority_statistics = fields.BooleanField(default=False)
-    paper_size = fields.CharEnumField(PaperSize, null=True)
+    can_confirm_orders = fields.BooleanField(default=False)
 
     class Meta:
         table = "role"
@@ -23,9 +23,6 @@ class Role(Model):
     async def save(self, *args, **kwargs):
         if self.can_statistics and self.can_priority_statistics:
             raise ValueError(ErrorCodes.ONLY_ONE_STATISTICS_CAN_BE_TRUE)
-
-        if self.can_order and not self.paper_size:
-            raise ValueError(ErrorCodes.PAPER_SIZE_REQUIRED_IF_CAN_ORDER)
 
         await super().save(*args, **kwargs)
 
@@ -35,6 +32,7 @@ class Role(Model):
             "can_order": self.can_order,
             "can_statistics": self.can_statistics,
             "can_priority_statistics": self.can_priority_statistics,
+            "can_confirm_orders": self.can_confirm_orders,
         }
 
     async def to_dict_name(self) -> dict:
@@ -45,5 +43,4 @@ class Role(Model):
             "id": self.id,
             "name": self.name,
             "permissions": await self.get_permissions(),
-            "paper_size": self.paper_size,
         }

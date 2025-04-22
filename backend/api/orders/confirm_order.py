@@ -12,13 +12,13 @@ confirm_order_router = APIRouter()
 
 
 @confirm_order_router.patch("/{order_id}/confirm", response_model=BaseResponse)
-@check_role(Permission.CAN_ADMINISTER, Permission.CAN_CONFIRM_ORDERS)
+@check_role(Permission.CAN_CONFIRM_ORDERS)
 async def confirm_order(
     order_id: int, token: TokenJwt = Depends(validate_token)
 ):
     if (
         not Session.settings.order_requires_confirmation
-        and not token.permissions["can_administer"]
+        or not token.permissions["can_confirm_orders"]
     ):
         raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 

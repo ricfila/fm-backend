@@ -5,7 +5,11 @@ from tortoise.transactions import in_transaction
 from backend.database.models import Role
 from backend.decorators import check_role
 from backend.models.error import Conflict
-from backend.models.roles import CreateRoleItem, CreateRoleResponse
+from backend.models.roles import (
+    CreateRoleItem,
+    CreateRoleResponse,
+    Role as RoleModel,
+)
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 create_role_router = APIRouter()
@@ -32,4 +36,4 @@ async def create_role(
         except IntegrityError:
             raise Conflict(code=ErrorCodes.ROLE_ALREADY_EXISTS)
 
-    return CreateRoleResponse(role=await new_role.to_dict())
+    return CreateRoleResponse(role=RoleModel(**await new_role.to_dict()))
