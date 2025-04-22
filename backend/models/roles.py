@@ -6,7 +6,14 @@ from backend.utils import (
     Permission,
     validate_name_field,
     validate_permissions_field,
+    PrinterType,
 )
+
+
+class RolePrinter(BaseModel):
+    id: int
+    printer_id: int
+    printer_type: PrinterType
 
 
 class Role(BaseModel):
@@ -19,6 +26,15 @@ class Role(BaseModel):
 class RoleName(BaseModel):
     id: int
     name: str
+
+
+class AddRolePrinterItem(BaseModel):
+    printer_id: int
+    printer_type: PrinterType
+
+
+class AddRolePrinterResponse(BaseResponse):
+    printer: RolePrinter
 
 
 class CreateRoleItem(BaseModel):

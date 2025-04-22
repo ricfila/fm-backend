@@ -26,5 +26,5 @@ class RolePrinter(Model):
             "id": self.id,
             "role_id": self.role_id,
             "printer_id": self.printer_id,
-            "type": self.printer_type,
+            "printer_type": self.printer_type,
         }

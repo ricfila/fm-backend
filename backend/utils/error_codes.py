@@ -88,8 +88,12 @@ class ErrorCodes(Enum):
     # Roles
     ROLE_CANNOT_ORDER = auto()
     ROLE_NOT_FOUND = auto()
+    # Add role printer
+    ROLE_PRINTER_ALREADY_EXISTS = auto()
     # Create
     ROLE_ALREADY_EXISTS = auto()
+    # Delete role printer
+    ROLE_PRINTER_NOT_FOUND = auto()
 
     # Subcategories
     SUBCATEGORY_NOT_FOUND = auto()
