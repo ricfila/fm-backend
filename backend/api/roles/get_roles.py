@@ -20,6 +20,7 @@ async def get_roles(
     limit: int | None = None,
     only_name: bool = False,
     can_order: bool | None = None,
+    include_printers: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -39,7 +40,11 @@ async def get_roles(
         )
 
         try:
-            roles = await roles_query.offset(offset).limit(limit)
+            roles = (
+                await roles_query.prefetch_related("printers")
+                .offset(offset)
+                .limit(limit)
+            )
         except ParamsError:
             raise BadRequest(code=ErrorCodes.INVALID_OFFSET_OR_LIMIT_NEGATIVE)
 
@@ -48,7 +53,7 @@ async def get_roles(
         roles=[
             RoleName(**await role.to_dict_name())
             if only_name
-            else RoleModel(**await role.to_dict())
+            else RoleModel(**await role.to_dict(include_printers))
             for role in roles
         ],
     )

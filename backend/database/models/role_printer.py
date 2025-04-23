@@ -10,7 +10,7 @@ class RolePrinter(Model):
     """
 
     id = fields.IntField(pk=True)
-    role = fields.ForeignKeyField("models.Role")
+    role = fields.ForeignKeyField("models.Role", "printers")
     printer = fields.ForeignKeyField("models.Printer")
     printer_type = fields.CharEnumField(PrinterType)
 

@@ -1,7 +1,12 @@
+import typing
+
 from tortoise import fields
 from tortoise.models import Model
 
 from backend.utils import ErrorCodes
+
+if typing.TYPE_CHECKING:
+    from backend.database.models import RolePrinter
 
 
 class Role(Model):
@@ -16,6 +21,8 @@ class Role(Model):
     can_statistics = fields.BooleanField(default=False)
     can_priority_statistics = fields.BooleanField(default=False)
     can_confirm_orders = fields.BooleanField(default=False)
+
+    printers: fields.ReverseRelation["RolePrinter"]
 
     class Meta:
         table = "role"
@@ -38,9 +45,17 @@ class Role(Model):
     async def to_dict_name(self) -> dict:
         return {"id": self.id, "name": self.name}
 
-    async def to_dict(self) -> dict:
-        return {
+    async def to_dict(self, include_printers: bool = False) -> dict:
+        result = {
             "id": self.id,
             "name": self.name,
             "permissions": await self.get_permissions(),
         }
+
+        # Add printers if pre-fetched and requested
+        if include_printers and hasattr(self, "printers"):
+            result["printers"] = [
+                await printer.to_dict() for printer in self.printers
+            ]
+
+        return result

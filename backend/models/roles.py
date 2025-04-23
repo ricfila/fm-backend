@@ -19,6 +19,7 @@ class Role(BaseModel):
     id: int
     name: str
     permissions: dict[Permission, bool]
+    printers: list[RolePrinter] | None = None
 
 
 class RoleName(BaseModel):
