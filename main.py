@@ -48,6 +48,10 @@ async def lifespan(_: FastAPI):
     await init_db()
     logger.info(f"Tortoise-ORM started")
 
+    # Print Manager
+    Session.print_manager = await PrintManager.create()
+    logger.info("Initializing Print Manager")
+
     async with in_transaction() as connection:
         # Create settings row
         setting = await Setting.first(using_db=connection)
@@ -90,10 +94,6 @@ async def lifespan(_: FastAPI):
 # Config - Pydantic
 Session.set_config()
 logger.info("Initializing Config")
-
-# Print Manager
-Session.print_manager = PrintManager()
-logger.info("Initializing Print Manager")
 
 # FastAPI - instance
 app = FastAPI(title="FestivalBackend", docs_url="/", lifespan=lifespan)

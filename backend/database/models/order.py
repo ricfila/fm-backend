@@ -19,6 +19,7 @@ class Order(Model):
     table = fields.IntField(null=True)
     is_confirm = fields.BooleanField(default=False)
     user = fields.ForeignKeyField("models.User")
+    is_printed = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
 
     user_id: int
