@@ -67,9 +67,13 @@ async def create_order(
             if Session.settings.order_requires_confirmation
             else True,
             user_id=token.user_id,
+            using_db=connection,
         )
 
         await create_order_products(item.products, order, connection)
         await create_order_menus(item.menus, order, connection)
+
+        if not Session.settings.order_requires_confirmation:
+            await Session.print_manager.add_job(order.id, connection)
 
     return CreateOrderResponse(order=OrderModel(**await order.to_dict()))

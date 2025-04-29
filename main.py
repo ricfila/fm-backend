@@ -19,6 +19,7 @@ from backend.database.models import Role, User, Setting
 from backend.models import BaseResponse, UnicornException
 from backend.models.settings import Settings
 from backend.utils import ErrorCodes, to_snake_case
+from backend.utils.print_manager import PrintManager
 
 ALPHABET = string.ascii_letters + string.digits
 FMT = (
@@ -89,6 +90,10 @@ async def lifespan(_: FastAPI):
 # Config - Pydantic
 Session.set_config()
 logger.info("Initializing Config")
+
+# Print Manager
+Session.print_manager = PrintManager()
+logger.info("Initializing Print Manager")
 
 # FastAPI - instance
 app = FastAPI(title="FestivalBackend", docs_url="/", lifespan=lifespan)
