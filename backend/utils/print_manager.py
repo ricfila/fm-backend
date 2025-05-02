@@ -16,15 +16,10 @@ async def get_order(order_id: int, connection: BaseDBAsyncClient):
     order = (
         await Order.filter(id=order_id)
         .prefetch_related(
-            "order_menus__order_menu_fields__order_menu_field_products",
-            "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients",
-            "order_menus__menu__menu_fields",
-            "order_menus__menu__menu_fields__field_products",
-            "order_menus__menu__menu_fields__field_products__product__ingredients",
-            "order_menus__menu__menu_fields__field_products__product__variants",
-            "order_products__order_product_ingredients",
-            "order_products__product__ingredients",
-            "order_products__product__variants",
+            "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__product_ingredient",
+            "order_menus__menu",
+            "order_products__order_product_ingredients__product_ingredient",
+            "order_products__variant",
             "user__role__printers__printer",
         )
         .using_db(connection)
