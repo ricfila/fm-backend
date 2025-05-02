@@ -25,6 +25,7 @@ class MenuField(BaseModel):
     max_sortable_elements: int
     additional_cost: float
     is_optional: bool
+    can_exceed_max_sortable: bool
     products: list[MenuFieldProduct] | None = None
 
 
