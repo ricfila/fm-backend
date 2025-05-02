@@ -186,11 +186,18 @@ async def _check_menu_field_products(
     if not order_menu_field_product_ids.issubset(menu_field_product_ids):
         return True, ErrorCodes.MENU_FIELD_PRODUCT_NOT_EXIST
 
+    can_exceed_max_sortable = menu_field.can_exceed_max_sortable
     max_free_quantity = menu_field.max_sortable_elements
     menu_field_total_quantity = sum(
         p.quantity for p in order_menu_field.products
     )
     excess = menu_field_total_quantity - max_free_quantity
+
+    if (
+        not can_exceed_max_sortable
+        and menu_field_total_quantity > max_free_quantity
+    ):
+        return True, ErrorCodes.MENU_FIELD_PRODUCT_QUANTITY_EXCEEDED
 
     menu_field_product = {
         product.product_id: product for product in menu_field.field_products
