@@ -17,6 +17,7 @@ class MenuField(Model):
     max_sortable_elements = fields.IntField()
     additional_cost = fields.FloatField()
     is_optional = fields.BooleanField(default=False)
+    can_exceed_max_sortable = fields.BooleanField(default=False)
     menu = fields.ForeignKeyField("models.Menu", "menu_fields")
 
     menu_id: int

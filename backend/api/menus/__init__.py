@@ -14,6 +14,7 @@ __all__ = (
     "get_menu_products_router",
     "get_menus_router",
     "update_menu_field_additional_cost_router",
+    "update_menu_field_can_exceed_max_sortable_router",
     "update_menu_field_is_optional_router",
     "update_menu_field_max_sortable_elements_router",
     "update_menu_field_name_router",
@@ -40,6 +41,9 @@ from .get_menus import get_menus_router
 from .update_menu_field_additional_cost import (
     update_menu_field_additional_cost_router,
 )
+from .update_menu_field_can_exceed_max_sortable import (
+    update_menu_field_can_exceed_max_sortable_router,
+)
 from .update_menu_field_is_optional import update_menu_field_is_optional_router
 from .update_menu_field_max_sortable_elements import (
     update_menu_field_max_sortable_elements_router,
@@ -64,6 +68,7 @@ menus.include_router(get_menu_router)
 menus.include_router(get_menu_products_router)
 menus.include_router(get_menus_router)
 menus.include_router(update_menu_field_additional_cost_router)
+menus.include_router(update_menu_field_can_exceed_max_sortable_router)
 menus.include_router(update_menu_field_is_optional_router)
 menus.include_router(update_menu_field_max_sortable_elements_router)
 menus.include_router(update_menu_field_name_router)

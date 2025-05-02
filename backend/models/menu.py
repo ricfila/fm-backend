@@ -121,6 +121,10 @@ class UpdateMenuFieldAdditionalCostItem(BaseModel):
     additional_cost: float = Field(ge=0)
 
 
+class UpdateMenuFieldCanExceedMaxSortableItem(BaseModel):
+    can_exceed_max_sortable: bool
+
+
 class UpdateMenuFieldIsOptionalItem(BaseModel):
     is_optional: bool
 
