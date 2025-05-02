@@ -42,6 +42,7 @@ class MenuField(Model):
             "max_sortable_elements": self.max_sortable_elements,
             "additional_cost": self.additional_cost,
             "is_optional": self.is_optional,
+            "can_exceed_max_sortable": self.can_exceed_max_sortable,
             "menu_id": self.menu_id,
         }
 
