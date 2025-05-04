@@ -14,7 +14,7 @@ get_statistic_router = APIRouter()
 
 
 @get_statistic_router.get("/", response_model=GetStatisticResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(Permission.CAN_STATISTICS, Permission.CAN_PRIORITY_STATISTICS)
 async def get_statistic(
     start_date: datetime.date | None = None,
     end_date: datetime.date | None = None,
@@ -27,6 +27,7 @@ async def get_statistic(
     """
 
     query_filters = Q()
+    can_priority_statistics = token.permissions["can_priority_statistics"]
 
     if start_date:
         query_filters &= Q(created_at__date__gte=start_date)
@@ -50,10 +51,15 @@ async def get_statistic(
             else:
                 total_seated += order["guests"]
 
+        order_products_filters = Q(order_menu_field_id=None) & Q(
+            order_id__in=order_ids
+        )
+
+        if can_priority_statistics:
+            order_products_filters &= Q(product__is_priority=True)
+
         order_products = (
-            await OrderProduct.filter(
-                Q(order_menu_field_id=None) & Q(order_id__in=order_ids)
-            )
+            await OrderProduct.filter(order_products_filters)
             .using_db(connection)
             .annotate(total_quantity=Sum("quantity"), total_price=Sum("price"))
             .group_by("product__name")
@@ -78,7 +84,7 @@ async def get_statistic(
             )
         )
 
-    for order_menu in order_menus:
+    for order_menu in order_menus if not can_priority_statistics else []:
         result.append(
             StatisticProduct(
                 name=order_menu["menu__name"],
