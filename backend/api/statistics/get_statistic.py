@@ -30,9 +30,9 @@ async def get_statistic(
     can_priority_statistics = token.permissions["can_priority_statistics"]
 
     if start_date:
-        query_filters &= Q(created_at__date__gte=start_date)
+        query_filters &= Q(created_at__gt=start_date)
     if end_date:
-        query_filters &= Q(created_at__date__lte=end_date)
+        query_filters &= Q(created_at__lt=end_date)
 
     async with in_transaction() as connection:
         orders = (
