@@ -109,4 +109,4 @@ class GetOrdersResponse(BaseResponse):
 
 
 class PrintOrderItem(BaseModel):
-    printer_types: list[PrinterType]
+    printer_types: list[PrinterType] | None = None
