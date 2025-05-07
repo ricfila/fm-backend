@@ -7,7 +7,7 @@ from backend.models import BaseResponse
 from backend.models.menu import Menu
 from backend.models.products import Product
 from backend.models.users import User
-from backend.utils import validate_name_field
+from backend.utils import validate_name_field, PrinterType
 
 
 class OrderProductIngredient(BaseModel):
@@ -106,3 +106,7 @@ class GetOrderResponse(BaseResponse, Order):
 class GetOrdersResponse(BaseResponse):
     total_count: int
     orders: list[Order]
+
+
+class PrintOrderItem(BaseModel):
+    printer_types: list[PrinterType]

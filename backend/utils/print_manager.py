@@ -7,6 +7,7 @@ from loguru import logger
 from tortoise import BaseDBAsyncClient, connections
 
 from backend.database.models import Order
+from backend.utils import PrinterType
 from backend.utils.order_text_manager import OrderTextManager
 
 RETRY_DELAY = 5
@@ -107,7 +108,12 @@ class PrintManager:
             printer.text(x if x else "\n")
         printer.cut()
 
-    async def add_job(self, order_id: int, connection: BaseDBAsyncClient):
+    async def add_job(
+        self,
+        order_id: int,
+        connection: BaseDBAsyncClient,
+        printer_types: list[PrinterType] | None = None,
+    ):
         order = await get_order(order_id, connection)
 
         if not order:
@@ -123,6 +129,12 @@ class PrintManager:
         for role_printer in printers:
             p = role_printer.printer
             self.add_printer(p.id, p.ip_address)
+
+            if (
+                printer_types
+                and role_printer.printer_type not in printer_types
+            ):
+                continue
 
             content = await text.generate_text_for_printer(
                 role_printer.printer_type
