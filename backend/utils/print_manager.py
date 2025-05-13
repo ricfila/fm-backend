@@ -1,5 +1,6 @@
 import asyncio
 import collections
+import re
 
 import asyncpg
 from escpos.printer import Network
@@ -100,12 +101,11 @@ class PrintManager:
 
     @staticmethod
     def _print_content(printer: Network, content: str):
-        if not printer.device:
-            printer.open()
+        printer.open()
 
-        for x in content.split("\n"):
+        for x in re.split(r"(?<=\n)", content):
             printer.set(align="left", font="a")
-            printer.text(x if x else "\n")
+            printer.text(x)
         printer.cut()
 
     async def add_job(
