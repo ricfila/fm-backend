@@ -227,7 +227,11 @@ class OrderTextManager:
     async def _get_price(self) -> float:
         result = 0
 
-        result += sum(x.price for x in self.order.order_products)
+        result += sum(
+            x.price
+            for x in self.order.order_products
+            if x.order_menu_field_id is None
+        )
         result += sum(x.price for x in self.order.order_menus)
 
         return result
