@@ -54,6 +54,10 @@ class Order(BaseModel):
     created_at: datetime.datetime
 
 
+class ConfirmOrderItem(BaseModel):
+    table: int = Field(ge=1)
+
+
 class CreateOrderProductIngredientItem(BaseModel):
     ingredient_id: int
     quantity: int = Field(ge=1)

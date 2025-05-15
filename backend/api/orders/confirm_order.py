@@ -6,6 +6,7 @@ from backend.database.models import Order
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Unauthorized, NotFound
+from backend.models.orders import ConfirmOrderItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 confirm_order_router = APIRouter()
@@ -14,7 +15,9 @@ confirm_order_router = APIRouter()
 @confirm_order_router.patch("/{order_id}/confirm", response_model=BaseResponse)
 @check_role(Permission.CAN_CONFIRM_ORDERS)
 async def confirm_order(
-    order_id: int, token: TokenJwt = Depends(validate_token)
+    order_id: int,
+    item: ConfirmOrderItem,
+    token: TokenJwt = Depends(validate_token),
 ):
     if (
         not Session.settings.order_requires_confirmation
@@ -26,10 +29,12 @@ async def confirm_order(
         updated_count = (
             await Order.filter(id=order_id)
             .using_db(connection)
-            .update(is_confirm=True)
+            .update(table=item.table, is_confirm=True)
         )
 
         if not updated_count:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
+
+        await Session.print_manager.add_job(order_id, connection)
 
     return BaseResponse()

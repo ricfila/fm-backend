@@ -36,7 +36,19 @@ async def create_order(
     if not item.products and not item.menus:
         raise BadRequest(code=ErrorCodes.NO_PRODUCTS_AND_MENUS)
 
-    if not item.is_take_away and not item.guests:
+    if (
+        not item.is_take_away
+        and not Session.settings.order_requires_confirmation
+        and not item.guests
+        and not item.table
+    ):
+        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
+
+    if (
+        not item.is_take_away
+        and Session.settings.order_requires_confirmation
+        and not item.guests
+    ):
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
 
     async with in_transaction() as connection:
@@ -60,12 +72,16 @@ async def create_order(
 
         order = await Order.create(
             customer=item.customer,
-            guests=item.guests,
+            guests=item.guests if not item.is_take_away else None,
             is_take_away=item.is_take_away,
-            table=item.table,
-            is_confirm=False
-            if Session.settings.order_requires_confirmation
-            else True,
+            table=item.table
+            if not item.is_take_away
+            and not Session.settings.order_requires_confirmation
+            else None,
+            is_confirm=True
+            if not Session.settings.order_requires_confirmation
+            or item.is_take_away
+            else False,
             user_id=token.user_id,
             using_db=connection,
         )
@@ -73,7 +89,10 @@ async def create_order(
         await create_order_products(item.products, order, connection)
         await create_order_menus(item.menus, order, connection)
 
-        if not Session.settings.order_requires_confirmation:
+        if (
+            not Session.settings.order_requires_confirmation
+            or item.is_take_away
+        ):
             await Session.print_manager.add_job(order.id, connection)
 
     return CreateOrderResponse(order=OrderModel(**await order.to_dict()))

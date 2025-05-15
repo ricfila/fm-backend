@@ -59,8 +59,9 @@ class OrderTextManager:
             product_quantity = order_product.quantity
             product_name = (await order_product.product).short_name
             product_variant = ""
-            if (variant := await order_product.variant) is not None:
-                product_variant = variant.name
+            if (variant := order_product.variant) is not None:
+                if (v := await variant) is not None:
+                    product_variant = v.name
             product_ingredients = ", ".join(
                 [
                     f"x{order_product_ingredient.quantity} {order_product_ingredient.product_ingredient.name}"
