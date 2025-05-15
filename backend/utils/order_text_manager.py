@@ -87,14 +87,13 @@ class OrderTextManager:
         cls,
         order_products: ReverseRelation[OrderProduct],
         include_price: bool = False,
-        is_menu: bool = False,
         max_width: int = MAX_WIDTH,
         only_food: bool = False,
         only_drinks: bool = False,
     ) -> str:
         result = ""
         products_data = await cls._get_products_data(
-            order_products, include_price, is_menu, only_food, only_drinks
+            order_products, include_price, False, only_food, only_drinks
         )
 
         for i, x in enumerate(products_data):
@@ -107,8 +106,7 @@ class OrderTextManager:
                 (max_width - len(price_text) - 1)
                 if include_price
                 else max_width,
-                initial_indent=" " * (4 if is_menu else 0),
-                subsequent_indent=" " * (8 if is_menu else 4),
+                subsequent_indent=" " * 4,
                 break_long_words=False,
             )
 
@@ -118,12 +116,8 @@ class OrderTextManager:
                 result += texts[0]
 
             result += "\n" if len(texts) > 1 else ""
-            result += " ".join(texts[1:]) if is_menu else "\n".join(texts[1:])
-            result += (
-                ("; " if is_menu else "\n")
-                if i < len(products_data) - 1
-                else ""
-            )
+            result += "\n".join(texts[1:])
+            result += "\n" if i < len(products_data) - 1 else ""
 
         return result
 
@@ -155,6 +149,28 @@ class OrderTextManager:
         return menus
 
     @classmethod
+    async def _get_menu_products_text(
+        cls,
+        order_products: ReverseRelation[OrderProduct],
+        max_width: int = MAX_WIDTH,
+        only_food: bool = False,
+        only_drinks: bool = False,
+    ):
+        products_data = await cls._get_products_data(
+            order_products, False, True, only_food, only_drinks
+        )
+
+        texts = textwrap.wrap(
+            "; ".join(products_data),
+            max_width,
+            initial_indent=" " * 4,
+            subsequent_indent=" " * 8,
+            break_long_words=False,
+        )
+
+        return "\n".join(texts)
+
+    @classmethod
     async def _get_menu_text(
         cls,
         order_menu: ReverseRelation[OrderMenu],
@@ -177,9 +193,8 @@ class OrderTextManager:
                 else cls.MAX_WIDTH
             )
             menu_products_text = [
-                await cls._get_products_text(
+                await cls._get_menu_products_text(
                     p,
-                    is_menu=True,
                     max_width=max_width,
                     only_food=only_food,
                     only_drinks=only_drinks,
