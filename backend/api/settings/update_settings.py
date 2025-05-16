@@ -22,13 +22,13 @@ async def update_settings(
     **Permission**: can_administer
     """
 
+    item_data = {k: v for k, v in item.model_dump().items() if v}
+
     async with in_transaction() as connection:
         setting = await Setting.first(using_db=connection)
 
-        await setting.update_from_dict(item.model_dump()).save(
-            using_db=connection
-        )
+        await setting.update_from_dict(item_data).save(using_db=connection)
 
-        Session.settings = item.model_copy()
+        Session.settings = Session.settings.model_copy(update=item_data)
 
     return BaseResponse()

@@ -84,3 +84,15 @@ def validate_ip_address_field(ip_address: str):
         raise ValueError(
             "The `ip_address` field can only contain IPv4 addresses"
         )
+
+
+def validate_receipt_header_field(receipt_header: str):
+    if not receipt_header:
+        raise ValueError("The `receipt_header` field can not be empty")
+
+    if not all(map(lambda x: len(x) <= 42, receipt_header.split())):
+        raise ValueError(
+            "The `receipt_header` field can only have line with 42 characters"
+        )
+
+    return receipt_header
