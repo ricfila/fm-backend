@@ -83,9 +83,9 @@ async def _check_generic_product(
                 else ErrorCodes.PRODUCT_INGREDIENT_NOT_EXIST,
             )
 
-        product_price += (
-            Decimal(product_ingredient.price) * Decimal(ingredient.quantity)
-        ).quantize(ZERO_DECIMAL)
+        product_price += (Decimal(product_ingredient.price)).quantize(
+            ZERO_DECIMAL
+        )
 
     # Assign calculated price to the product
     product._price = product_price
@@ -161,7 +161,6 @@ async def create_order_products(
             await OrderProductIngredient.create(
                 order_product=order_product,
                 product_ingredient_id=ingredient.ingredient_id,
-                quantity=ingredient.quantity,
                 using_db=connection,
             )
 

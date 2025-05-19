@@ -13,7 +13,6 @@ from backend.utils import validate_name_field, PrinterType
 class OrderProductIngredient(BaseModel):
     id: int
     product_ingredient_id: int
-    quantity: int
 
 
 class OrderProduct(BaseModel):
@@ -60,7 +59,6 @@ class ConfirmOrderItem(BaseModel):
 
 class CreateOrderProductIngredientItem(BaseModel):
     ingredient_id: int
-    quantity: int = Field(ge=1)
 
 
 class CreateOrderProductItem(BaseModel):

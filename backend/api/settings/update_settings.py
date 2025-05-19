@@ -22,7 +22,7 @@ async def update_settings(
     **Permission**: can_administer
     """
 
-    item_data = {k: v for k, v in item.model_dump().items() if v}
+    item_data = {k: v for k, v in item.model_dump().items() if v is not None}
 
     async with in_transaction() as connection:
         setting = await Setting.first(using_db=connection)

@@ -6,6 +6,7 @@ import textwrap
 import pytz
 from tortoise.models import ReverseRelation
 
+from backend.config import Session
 from backend.utils import PrinterType, Category
 
 if typing.TYPE_CHECKING:
@@ -64,7 +65,7 @@ class OrderTextManager:
                     product_variant = v.name
             product_ingredients = ", ".join(
                 [
-                    f"x{order_product_ingredient.quantity} {order_product_ingredient.product_ingredient.name}"
+                    f"{order_product_ingredient.product_ingredient.name}"
                     for order_product_ingredient in order_product.order_product_ingredients
                 ]
             )
@@ -221,27 +222,39 @@ class OrderTextManager:
     async def _get_header(self) -> str:
         result = ""
 
-        receipt_number = f"Scontrino n. {self.order.id}"
-        receipt_date = self.order.created_at.astimezone(
-            pytz.timezone("Europe/Rome")
-        ).strftime("%d/%m/%Y %H:%M")
-        result += self._align_texts(receipt_number, receipt_date)
-        result += "\n"
+        for x in Session.settings.receipt_header.split("\n"):
+            result += x.center(self.MAX_WIDTH) + "\n"
+
+        if Session.settings.receipt_header:
+            result += "\n\n"
+
+        result += f"* Scontrino n. {self.order.id}\n"
+        result += "* Il vostro ordine e' stato elaborato da:\n"
+        result += " " * 4 + self.order.user.username.upper() + "\n"
+        result += (
+            "* "
+            + self.order.created_at.astimezone(
+                pytz.timezone("Europe/Rome")
+            ).strftime("%d/%m/%Y %H:%M:%S")
+            + "\n"
+        )
+        result += "* Cliente: " + self.order.customer.upper() + "\n"
 
         if self.order.is_take_away:
-            result += "Per asporto? si"
+            result += "* Per asporto: si" + "\n"
         else:
-            result += self._align_texts(
-                f"Tavolo n. {self.order.table}",
-                f"Coperti n. {self.order.guests}",
-            )
+            if not Session.settings.order_requires_confirmation:
+                result += "* Tavolo: " + str(self.order.table) + "\n"
 
-        result += "\n\n"
+        result += "\n"
 
         return result
 
     async def _get_price(self) -> float:
         result = 0
+
+        if not self.order.is_take_away:
+            result += Session.settings.cover_charge * self.order.guests
 
         result += sum(
             x.price
@@ -254,6 +267,17 @@ class OrderTextManager:
 
     async def _render_receipt_text(self) -> str:
         receipt_text = await self._get_header()
+
+        if not self.order.is_take_away:
+            text_left = f"x{self.order.guests} Coperti"
+            text_right = Session.settings.cover_charge * self.order.guests
+            receipt_text += self._align_texts(text_left, f"€ {text_right:.2f}")
+            receipt_text += "\n"
+            receipt_text += (
+                " " * 4
+                + f"{self.order.guests} x {Session.settings.cover_charge}"
+            )
+            receipt_text += "\n"
 
         products_text = await self._get_products_text(
             self.order.order_products, True
@@ -275,64 +299,40 @@ class OrderTextManager:
 
         return receipt_text
 
-    async def _render_drinks_text(self) -> str:
-        drinks_text = await self._get_header()
+    async def _render_kitchen_text(
+        self, only_food: bool = False, only_drinks: bool = False
+    ) -> str:
+        kitchen_text = await self._get_header()
 
         products_text = await self._get_products_text(
-            self.order.order_products, only_drinks=True
+            self.order.order_products,
+            only_food=only_food,
+            only_drinks=only_drinks,
         )
-        drinks_text += products_text
+        kitchen_text += products_text
 
         if products_text:
-            drinks_text += "\n"
+            kitchen_text += "\n"
 
         menu_text = await self._get_menu_text(
-            self.order.order_menus, only_drinks=True
+            self.order.order_menus,
+            only_food=only_food,
+            only_drinks=only_drinks,
         )
-        drinks_text += menu_text
+        kitchen_text += menu_text
 
-        return drinks_text
-
-    async def _render_food_text(self) -> str:
-        food_text = await self._get_header()
-
-        products_text = await self._get_products_text(
-            self.order.order_products, only_food=True
-        )
-        food_text += products_text
-
-        if products_text:
-            food_text += "\n"
-
-        menu_text = await self._get_menu_text(
-            self.order.order_menus, only_food=True
-        )
-        food_text += menu_text
-
-        return food_text
-
-    async def _render_food_and_drinks_text(self) -> str:
-        food_and_drinks_text = await self._get_header()
-
-        products_text = await self._get_products_text(
-            self.order.order_products
-        )
-        food_and_drinks_text += products_text
-
-        if products_text:
-            food_and_drinks_text += "\n"
-
-        menu_text = await self._get_menu_text(self.order.order_menus)
-        food_and_drinks_text += menu_text
-
-        return food_and_drinks_text
+        return kitchen_text
 
     async def generate_text_for_printer(self, printer_type: PrinterType):
         printer_formatters = {
             PrinterType.RECEIPT: self._render_receipt_text,
-            PrinterType.DRINKS: self._render_drinks_text,
-            PrinterType.FOOD: self._render_food_text,
-            PrinterType.FOOD_AND_DRINKS: self._render_food_and_drinks_text,
+            PrinterType.DRINKS: lambda _: self._render_kitchen_text(
+                only_drinks=True
+            ),
+            PrinterType.FOOD: lambda _: self._render_kitchen_text(
+                only_food=True
+            ),
+            PrinterType.FOOD_AND_DRINKS: self._render_kitchen_text,
         }
 
         return await printer_formatters[printer_type]()
