@@ -262,7 +262,9 @@ class OrderTextManager:
             subcategory_order = subcategory.order if subcategory else 0
             product_order = product.order if product else 0
 
-            enriched_products.append(((subcategory_order, product_order), op))
+            enriched_products.append(
+                ((subcategory_order, product_order, op.id), op)
+            )
 
         return [op for _, op in sorted(enriched_products)]
 
@@ -351,6 +353,10 @@ class OrderTextManager:
     ) -> str:
         kitchen_text = await self._get_header()
 
+        if not self.order.is_take_away:
+            kitchen_text += f"x{self.order.guests} Coperti"
+            kitchen_text += "\n"
+
         products_text = await self._get_products_text(
             await self._get_ordered_products(),
             only_food=only_food,
@@ -373,10 +379,10 @@ class OrderTextManager:
     async def generate_text_for_printer(self, printer_type: PrinterType):
         printer_formatters = {
             PrinterType.RECEIPT: self._render_receipt_text,
-            PrinterType.DRINKS: lambda _: self._render_kitchen_text(
+            PrinterType.DRINKS: lambda: self._render_kitchen_text(
                 only_drinks=True
             ),
-            PrinterType.FOOD: lambda _: self._render_kitchen_text(
+            PrinterType.FOOD: lambda: self._render_kitchen_text(
                 only_food=True
             ),
             PrinterType.FOOD_AND_DRINKS: self._render_kitchen_text,

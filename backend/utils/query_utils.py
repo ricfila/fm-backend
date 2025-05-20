@@ -55,7 +55,13 @@ async def get_orderable_entities(
     quantity_path = f"{relation_name}__{quantity_field}"
     date_path = f"{relation_name}__order__{order_date_field}"
 
-    annotate_expression = {"total_quantity": Sum(F(quantity_path))}
+    date_filter = Q(**{f"{date_path}__gte": today}) & Q(
+        **{f"{date_path}__lt": tomorrow}
+    )
+
+    annotate_expression = {
+        "total_quantity": Sum(F(quantity_path), _filter=date_filter)
+    }
 
     availability_filter = (
         Q(**{f"{max_daily_field}__isnull": True})
@@ -63,8 +69,4 @@ async def get_orderable_entities(
         | Q(total_quantity__isnull=True)
     )
 
-    date_filter = Q(**{f"{date_path}__gte": today}) & Q(
-        **{f"{date_path}__lt": tomorrow}
-    )
-
-    return annotate_expression, availability_filter & date_filter
+    return annotate_expression, availability_filter
