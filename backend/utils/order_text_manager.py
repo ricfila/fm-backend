@@ -45,36 +45,39 @@ class OrderTextManager:
             if order_product.order_menu_field_id and not is_menu:
                 continue
 
-            if (
-                only_food
-                and (await order_product.product).category != Category.FOOD
-            ):
+            product = await order_product.product
+
+            if only_food and product.category != Category.FOOD:
                 continue
 
-            if (
-                only_drinks
-                and (await order_product.product).category != Category.DRINK
-            ):
+            if only_drinks and product.category != Category.DRINK:
                 continue
 
             product_quantity = order_product.quantity
-            product_name = (await order_product.product).short_name
+            product_name = product.short_name
+
             product_variant = ""
             if (variant := order_product.variant) is not None:
                 if (v := await variant) is not None:
                     product_variant = v.name
-            product_ingredients = ", ".join(
+
+            product_ingredients = " ".join(
                 [
-                    f"{order_product_ingredient.product_ingredient.name}"
+                    f"+{order_product_ingredient.product_ingredient.name}"
                     for order_product_ingredient in order_product.order_product_ingredients
                 ]
             )
 
             product_text = f"x{product_quantity} {product_name}"
             product_text += f" - {product_variant}" if product_variant else ""
-            product_text += (
-                f" ({product_ingredients})" if product_ingredients else ""
-            )
+            product_text += "\n"
+            product_text += product_ingredients
+
+            if not is_menu or include_price:
+                if product_ingredients:
+                    product_text += "\n"
+                product_unit_cost = order_product.price / product_quantity
+                product_text += f"{product_quantity} x {product_unit_cost:.2f}"
 
             if include_price:
                 products.append((product_text, order_product.price))
@@ -102,14 +105,22 @@ class OrderTextManager:
             product_price = x[1] if include_price else None
 
             price_text = f"€ {product_price:.2f}" if include_price else None
-            texts = textwrap.wrap(
-                product_text,
+            width = (
                 (max_width - len(price_text) - 1)
                 if include_price
-                else max_width,
-                subsequent_indent=" " * 4,
-                break_long_words=False,
+                else max_width
             )
+
+            texts = []
+            for j, y in enumerate(product_text.splitlines()):
+                text = textwrap.wrap(
+                    y,
+                    width=width,
+                    initial_indent=" " * 4 if j > 0 else "",
+                    subsequent_indent=" " * 4,
+                    break_long_words=False,
+                )
+                texts.extend(text)
 
             if include_price:
                 result += cls._align_texts(texts[0], price_text)
@@ -127,8 +138,10 @@ class OrderTextManager:
         cls,
         order_menu: ReverseRelation[OrderMenu],
         include_price: bool = False,
-    ) -> list[tuple[str, list[ReverseRelation[OrderProduct]]]] | list[
-        tuple[str, list[ReverseRelation[OrderProduct]], float]
+    ) -> list[
+        tuple[str, list[ReverseRelation[OrderProduct]], float, int]
+    ] | list[
+        tuple[str, list[ReverseRelation[OrderProduct]], float, int, float]
     ]:
         menus = []
 
@@ -141,11 +154,22 @@ class OrderTextManager:
                 x.order_menu_field_products
                 for x in order_menu.order_menu_fields
             ]
+            menu_unit_cost = order_menu.price / menu_quantity
 
             if include_price:
-                menus.append((menu_text, menu_data, order_menu.price))
+                menus.append(
+                    (
+                        menu_text,
+                        menu_data,
+                        menu_unit_cost,
+                        menu_quantity,
+                        order_menu.price,
+                    )
+                )
             else:
-                menus.append((menu_text, menu_data))
+                menus.append(
+                    (menu_text, menu_data, menu_unit_cost, menu_quantity)
+                )
 
         return menus
 
@@ -161,13 +185,17 @@ class OrderTextManager:
             order_products, False, True, only_food, only_drinks
         )
 
-        texts = textwrap.wrap(
-            "; ".join(products_data),
-            max_width,
-            initial_indent=" " * 4,
-            subsequent_indent=" " * 8,
-            break_long_words=False,
-        )
+        texts = []
+        for x in products_data:
+            for i, y in enumerate(x.splitlines()):
+                text = textwrap.wrap(
+                    y,
+                    max_width,
+                    initial_indent=" " * 8 if i > 0 else " " * 4,
+                    subsequent_indent=" " * 8,
+                    break_long_words=False,
+                )
+                texts.extend(text)
 
         return "\n".join(texts)
 
@@ -185,7 +213,9 @@ class OrderTextManager:
         for i, x in enumerate(menu_data):
             menu_text = x[0]
             menu_products = x[1]
-            menu_price = x[2] if include_price else None
+            menu_unit_cost = x[2]
+            menu_quantity = x[3]
+            menu_price = x[4] if include_price else None
 
             price_text = f"€ {menu_price:.2f}" if include_price else None
             max_width = (
@@ -215,6 +245,9 @@ class OrderTextManager:
                 result += menu_text + "\n"
 
             result += "\n".join(menu_products_text)
+            result += (
+                "\n" + " " * 4 + f"{menu_quantity} x {menu_unit_cost:.2f}"
+            )
             result += "\n" if i < len(menu_data) - 1 else ""
 
         return result
@@ -226,7 +259,7 @@ class OrderTextManager:
             result += x.center(self.MAX_WIDTH) + "\n"
 
         if Session.settings.receipt_header:
-            result += "\n\n"
+            result += "\n"
 
         result += f"* Scontrino n. {self.order.id}\n"
         result += "* Il vostro ordine e' stato elaborato da:\n"
