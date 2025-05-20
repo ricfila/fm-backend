@@ -33,7 +33,7 @@ class OrderTextManager:
 
     @staticmethod
     async def _get_products_data(
-        order_products: ReverseRelation[OrderProduct],
+        order_products: list[OrderProduct],
         include_price: bool = False,
         is_menu: bool = False,
         only_food: bool = False,
@@ -89,7 +89,7 @@ class OrderTextManager:
     @classmethod
     async def _get_products_text(
         cls,
-        order_products: ReverseRelation[OrderProduct],
+        order_products: list[OrderProduct],
         include_price: bool = False,
         max_width: int = MAX_WIDTH,
         only_food: bool = False,
@@ -176,7 +176,7 @@ class OrderTextManager:
     @classmethod
     async def _get_menu_products_text(
         cls,
-        order_products: ReverseRelation[OrderProduct],
+        order_products: ReverseRelation[OrderProduct] | list[OrderProduct],
         max_width: int = MAX_WIDTH,
         only_food: bool = False,
         only_drinks: bool = False,
@@ -252,6 +252,20 @@ class OrderTextManager:
 
         return result
 
+    async def _get_ordered_products(self) -> list[OrderProduct]:
+        enriched_products = []
+
+        for op in self.order.order_products:
+            product = await op.product
+            subcategory = await product.subcategory if product else None
+
+            subcategory_order = subcategory.order if subcategory else 0
+            product_order = product.order if product else 0
+
+            enriched_products.append(((subcategory_order, product_order), op))
+
+        return [op for _, op in sorted(enriched_products)]
+
     async def _get_header(self) -> str:
         result = ""
 
@@ -313,7 +327,7 @@ class OrderTextManager:
             receipt_text += "\n"
 
         products_text = await self._get_products_text(
-            self.order.order_products, True
+            await self._get_ordered_products(), True
         )
         receipt_text += products_text
 
@@ -338,7 +352,7 @@ class OrderTextManager:
         kitchen_text = await self._get_header()
 
         products_text = await self._get_products_text(
-            self.order.order_products,
+            await self._get_ordered_products(),
             only_food=only_food,
             only_drinks=only_drinks,
         )
