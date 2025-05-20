@@ -15,6 +15,7 @@ __all__ = (
     "update_product_category_router",
     "update_product_is_priority_router",
     "update_product_name_router",
+    "update_product_order_router",
     "update_product_price_router",
     "update_product_short_name_router",
     "update_product_subcategory_router",
@@ -37,6 +38,7 @@ from .get_products import get_products_router
 from .update_product_category import update_product_category_router
 from .update_product_is_priority import update_product_is_priority_router
 from .update_product_name import update_product_name_router
+from .update_product_order import update_product_order_router
 from .update_product_price import update_product_price_router
 from .update_product_short_name import update_product_short_name_router
 from .update_product_subcategory import update_product_subcategory_router
@@ -57,6 +59,7 @@ products.include_router(get_products_router)
 products.include_router(update_product_category_router)
 products.include_router(update_product_is_priority_router)
 products.include_router(update_product_name_router)
+products.include_router(update_product_order_router)
 products.include_router(update_product_price_router)
 products.include_router(update_product_short_name_router)
 products.include_router(update_product_subcategory_router)

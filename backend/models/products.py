@@ -7,6 +7,7 @@ from backend.utils import (
     Category,
     validate_name_field,
     validate_short_name_field,
+    validate_order_field,
 )
 
 
@@ -126,6 +127,15 @@ class UpdateProductNameItem(BaseModel):
     @classmethod
     def validate_name_field(cls, name: str):
         return validate_name_field(name)
+
+
+class UpdateProductOrderItem(BaseModel):
+    order: int
+
+    @field_validator("order")
+    @classmethod
+    def validate_order_field(cls, order: int):
+        return validate_order_field(order)
 
 
 class UpdateProductShortNameItem(BaseModel):

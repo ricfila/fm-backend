@@ -25,6 +25,7 @@ class Product(Model):
     is_priority = fields.BooleanField(default=False)
     price = fields.FloatField()
     category = fields.CharEnumField(Category)
+    order = fields.IntField(default=0)
     subcategory = fields.ForeignKeyField("models.Subcategory")
 
     subcategory_id: int
