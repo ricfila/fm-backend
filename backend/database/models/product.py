@@ -60,6 +60,7 @@ class Product(Model):
             "is_priority": self.is_priority,
             "price": self.price,
             "category": self.category,
+            "order": self.order,
             "subcategory_id": self.subcategory_id,
         }
 

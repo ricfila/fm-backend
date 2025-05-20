@@ -41,6 +41,7 @@ class Product(BaseModel):
     is_priority: bool
     price: float
     category: Category
+    order: int
     subcategory_id: int
     dates: list[ProductDate] | None = None
     ingredients: list[ProductIngredient] | None = None
