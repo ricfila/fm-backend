@@ -26,6 +26,7 @@ class Product(Model):
     price = fields.FloatField()
     category = fields.CharEnumField(Category)
     order = fields.IntField(default=0)
+    daily_max_sales = fields.IntField(null=True)
     subcategory = fields.ForeignKeyField("models.Subcategory")
 
     subcategory_id: int
@@ -61,6 +62,7 @@ class Product(Model):
             "price": self.price,
             "category": self.category,
             "order": self.order,
+            "daily_max_sales": self.daily_max_sales,
             "subcategory_id": self.subcategory_id,
         }
 

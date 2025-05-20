@@ -160,5 +160,9 @@ class UpdateProductCategoryItem(BaseModel):
     category: Category
 
 
+class UpdateProductDailyMaxSalesItem(BaseModel):
+    daily_max_sales: int = Field(ge=0)
+
+
 class UpdateProductSubcategoryItem(BaseModel):
     subcategory_id: int

@@ -12,7 +12,10 @@ from backend.models.products import (
 )
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.query_filters import build_multiple_query_filter
-from backend.utils.query_utils import process_query_with_pagination
+from backend.utils.query_utils import (
+    process_query_with_pagination,
+    get_orderable_entities,
+)
 
 get_products_router = APIRouter()
 
@@ -43,11 +46,27 @@ async def get_products(
             products_query_filter &= Q(subcategory_id=subcategory_id)
 
         (
+            products_annotation_expression,
+            query_filter,
+        ) = await get_orderable_entities("order_products", "quantity")
+
+        if not token.permissions["can_administer"]:
+            products_query_filter &= query_filter
+
+        (
             products_query,
             total_count,
             limit,
         ) = await process_query_with_pagination(
-            Product, products_query_filter, connection, offset, limit, order_by
+            Product,
+            products_query_filter,
+            connection,
+            offset,
+            limit,
+            order_by,
+            products_annotation_expression
+            if not token.permissions["can_administer"]
+            else None,
         )
 
         try:
