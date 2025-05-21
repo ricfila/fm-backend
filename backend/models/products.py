@@ -162,7 +162,7 @@ class UpdateProductCategoryItem(BaseModel):
 
 
 class UpdateProductDailyMaxSalesItem(BaseModel):
-    daily_max_sales: int = Field(ge=0)
+    daily_max_sales: int | None = Field(ge=0)
 
 
 class UpdateProductSubcategoryItem(BaseModel):
