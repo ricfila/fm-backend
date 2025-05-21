@@ -42,6 +42,7 @@ class Product(BaseModel):
     price: float
     category: Category
     order: int
+    daily_max_sales: int | None
     subcategory_id: int
     dates: list[ProductDate] | None = None
     ingredients: list[ProductIngredient] | None = None

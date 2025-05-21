@@ -6,6 +6,7 @@ from backend.models.error import NotFound
 from backend.models.menu import GetMenuProductsResponse
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.query_filters import build_single_query_filter
+from backend.utils.query_utils import get_orderable_entities
 
 get_menu_products_router = APIRouter()
 
@@ -31,9 +32,24 @@ async def get_menu_products(
             menu_id, token, include_dates, include_roles
         )
 
+        (
+            menu_annotation_expression,
+            menu_query_filter,
+        ) = await get_orderable_entities("order_menus", "quantity")
+
+        if not token.permissions["can_administer"]:
+            query_filter &= menu_query_filter
+
         # Fetch the menu with related products, ingredients, and variants
         menu = (
-            await Menu.filter(query_filter)
+            await Menu.annotate(
+                **(
+                    menu_annotation_expression
+                    if not token.permissions["can_administer"]
+                    else {}
+                )
+            )
+            .filter(query_filter)
             .prefetch_related(
                 "menu_fields__field_products",
                 "menu_fields__field_products__product__dates",

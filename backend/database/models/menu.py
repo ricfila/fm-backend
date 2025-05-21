@@ -16,6 +16,7 @@ class Menu(Model):
     name = fields.CharField(32, unique=True)
     short_name = fields.CharField(20, unique=True)
     price = fields.FloatField()
+    daily_max_sales = fields.IntField(null=True)
 
     dates: fields.ReverseRelation["MenuDate"]
     menu_fields: fields.ReverseRelation["MenuField"]
@@ -41,6 +42,7 @@ class Menu(Model):
             "name": self.name,
             "short_name": self.short_name,
             "price": self.price,
+            "daily_max_sales": self.daily_max_sales,
         }
 
         # Add dates if pre-fetched and requested

@@ -39,6 +39,7 @@ class Menu(BaseModel):
     name: str
     short_name: str
     price: float
+    daily_max_sales: int | None
     dates: list[MenuDate] | None = None
     fields: list[MenuField] | None = None
     roles: list[MenuRole] | None = None

@@ -6,6 +6,7 @@ from backend.models.error import NotFound
 from backend.models.menu import GetMenuResponse
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.query_filters import build_single_query_filter
+from backend.utils.query_utils import get_orderable_entities
 
 get_menu_router = APIRouter()
 
@@ -37,8 +38,23 @@ async def get_menu(
             include_fields_products_roles,
         )
 
+        (
+            menu_annotation_expression,
+            menu_query_filter,
+        ) = await get_orderable_entities("order_menus", "quantity")
+
+        if not token.permissions["can_administer"]:
+            query_filter &= menu_query_filter
+
         menu = (
-            await Menu.filter(query_filter)
+            await Menu.annotate(
+                **(
+                    menu_annotation_expression
+                    if not token.permissions["can_administer"]
+                    else {}
+                )
+            )
+            .filter(query_filter)
             .prefetch_related(
                 "dates",
                 "menu_fields__field_products",

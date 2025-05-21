@@ -7,7 +7,10 @@ from backend.models.error import BadRequest
 from backend.models.menu import GetMenusResponse, Menu as MenuModel
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.query_filters import build_multiple_query_filter
-from backend.utils.query_utils import process_query_with_pagination
+from backend.utils.query_utils import (
+    process_query_with_pagination,
+    get_orderable_entities,
+)
 
 get_menus_router = APIRouter()
 
@@ -40,8 +43,24 @@ async def get_menus(
             include_fields_products_roles,
         )
 
+        (
+            menus_annotation_expression,
+            query_filter,
+        ) = await get_orderable_entities("order_menus", "quantity")
+
+        if not token.permissions["can_administer"]:
+            menus_query_filter &= query_filter
+
         menus_query, total_count, limit = await process_query_with_pagination(
-            Menu, menus_query_filter, connection, offset, limit, order_by
+            Menu,
+            menus_query_filter,
+            connection,
+            offset,
+            limit,
+            order_by,
+            menus_annotation_expression
+            if not token.permissions["can_administer"]
+            else None,
         )
 
         try:
