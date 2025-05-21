@@ -119,6 +119,10 @@ class GetMenusResponse(BaseResponse):
     menus: list[Menu]
 
 
+class UpdateMenuDailyMaxSales(BaseModel):
+    daily_max_sales: int = Field(ge=0)
+
+
 class UpdateMenuFieldAdditionalCostItem(BaseModel):
     additional_cost: float = Field(ge=0)
 
