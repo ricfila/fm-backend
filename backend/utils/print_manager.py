@@ -23,6 +23,7 @@ async def get_order(order_id: int, connection: BaseDBAsyncClient):
             "order_products__order_product_ingredients__product_ingredient",
             "order_products__variant",
             "user__role__printers__printer",
+            "confirmed_by__role__printers__printer",
         )
         .using_db(connection)
         .first()
@@ -37,7 +38,7 @@ class PrintManager:
 
         self.queues = collections.defaultdict(asyncio.Queue)
         self.printers: dict[int, Network] = {}
-        self.order_futures: dict[int, asyncio.Future] = {}
+        self.order_futures: dict[int, dict[str, asyncio.Future | bool]] = {}
         self.order_counters: dict[int, int] = collections.Counter()
         self.order_locks: dict[int, asyncio.Lock] = collections.defaultdict(
             asyncio.Lock
@@ -92,9 +93,9 @@ class PrintManager:
             async with self.order_locks[order_id]:
                 self.order_counters[order_id] -= 1
                 if self.order_counters[order_id] == 0:
-                    future = self.order_futures.pop(order_id, None)
-                    if future and not future.done():
-                        future.set_result(True)
+                    future_data = self.order_futures.pop(order_id, None)
+                    if future_data and not future_data["future"].done():
+                        future_data["future"].set_result(True)
 
                     self.order_counters.pop(order_id, None)
                     self.order_locks.pop(order_id, None)
@@ -102,16 +103,16 @@ class PrintManager:
     @staticmethod
     def _print_content(printer: Network, content: str):
         printer.open()
-
-        for x in re.split(r"(?<=\n)", content):
+        for line in re.split(r"(?<=\n)", content):
             printer.set(align="left", font="a")
-            printer.text(x)
+            printer.text(line)
         printer.cut()
 
     async def add_job(
         self,
         order_id: int,
         connection: BaseDBAsyncClient,
+        is_confirmed: bool = False,
         printer_types: list[PrinterType] | None = None,
     ):
         order = await get_order(order_id, connection)
@@ -120,21 +121,32 @@ class PrintManager:
             return
 
         text = OrderTextManager(order)
+
         printers = order.user.role.printers
+        printers_confirmed = (
+            order.confirmed_by.role.printers if order.confirmed_by else []
+        )
+
+        if is_confirmed:
+            printers = printers_confirmed
+
+        if printer_types:
+            printers = [
+                p
+                for p in (printers + printers_confirmed)
+                if p.printer_type in printer_types
+            ]
 
         async with self.order_locks[order_id]:
             self.order_counters[order_id] = len(printers)
-            self.order_futures[order_id] = asyncio.Future()
+            self.order_futures[order_id] = {
+                "future": asyncio.Future(),
+                "is_confirmed": is_confirmed,
+            }
 
         for role_printer in printers:
             p = role_printer.printer
             self.add_printer(p.id, p.ip_address)
-
-            if (
-                printer_types
-                and role_printer.printer_type not in printer_types
-            ):
-                continue
 
             content = await text.generate_text_for_printer(
                 role_printer.printer_type
@@ -146,24 +158,28 @@ class PrintManager:
         asyncio.create_task(self.process_order_completion(order_id))
 
     async def process_order_completion(self, order_id: int):
-        future = self.order_futures.get(order_id)
-        if not future:
+        data = self.order_futures.get(order_id)
+        if not data:
             return
 
-        await future
-        await self.update_queue.put(order_id)
+        await data["future"]
+        await self.update_queue.put((order_id, data["is_confirmed"]))
 
     async def update_worker(self):
         while True:
-            order_id = await self.update_queue.get()
+            order_id, is_confirmed = await self.update_queue.get()
+
+            field_to_update = (
+                "is_confirm_printed" if is_confirmed else "is_printed"
+            )
 
             async with self.pool.acquire() as connection:
                 async with connection.transaction():
                     await connection.execute(
-                        'UPDATE "order" SET is_printed = true WHERE id = $1;',
+                        f'UPDATE "order" SET $1 = true WHERE id = $2;',
+                        field_to_update,
                         order_id,
                     )
 
             self.update_queue.task_done()
-
-            logger.success(f"Order {order_id} marked as printed.")
+            logger.success(f"Order {order_id} marked as {field_to_update}.")

@@ -19,7 +19,11 @@ class Order(Model):
     table = fields.IntField(null=True)
     is_confirm = fields.BooleanField(default=False)
     user = fields.ForeignKeyField("models.User")
+    confirmed_by = fields.ForeignKeyField(
+        "models.User", null=True, related_name="confirmed_by"
+    )
     is_printed = fields.BooleanField(default=False)
+    is_confirm_printed = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
 
     user_id: int
@@ -53,6 +57,7 @@ class Order(Model):
         include_products_product_variants: bool = False,
         include_products_ingredients: bool = False,
         include_user: bool = False,
+        include_confirmer_user: bool = False,
     ) -> dict:
         result = {
             "id": self.id,
@@ -61,6 +66,8 @@ class Order(Model):
             "is_take_away": self.is_take_away,
             "table": self.table,
             "is_confirm": self.is_confirm,
+            "is_printed": self.is_printed,
+            "is_confirm_printed": self.is_confirm_printed,
             "created_at": self.created_at,
         }
 
@@ -99,5 +106,12 @@ class Order(Model):
 
         if include_user and hasattr(self, "user"):
             result["user"] = await self.user.to_dict()
+
+        if include_confirmer_user and hasattr(self, "confirmed_by"):
+            result["confirmed_by"] = (
+                await self.confirmed_by.to_dict()
+                if self.confirmed_by
+                else None
+            )
 
         return result

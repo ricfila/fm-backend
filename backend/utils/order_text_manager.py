@@ -73,7 +73,7 @@ class OrderTextManager:
             product_text += "\n"
             product_text += product_ingredients
 
-            if not is_menu or include_price:
+            if not is_menu and include_price:
                 if product_ingredients:
                     product_text += "\n"
                 product_unit_cost = order_product.price / product_quantity
@@ -245,9 +245,11 @@ class OrderTextManager:
                 result += menu_text + "\n"
 
             result += "\n".join(menu_products_text)
-            result += (
-                "\n" + " " * 4 + f"{menu_quantity} x {menu_unit_cost:.2f}"
-            )
+
+            if include_price:
+                result += (
+                    "\n" + " " * 4 + f"{menu_quantity} x {menu_unit_cost:.2f}"
+                )
             result += "\n" if i < len(menu_data) - 1 else ""
 
         return result
@@ -292,8 +294,7 @@ class OrderTextManager:
         if self.order.is_take_away:
             result += "* Per asporto: si" + "\n"
         else:
-            if not Session.settings.order_requires_confirmation:
-                result += "* Tavolo: " + str(self.order.table) + "\n"
+            result += "* Tavolo: " + str(self.order.table or "") + "\n"
 
         result += "\n"
 

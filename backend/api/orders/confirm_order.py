@@ -29,12 +29,16 @@ async def confirm_order(
         updated_count = (
             await Order.filter(id=order_id)
             .using_db(connection)
-            .update(table=item.table, is_confirm=True)
+            .update(
+                table=item.table,
+                confirmed_by_id=token.user_id,
+                is_confirm=True,
+            )
         )
 
         if not updated_count:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
-        await Session.print_manager.add_job(order_id, connection)
+        await Session.print_manager.add_job(order_id, connection, True)
 
     return BaseResponse()
