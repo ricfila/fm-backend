@@ -35,6 +35,8 @@ class ErrorCodes(Enum):
 
     # Orders
     ORDER_NOT_FOUND = auto()
+    # Confirm
+    ORDER_ALREADY_CONFIRMED = auto()
     # Create
     DUPLICATE_MENU_FIELDS = auto()
     DUPLICATE_MENU_FIELDS_PRODUCT = auto()

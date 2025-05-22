@@ -122,9 +122,11 @@ class PrintManager:
 
         text = OrderTextManager(order)
 
-        printers = order.user.role.printers
+        printers = list(order.user.role.printers)
         printers_confirmed = (
-            order.confirmed_by.role.printers if order.confirmed_by else []
+            list(order.confirmed_by.role.printers)
+            if order.confirmed_by
+            else []
         )
 
         if is_confirmed:

@@ -26,18 +26,21 @@ async def confirm_order(
         raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     async with in_transaction() as connection:
-        updated_count = (
-            await Order.filter(id=order_id)
-            .using_db(connection)
-            .update(
-                table=item.table,
-                confirmed_by_id=token.user_id,
-                is_confirm=True,
-            )
-        )
+        order = await Order.filter(id=order_id).using_db(connection).first()
 
-        if not updated_count:
+        if not order:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
+
+        if order.is_confirm:
+            raise Unauthorized(code=ErrorCodes.ORDER_ALREADY_CONFIRMED)
+
+        await order.update_from_dict(
+            {
+                "table": item.table,
+                "confirmed_by_id": token.user_id,
+                "is_confirm": True,
+            }
+        ).save(using_db=connection)
 
         await Session.print_manager.add_job(order_id, connection, True)
 

@@ -35,6 +35,7 @@ async def get_order(
     include_products_product_variants: bool = False,
     include_products_ingredients: bool = False,
     include_user: bool = False,
+    include_confirmer_user: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -74,6 +75,7 @@ async def get_order(
                 "order_products__product__roles",
                 "order_products__product__variants",
                 "user",
+                "confirmed_by",
             )
             .using_db(connection)
             .first()
@@ -105,5 +107,6 @@ async def get_order(
             include_products_product_variants,
             include_products_ingredients,
             include_user,
+            include_confirmer_user,
         )
     )

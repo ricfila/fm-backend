@@ -32,7 +32,7 @@ async def print_order(
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
         await Session.print_manager.add_job(
-            order.id, connection, item.printer_types
+            order.id, connection, printer_types=item.printer_types
         )
 
     return BaseResponse()
