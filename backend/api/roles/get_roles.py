@@ -20,6 +20,7 @@ async def get_roles(
     limit: int | None = None,
     only_name: bool = False,
     can_order: bool | None = None,
+    include_order_confirmer: bool = False,
     include_printers: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -41,7 +42,9 @@ async def get_roles(
 
         try:
             roles = (
-                await roles_query.prefetch_related("printers")
+                await roles_query.prefetch_related(
+                    "printers", "order_confirmer"
+                )
                 .offset(offset)
                 .limit(limit)
             )
@@ -53,7 +56,9 @@ async def get_roles(
         roles=[
             RoleName(**await role.to_dict_name())
             if only_name
-            else RoleModel(**await role.to_dict(include_printers))
+            else RoleModel(
+                **await role.to_dict(include_order_confirmer, include_printers)
+            )
             for role in roles
         ],
     )

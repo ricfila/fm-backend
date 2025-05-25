@@ -14,6 +14,7 @@ get_role_router = APIRouter()
 @check_role(Permission.CAN_ADMINISTER)
 async def get_role(
     role_id: int,
+    include_order_confirmer: bool = False,
     include_printers: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -26,9 +27,11 @@ async def get_role(
     async with in_transaction() as connection:
         role = await Role.get_or_none(
             id=role_id, using_db=connection
-        ).prefetch_related("printers")
+        ).prefetch_related("printers", "order_confirmer")
 
         if not role:
             raise NotFound(code=ErrorCodes.ROLE_NOT_FOUND)
 
-    return GetRoleResponse(**await role.to_dict(include_printers))
+    return GetRoleResponse(
+        **await role.to_dict(include_order_confirmer, include_printers)
+    )

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, field_validator
 
 from backend.models import BaseResponse
@@ -19,6 +21,7 @@ class Role(BaseModel):
     id: int
     name: str
     permissions: dict[Permission, bool]
+    order_confirmer: Role | None = None
     printers: list[RolePrinter] | None = None
 
 
