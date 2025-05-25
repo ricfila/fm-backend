@@ -26,13 +26,21 @@ async def confirm_order(
         raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
     async with in_transaction() as connection:
-        order = await Order.filter(id=order_id).using_db(connection).first()
+        order = (
+            await Order.filter(id=order_id)
+            .prefetch_related("user__role")
+            .using_db(connection)
+            .first()
+        )
 
         if not order:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
         if order.is_confirm:
             raise Unauthorized(code=ErrorCodes.ORDER_ALREADY_CONFIRMED)
+
+        if order.user.role.order_confirmer_id != token.role_id:
+            raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
         await order.update_from_dict(
             {

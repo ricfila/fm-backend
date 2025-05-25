@@ -74,3 +74,7 @@ class UpdateRolePermissionsItem(BaseModel):
     @classmethod
     def validate_permissions_field(cls, permissions: dict[Permission, bool]):
         return validate_permissions_field(permissions)
+
+
+class UpdateRoleOrderConfirmerItem(BaseModel):
+    order_confirmer_id: int | None = None

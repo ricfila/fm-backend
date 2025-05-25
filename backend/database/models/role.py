@@ -3,6 +3,7 @@ import typing
 from tortoise import fields
 from tortoise.models import Model
 
+from backend.config import Session
 from backend.utils import ErrorCodes
 
 if typing.TYPE_CHECKING:
@@ -21,8 +22,13 @@ class Role(Model):
     can_statistics = fields.BooleanField(default=False)
     can_priority_statistics = fields.BooleanField(default=False)
     can_confirm_orders = fields.BooleanField(default=False)
+    order_confirmer = fields.ForeignKeyField(
+        "models.Role", "roles_to_confirm", null=True
+    )
 
     printers: fields.ReverseRelation["RolePrinter"]
+
+    order_confirmer_id: int
 
     class Meta:
         table = "role"
@@ -45,12 +51,23 @@ class Role(Model):
     async def to_dict_name(self) -> dict:
         return {"id": self.id, "name": self.name}
 
-    async def to_dict(self, include_printers: bool = False) -> dict:
+    async def to_dict(
+        self,
+        include_order_confirmer: bool = False,
+        include_printers: bool = False,
+    ) -> dict:
         result = {
             "id": self.id,
             "name": self.name,
             "permissions": await self.get_permissions(),
         }
+
+        if include_order_confirmer and hasattr(self, "order_confirmer"):
+            result["order_confirmer"] = (
+                await self.order_confirmer.to_dict()
+                if self.order_confirmer
+                else None
+            )
 
         # Add printers if pre-fetched and requested
         if include_printers and hasattr(self, "printers"):
