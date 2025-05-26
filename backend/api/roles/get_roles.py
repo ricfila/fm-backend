@@ -20,6 +20,7 @@ async def get_roles(
     limit: int | None = None,
     only_name: bool = False,
     can_order: bool | None = None,
+    can_confirm_orders: bool | None = None,
     include_order_confirmer: bool = False,
     include_printers: bool = False,
     token: TokenJwt = Depends(validate_token),
@@ -35,6 +36,9 @@ async def get_roles(
 
         if can_order is not None:
             query &= Q(can_order=can_order)
+
+        if can_confirm_orders is not None:
+            query &= Q(can_confirm_orders=can_confirm_orders)
 
         roles_query, total_count, limit = await process_query_with_pagination(
             Role, query, connection, offset, limit, ""

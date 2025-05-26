@@ -23,7 +23,7 @@ async def get_order(order_id: int, connection: BaseDBAsyncClient):
             "order_products__order_product_ingredients__product_ingredient",
             "order_products__variant",
             "user__role__printers__printer",
-            "confirmed_by__role__printers__printer",
+            "user__role__order_confirmer__printers__printer",
         )
         .using_db(connection)
         .first()
@@ -124,19 +124,20 @@ class PrintManager:
 
         printers = list(order.user.role.printers)
         printers_confirmed = (
-            list(order.confirmed_by.role.printers)
-            if order.confirmed_by
+            list(order.user.role.order_confirmer.printers)
+            if order.confirmed_by or order.is_take_away
             else []
         )
 
         if is_confirmed:
             printers = printers_confirmed
 
-        if printer_types:
+        if printer_types or order.is_take_away:
             printers = [
                 p
                 for p in (printers + printers_confirmed)
-                if p.printer_type in printer_types
+                if p.printer_type in (printer_types or [])
+                or order.is_take_away
             ]
 
         async with self.order_locks[order_id]:
