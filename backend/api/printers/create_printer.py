@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
+from backend.config import Session
 from backend.database.models import Printer
 from backend.decorators import check_role
 from backend.models.error import Conflict
@@ -35,6 +36,8 @@ async def create_printer(
 
         except IntegrityError:
             raise Conflict(code=ErrorCodes.PRINTER_ALREADY_EXISTS)
+
+    Session.print_manager.add_printer(new_printer.id, new_printer.ip_address)
 
     return CreatePrinterResponse(
         printer=PrinterModel(**await new_printer.to_dict())

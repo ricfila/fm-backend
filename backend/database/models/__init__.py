@@ -7,6 +7,7 @@ __all__ = (
     "Order",
     "OrderMenu",
     "OrderMenuField",
+    "OrderPrinter",
     "OrderProduct",
     "OrderProductIngredient",
     "Printer",
@@ -30,6 +31,7 @@ from .menu_role import MenuRole
 from .order import Order
 from .order_menu import OrderMenu
 from .order_menu_field import OrderMenuField
+from .order_printer import OrderPrinter
 from .order_product import OrderProduct
 from .order_product_ingredient import OrderProductIngredient
 from .printer import Printer

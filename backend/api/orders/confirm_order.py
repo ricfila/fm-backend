@@ -50,6 +50,4 @@ async def confirm_order(
             }
         ).save(using_db=connection)
 
-        await Session.print_manager.add_job(order_id, connection, True)
-
     return BaseResponse()

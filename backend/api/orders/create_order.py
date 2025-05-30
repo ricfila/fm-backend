@@ -89,6 +89,4 @@ async def create_order(
         await create_order_products(item.products, order, connection)
         await create_order_menus(item.menus, order, connection)
 
-        await Session.print_manager.add_job(order.id, connection)
-
     return CreateOrderResponse(order=OrderModel(**await order.to_dict()))

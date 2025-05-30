@@ -47,10 +47,9 @@ class Order(BaseModel):
     is_take_away: bool
     table: int | None = Field(ge=1, default=None)
     is_confirm: bool
+    is_done: bool
     user: User | None = None
     confirmed_by: User | None = None
-    is_printed: bool
-    is_confirm_printed: bool
     menus: list[OrderMenu] | None = None
     products: list[OrderProduct] | None = None
     created_at: datetime.datetime
