@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from typing import Type, TypeVar
 
 from tortoise import Model, BaseDBAsyncClient
@@ -49,14 +49,15 @@ async def get_orderable_entities(
     max_daily_field: str = "daily_max_sales",
     for_date: date = None,
 ):
-    today = for_date or date.today()
-    tomorrow = today + timedelta(days=1)
+    target_date = for_date or date.today()
+    start_of_day = datetime.combine(target_date, datetime.min.time())
+    end_of_day = start_of_day + timedelta(days=1)
 
     quantity_path = f"{relation_name}__{quantity_field}"
     date_path = f"{relation_name}__order__{order_date_field}"
 
-    date_filter = Q(**{f"{date_path}__gte": today}) & Q(
-        **{f"{date_path}__lt": tomorrow}
+    date_filter = Q(**{f"{date_path}__gte": start_of_day}) & Q(
+        **{f"{date_path}__lt": end_of_day}
     )
 
     annotate_expression = {
