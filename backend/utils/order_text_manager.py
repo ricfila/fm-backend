@@ -300,21 +300,6 @@ class OrderTextManager:
 
         return result
 
-    async def _get_price(self) -> float:
-        result = 0
-
-        if not self.order.is_take_away:
-            result += Session.settings.cover_charge * self.order.guests
-
-        result += sum(
-            x.price
-            for x in self.order.order_products
-            if x.order_menu_field_id is None
-        )
-        result += sum(x.price for x in self.order.order_menus)
-
-        return result
-
     async def _render_receipt_text(self) -> str:
         receipt_text = await self._get_header()
 
@@ -344,7 +329,7 @@ class OrderTextManager:
             receipt_text += "\n"
 
         receipt_text += self._align_texts(
-            "TOTALE:", f"€ {(await self._get_price()):.2f}"
+            "TOTALE:", f"€ {self.order.price:.2f}"
         )
 
         return receipt_text

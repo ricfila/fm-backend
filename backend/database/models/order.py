@@ -19,6 +19,9 @@ class Order(Model):
     table = fields.IntField(null=True)
     is_confirm = fields.BooleanField(default=False)
     is_done = fields.BooleanField(default=False)
+    is_deleted = fields.BooleanField(default=False)
+    is_voucher = fields.BooleanField(default=False)
+    price = fields.DecimalField(max_digits=10, decimal_places=2)
     user = fields.ForeignKeyField("models.User")
     confirmed_by = fields.ForeignKeyField(
         "models.User", null=True, related_name="confirmed_by"
@@ -67,6 +70,8 @@ class Order(Model):
             "table": self.table,
             "is_confirm": self.is_confirm,
             "is_done": self.is_done,
+            "is_voucher": self.is_voucher,
+            "price": self.price,
             "created_at": self.created_at,
         }
 

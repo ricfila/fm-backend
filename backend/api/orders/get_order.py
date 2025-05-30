@@ -84,6 +84,9 @@ async def get_order(
         if not order:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
+        if order.is_deleted:
+            raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
+
     return GetOrderResponse(
         **await order.to_dict(
             include_menus,

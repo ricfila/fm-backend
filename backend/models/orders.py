@@ -48,6 +48,8 @@ class Order(BaseModel):
     table: int | None = Field(ge=1, default=None)
     is_confirm: bool
     is_done: bool
+    is_voucher: bool
+    price: float
     user: User | None = None
     confirmed_by: User | None = None
     menus: list[OrderMenu] | None = None
@@ -90,6 +92,7 @@ class CreateOrderItem(BaseModel):
     guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
     table: int | None = Field(ge=1, default=None)
+    is_voucher: bool
     products: list[CreateOrderProductItem] = Field(default=[])
     menus: list[CreateOrderMenuItem] = Field(default=[])
 

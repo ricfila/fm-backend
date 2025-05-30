@@ -62,7 +62,7 @@ async def get_orders(
 
     async with in_transaction() as connection:
         orders_query, total_count, limit = await process_query_with_pagination(
-            Order, Q(), connection, offset, limit, order_by
+            Order, Q(is_deleted=False), connection, offset, limit, order_by
         )
 
         try:

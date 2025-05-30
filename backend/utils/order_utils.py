@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from tortoise import BaseDBAsyncClient
 
+from backend.config import Session
 from backend.database.models import (
     Menu,
     MenuField,
@@ -16,6 +17,7 @@ from backend.models.orders import (
     CreateOrderMenuItem,
     CreateOrderProductItem,
     CreateOrderMenuFieldItem,
+    CreateOrderItem,
 )
 from backend.utils import ErrorCodes
 
@@ -365,3 +367,18 @@ async def create_order_menus(
             )
 
     return True
+
+
+async def get_order_price(order: CreateOrderItem) -> Decimal:
+    cover_change = Decimal(Session.settings.cover_charge)
+    guests = Decimal(order.guests if not order.is_take_away else 0)
+
+    price = (cover_change * guests).quantize(ZERO_DECIMAL)
+
+    for x in order.products:
+        price += Decimal(x._price).quantize(ZERO_DECIMAL)
+
+    for x in order.menus:
+        price += Decimal(x._price).quantize(ZERO_DECIMAL)
+
+    return price

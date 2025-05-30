@@ -14,7 +14,7 @@ class OrderMenu(Model):
 
     id = fields.IntField(pk=True)
     menu = fields.ForeignKeyField("models.Menu")
-    price = fields.FloatField()
+    price = fields.DecimalField(max_digits=10, decimal_places=2)
     quantity = fields.IntField()
     order = fields.ForeignKeyField("models.Order", "order_menus")
 

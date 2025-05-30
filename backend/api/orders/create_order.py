@@ -16,6 +16,7 @@ from backend.utils.order_utils import (
     check_products,
     create_order_menus,
     create_order_products,
+    get_order_price,
 )
 
 create_order_router = APIRouter()
@@ -70,6 +71,8 @@ async def create_order(
         if has_error_menus:
             raise Conflict(code=error_code_menus)
 
+        order_price = await get_order_price(item)
+
         order = await Order.create(
             customer=item.customer,
             guests=item.guests if not item.is_take_away else None,
@@ -82,6 +85,8 @@ async def create_order(
             if not Session.settings.order_requires_confirmation
             or item.is_take_away
             else False,
+            is_voucher=item.is_voucher,
+            price=order_price,
             user_id=token.user_id,
             using_db=connection,
         )
