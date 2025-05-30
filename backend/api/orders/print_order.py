@@ -26,13 +26,25 @@ async def print_order(
     """
 
     async with in_transaction() as connection:
-        order = await Order.filter(id=order_id).using_db(connection).first()
+        order = (
+            await Order.filter(id=order_id)
+            .prefetch_related(
+                "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__product_ingredient",
+                "order_menus__menu",
+                "order_products__order_product_ingredients__product_ingredient",
+                "order_products__variant",
+                "user__role__printers__printer",
+                "user__role__order_confirmer__printers__printer",
+                "order_printers__role_printer__printer",
+                "confirmed_by__role__printers__printer",
+            )
+            .using_db(connection)
+            .first()
+        )
 
         if not order:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
-        await Session.print_manager.add_job(
-            order.id, connection, printer_types=item.printer_types
-        )
+    await Session.print_manager.add_job(order, item.printer_types)
 
     return BaseResponse()

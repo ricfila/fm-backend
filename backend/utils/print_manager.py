@@ -8,12 +8,18 @@ from backend.database.models import Order, Printer, OrderPrinter
 from backend.utils import PrinterType
 from backend.utils.order_text_manager import OrderTextManager
 
+MAX_RETRY_DELAY = 60
 RETRY_DELAY = 5
+STEP = 2
 
 
 class PrintManager:
     def __init__(self):
+        self.queues: dict[int, asyncio.Queue] = {}
         self.printers: dict[int, Network] = {}
+        self.in_progress: set[tuple[int, int]] = set()
+
+        asyncio.create_task(self.update_worker())
 
     @classmethod
     async def create(cls):
@@ -28,12 +34,10 @@ class PrintManager:
     def add_printer(self, printer_id: int, printer_ip_address: str):
         if printer_id not in self.printers:
             self.printers[printer_id] = Network(printer_ip_address, timeout=5)
+            self.queues[printer_id] = asyncio.Queue()
             asyncio.create_task(self._worker(printer_id))
 
-    @staticmethod
-    async def get_first_order_to_print(
-        printer_id: int,
-    ) -> tuple[Order, PrinterType, int] | None:
+    async def update_worker(self):
         prefetch_values = [
             "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__product_ingredient",
             "order_menus__menu",
@@ -45,91 +49,109 @@ class PrintManager:
             "confirmed_by__role__printers__printer",
         ]
 
-        orders = (
-            await Order.filter(is_done=False)
-            .order_by("created_at")
-            .prefetch_related(*prefetch_values)
-        )
-
-        for order in orders:
-            user_role_printers = list(order.user.role.printers)
-            confirmed_by_role_printers = list(
-                order.user.role.order_confirmer.printers
+        while True:
+            orders = (
+                await Order.filter(is_done=False)
+                .order_by("created_at")
+                .prefetch_related(*prefetch_values)
             )
 
-            user_role_printer_ids = {x.id for x in user_role_printers}
-            role_printer_ids = {
-                x.id: x
-                for x in user_role_printers + confirmed_by_role_printers
-            }
-            order_role_printer_ids = {
-                x.role_printer_id for x in order.order_printers
-            }
-            order_roles_to_print = (
-                set(role_printer_ids.keys()) - order_role_printer_ids
-            )
-
-            if not order_roles_to_print:
-                order.is_done = True
-                await order.save()
-
-                continue
-
-            ordered_roles_to_print = {
-                x
-                for x in user_role_printer_ids
-                if x not in order_role_printer_ids
-            }
-
-            if order.is_take_away or order.is_confirm:
-                ordered_roles_to_print = sorted(
-                    order_roles_to_print,
-                    key=lambda x: (x not in user_role_printer_ids, x),
+            for order in orders:
+                user_role_printers = list(order.user.role.printers)
+                confirmed_by_role_printers = list(
+                    order.user.role.order_confirmer.printers
                 )
 
-            for role_printer in ordered_roles_to_print:
-                if role_printer_ids.get(role_printer).printer_id == printer_id:
-                    return (
-                        order,
-                        role_printer_ids.get(role_printer).printer_type,
-                        role_printer,
+                user_role_printer_ids = {x.id for x in user_role_printers}
+                role_printer_ids = {
+                    x.id: x
+                    for x in user_role_printers + confirmed_by_role_printers
+                }
+                order_role_printer_ids = {
+                    x.role_printer_id for x in order.order_printers
+                }
+                order_roles_to_print = (
+                    set(role_printer_ids.keys()) - order_role_printer_ids
+                )
+
+                if not order_roles_to_print:
+                    order.is_done = True
+                    await order.save()
+
+                    continue
+
+                ordered_roles_to_print = {
+                    x
+                    for x in user_role_printer_ids
+                    if x not in order_role_printer_ids
+                }
+
+                if order.is_take_away or order.is_confirm:
+                    ordered_roles_to_print = sorted(
+                        order_roles_to_print,
+                        key=lambda x: (x not in user_role_printer_ids, x),
                     )
 
-        return None
+                for role_printer in ordered_roles_to_print:
+                    rp = role_printer_ids.get(role_printer)
+                    key = (order.id, rp.id)
+
+                    if key in self.in_progress:
+                        continue
+
+                    self.in_progress.add(key)
+                    await self.queues[rp.printer_id].put((order, rp))
+
+            await asyncio.sleep(RETRY_DELAY)
 
     async def _worker(self, printer_id: int):
+        queue = self.queues[printer_id]
         printer = self.printers[printer_id]
 
         while True:
-            result = await self.get_first_order_to_print(printer_id)
+            job = await queue.get()
 
-            if not result:
-                await asyncio.sleep(RETRY_DELAY)
-                continue
-
-            order, printer_type, role_printer_id = result
+            order = job[0]
+            role_printer_printer_type = job[1].printer_type
+            role_printer_printer_id = job[1].id
 
             text = OrderTextManager(order)
-            content = await text.generate_text_for_printer(printer_type)
+            content = await text.generate_text_for_printer(
+                role_printer_printer_type
+            )
 
-            print(content)
+            attempts = 0
+            while True:
+                try:
+                    await asyncio.to_thread(
+                        self._print_content, printer, content
+                    )
+                except Exception as e:
+                    attempts += 1
+                    delay = min(
+                        RETRY_DELAY + (attempts - 1) * STEP, MAX_RETRY_DELAY
+                    )
 
-            try:
-                await asyncio.to_thread(self._print_content, printer, content)
+                    logger.error(f"Print error on {printer.host}")
+                    logger.exception(e)
+                    await asyncio.sleep(delay)
+
+                    continue
 
                 logger.success(
                     f"Successfully printed {order.id} on {printer.host}"
                 )
+                break
 
-                await OrderPrinter.create(
-                    order_id=order.id, role_printer_id=role_printer_id
-                )
+            queue.task_done()
+
+            _, is_created = await OrderPrinter.get_or_create(
+                order_id=order.id, role_printer_id=role_printer_printer_id
+            )
+
+            if is_created:
+                self.in_progress.discard((order.id, role_printer_printer_id))
                 logger.success(f"Order {order.id} marked as printed.")
-            except Exception as e:
-                logger.error(f"Print error on {printer.host}")
-                logger.exception(e)
-                await asyncio.sleep(RETRY_DELAY)
-                continue
 
     @staticmethod
     def _print_content(printer: Network, content: str):
@@ -138,3 +160,22 @@ class PrintManager:
             printer.set(align="left", font="a")
             printer.text(line)
         printer.cut()
+
+    async def add_job(self, order: Order, printer_types: list[PrinterType]):
+        printers = list(order.user.role.printers)
+        printers_confirmed = (
+            list(order.user.role.order_confirmer.printers)
+            if order.is_confirm or order.is_take_away
+            else []
+        )
+
+        printers_to_print = [
+            p
+            for p in (printers + printers_confirmed)
+            if p.printer_type in printer_types
+        ]
+
+        for role_printer in printers_to_print:
+            await self.queues[role_printer.printer_id].put(
+                (order, role_printer)
+            )
