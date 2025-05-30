@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import ParamsError
 from tortoise.expressions import Q
+from tortoise.query_utils import Prefetch
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Product
+from backend.database.models import Product, ProductIngredient, ProductVariant
 from backend.models.error import BadRequest
 from backend.models.products import (
     GetProductsResponse,
@@ -72,7 +73,16 @@ async def get_products(
         try:
             products = (
                 await products_query.prefetch_related(
-                    "dates", "ingredients", "roles", "variants"
+                    "dates",
+                    "roles",
+                    Prefetch(
+                        "ingredients",
+                        queryset=ProductIngredient.filter(is_deleted=False),
+                    ),
+                    Prefetch(
+                        "variants",
+                        queryset=ProductVariant.filter(is_deleted=False),
+                    ),
                 )
                 .offset(offset)
                 .limit(limit)

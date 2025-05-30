@@ -38,6 +38,7 @@ async def delete_product_variant(
         if not product_variant:
             raise NotFound(code=ErrorCodes.PRODUCT_VARIANT_NOT_FOUND)
 
-        await product_variant.delete(using_db=connection)
+        product_variant.is_deleted = True
+        await product_variant.save(using_db=connection)
 
     return BaseResponse()

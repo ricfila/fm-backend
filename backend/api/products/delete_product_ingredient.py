@@ -39,6 +39,7 @@ async def delete_product_ingredient(
         if not product_ingredient:
             raise NotFound(code=ErrorCodes.PRODUCT_INGREDIENT_NOT_FOUND)
 
-        await product_ingredient.delete(using_db=connection)
+        product_ingredient.is_deleted = True
+        await product_ingredient.save(using_db=connection)
 
     return BaseResponse()

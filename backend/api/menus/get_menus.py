@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import ParamsError
+from tortoise.query_utils import Prefetch
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Menu
+from backend.database.models import Menu, ProductIngredient, ProductVariant
 from backend.models.error import BadRequest
 from backend.models.menu import GetMenusResponse, Menu as MenuModel
 from backend.utils import ErrorCodes, TokenJwt, validate_token
@@ -69,10 +70,16 @@ async def get_menus(
                     "dates",
                     "menu_fields__field_products",
                     "menu_fields__field_products__product__dates",
-                    "menu_fields__field_products__product__ingredients",
                     "menu_fields__field_products__product__roles",
-                    "menu_fields__field_products__product__variants",
                     "roles",
+                    Prefetch(
+                        "menu_fields__field_products__product__ingredients",
+                        queryset=ProductIngredient.filter(is_deleted=False),
+                    ),
+                    Prefetch(
+                        "menu_fields__field_products__product__variants",
+                        queryset=ProductVariant.filter(is_deleted=False),
+                    ),
                 )
                 .offset(offset)
                 .limit(limit)

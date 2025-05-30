@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
+from tortoise.query_utils import Prefetch
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Product
+from backend.database.models import Product, ProductIngredient, ProductVariant
 from backend.models.error import NotFound
 from backend.models.products import GetProductResponse
 from backend.utils import ErrorCodes, TokenJwt, validate_token
@@ -46,7 +47,18 @@ async def get_product(
                 )
             )
             .filter(query_filter)
-            .prefetch_related("dates", "ingredients", "roles", "variants")
+            .prefetch_related(
+                "dates",
+                "roles",
+                Prefetch(
+                    "ingredients",
+                    queryset=ProductIngredient.filter(is_deleted=False),
+                ),
+                Prefetch(
+                    "variants",
+                    queryset=ProductVariant.filter(is_deleted=False),
+                ),
+            )
             .using_db(connection)
             .first()
         )
