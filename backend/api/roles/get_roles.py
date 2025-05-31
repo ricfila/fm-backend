@@ -14,7 +14,11 @@ get_roles_router = APIRouter()
 
 
 @get_roles_router.get("/", response_model=GetRolesResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(
+    Permission.CAN_ADMINISTER,
+    Permission.CAN_STATISTICS,
+    Permission.CAN_PRIORITY_STATISTICS,
+)
 async def get_roles(
     offset: int = 0,
     limit: int | None = None,
