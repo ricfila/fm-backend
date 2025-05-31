@@ -21,8 +21,8 @@ get_statistic_router = APIRouter()
 @get_statistic_router.get("/", response_model=GetStatisticResponse)
 @check_role(Permission.CAN_STATISTICS, Permission.CAN_PRIORITY_STATISTICS)
 async def get_statistic(
-    start_date: datetime.date | None = None,
-    end_date: datetime.date | None = None,
+    start_date: datetime.datetime | None = None,
+    end_date: datetime.datetime | None = None,
     role_ids: str | None = None,
     token: TokenJwt = Depends(validate_token),
 ):
