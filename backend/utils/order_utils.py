@@ -58,6 +58,14 @@ async def _check_generic_product(
                 else ErrorCodes.PRODUCT_VARIANT_NOT_EXIST,
             )
 
+        if product_variant.is_deleted:
+            return (
+                True,
+                ErrorCodes.MENU_FIELD_PRODUCT_VARIANT_NOT_EXIST
+                if is_menu
+                else ErrorCodes.PRODUCT_VARIANT_NOT_EXIST,
+            )
+
         product_price += Decimal(product_variant.price).quantize(ZERO_DECIMAL)
 
     # Extract ingredients and their IDs
@@ -79,6 +87,14 @@ async def _check_generic_product(
     for ingredient in product.ingredients:
         product_ingredient = product_ingredients.get(ingredient.ingredient_id)
         if not product_ingredient:
+            return (
+                True,
+                ErrorCodes.MENU_FIELD_PRODUCT_INGREDIENT_NOT_EXIST
+                if is_menu
+                else ErrorCodes.PRODUCT_INGREDIENT_NOT_EXIST,
+            )
+
+        if product_ingredient.is_deleted:
             return (
                 True,
                 ErrorCodes.MENU_FIELD_PRODUCT_INGREDIENT_NOT_EXIST
