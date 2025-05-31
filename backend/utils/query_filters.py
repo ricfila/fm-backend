@@ -29,8 +29,8 @@ def build_common_filters(
 
         # Add a filter for valid dates
         query_filter &= Q(
-            dates__start_date__lt=current_time,
-            dates__end_date__gt=current_time,
+            dates__start_date__lte=current_time,
+            dates__end_date__gte=current_time,
         )
 
     return query_filter

@@ -42,7 +42,7 @@ async def init_db():
                 }
             },
             "use_tz": True,
-            "timezone": "UTC",
+            "timezone": "Europe/Rome",
         }
     )
     await Tortoise.generate_schemas(True)

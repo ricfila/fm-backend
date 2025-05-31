@@ -1,10 +1,11 @@
 import datetime
-
-from tortoise import timezone
+from zoneinfo import ZoneInfo
 
 
 def get_current_time() -> datetime.datetime:
-    return timezone.now()
+    tz = ZoneInfo("Europe/Rome")
+
+    return datetime.datetime.now(tz)
 
 
 def is_valid_date(
