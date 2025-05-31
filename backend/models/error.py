@@ -47,3 +47,8 @@ class Conflict(UnicornException):
         code: ErrorCodes = None,
     ):
         super().__init__(status.HTTP_409_CONFLICT, message, code)
+
+
+class UnprocessableEntity(UnicornException):
+    def __init__(self, message: str = "", code: ErrorCodes = None):
+        super().__init__(status.HTTP_422_UNPROCESSABLE_ENTITY, message, code)
