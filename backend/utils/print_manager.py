@@ -74,6 +74,14 @@ class PrintManager:
                     set(role_printer_ids.keys()) - order_role_printer_ids
                 )
 
+                if order.is_take_away:
+                    order_roles_to_print -= {
+                        x
+                        for x in order_roles_to_print
+                        if role_printer_ids.get(x).printer_type
+                        == PrinterType.DRINKS
+                    }
+
                 if not order_roles_to_print:
                     order.is_done = True
                     await order.save()
