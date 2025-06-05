@@ -289,12 +289,36 @@ class OrderTextManager:
             ).strftime("%d/%m/%Y %H:%M:%S")
             + "\n"
         )
-        result += "* Cliente: " + self.order.customer.upper() + "\n"
+        customer = (
+            self.order.customer
+            if not self.order.parent_order
+            else self.order.parent_order.customer
+        )
+        result += "* Cliente: " + customer.upper() + "\n"
 
         if self.order.is_take_away:
             result += "* Per asporto: si" + "\n"
         else:
-            result += "* Tavolo: " + str(self.order.table or "") + "\n"
+            if self.order.table:
+                result += "* Tavolo: " + str(self.order.table) + "\n"
+            elif self.order.parent_order:
+                result += (
+                    "* Tavolo: " + str(self.order.parent_order.table) + "\n"
+                )
+            if self.order.is_confirm:
+                result += (
+                    "* Data conferma: "
+                    + self.order.confirmed_at.astimezone(
+                        pytz.timezone("Europe/Rome")
+                    ).strftime("%d/%m/%Y %H:%M:%S")
+                    + "\n"
+                )
+
+        if self.order.parent_order:
+            result += "* Aggiunta a: " + str(self.order.parent_order_id) + "\n"
+
+        if self.order.is_voucher:
+            result += "* Buono: si" + "\n"
 
         result += "\n"
 
@@ -303,7 +327,7 @@ class OrderTextManager:
     async def _render_receipt_text(self) -> str:
         receipt_text = await self._get_header()
 
-        if not self.order.is_take_away:
+        if not self.order.is_take_away and not self.order.parent_order:
             text_left = f"x{self.order.guests} Coperti"
             text_right = Session.settings.cover_charge * self.order.guests
             receipt_text += self._align_texts(text_left, f"€ {text_right:.2f}")
@@ -328,9 +352,12 @@ class OrderTextManager:
         if menu_text:
             receipt_text += "\n"
 
-        receipt_text += self._align_texts(
-            "TOTALE:", f"€ {self.order.price:.2f}"
+        total_price = (
+            f"€ {self.order.price:.2f}"
+            if not self.order.is_voucher
+            else "€ 0.00"
         )
+        receipt_text += self._align_texts("TOTALE:", total_price)
 
         return receipt_text
 
@@ -339,7 +366,7 @@ class OrderTextManager:
     ) -> str:
         kitchen_text = await self._get_header()
 
-        if not self.order.is_take_away:
+        if not self.order.is_take_away and not self.order.parent_order:
             kitchen_text += f"x{self.order.guests} Coperti"
             kitchen_text += "\n"
 

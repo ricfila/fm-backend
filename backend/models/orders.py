@@ -93,6 +93,7 @@ class CreateOrderItem(BaseModel):
     is_take_away: bool
     table: int | None = Field(ge=1, default=None)
     is_voucher: bool
+    parent_order_id: int | None = None
     products: list[CreateOrderProductItem] = Field(default=[])
     menus: list[CreateOrderMenuItem] = Field(default=[])
 

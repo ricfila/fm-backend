@@ -27,8 +27,13 @@ class Order(Model):
         "models.User", null=True, related_name="confirmed_by"
     )
     created_at = fields.DatetimeField(auto_now_add=True)
+    confirmed_at = fields.DatetimeField(null=True)
+    parent_order = fields.ForeignKeyField(
+        "models.Order", null=True, related_name="child_orders"
+    )
 
     user_id: int
+    parent_order_id: int
 
     order_menus: fields.ReverseRelation["OrderMenu"]
     order_products: fields.ReverseRelation["OrderProduct"]
@@ -73,6 +78,7 @@ class Order(Model):
             "is_voucher": self.is_voucher,
             "price": self.price,
             "created_at": self.created_at,
+            "confirmed_at": self.confirmed_at,
         }
 
         if include_menus and hasattr(self, "order_menus"):

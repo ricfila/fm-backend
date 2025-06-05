@@ -47,6 +47,7 @@ class PrintManager:
             "user__role__order_confirmer__printers__printer",
             "order_printers__role_printer__printer",
             "confirmed_by__role__printers__printer",
+            "parent_order",
         ]
 
         while True:

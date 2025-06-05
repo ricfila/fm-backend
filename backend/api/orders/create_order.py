@@ -4,7 +4,7 @@ from tortoise.transactions import in_transaction
 from backend.config import Session
 from backend.database.models import Order
 from backend.decorators import check_role
-from backend.models.error import BadRequest, Conflict
+from backend.models.error import BadRequest, Conflict, NotFound
 from backend.models.orders import (
     CreateOrderItem,
     CreateOrderResponse,
@@ -42,6 +42,7 @@ async def create_order(
         and not Session.settings.order_requires_confirmation
         and not item.guests
         and not item.table
+        and not item.parent_order_id
     ):
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
 
@@ -49,6 +50,7 @@ async def create_order(
         not item.is_take_away
         and Session.settings.order_requires_confirmation
         and not item.guests
+        and not item.parent_order_id
     ):
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
 
@@ -56,6 +58,14 @@ async def create_order(
         await connection.execute_query(
             "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
         )
+
+        if item.parent_order_id:
+            parent_order = await Order.get_or_none(
+                id=item.parent_order_id, using_db=connection
+            )
+
+            if not parent_order:
+                raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
         (has_error_products, error_code_products) = await check_products(
             item.products, token.role_id, connection
@@ -75,11 +85,16 @@ async def create_order(
 
         order = await Order.create(
             customer=item.customer,
-            guests=item.guests if not item.is_take_away else None,
-            is_take_away=item.is_take_away,
+            guests=item.guests
+            if not item.is_take_away and not item.parent_order_id
+            else None,
+            is_take_away=item.is_take_away
+            if not item.parent_order_id
+            else False,
             table=item.table
             if not item.is_take_away
             and not Session.settings.order_requires_confirmation
+            and not item.parent_order_id
             else None,
             is_confirm=True
             if not Session.settings.order_requires_confirmation
@@ -88,6 +103,7 @@ async def create_order(
             is_voucher=item.is_voucher,
             price=order_price,
             user_id=token.user_id,
+            parent_order_id=item.parent_order_id,
             using_db=connection,
         )
 

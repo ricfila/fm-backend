@@ -420,7 +420,11 @@ async def create_order_menus(
 
 async def get_order_price(order: CreateOrderItem) -> Decimal:
     cover_change = Decimal(Session.settings.cover_charge)
-    guests = Decimal(order.guests if not order.is_take_away else 0)
+    guests = Decimal(
+        order.guests
+        if not order.is_take_away and not order.parent_order_id
+        else 0
+    )
 
     price = (cover_change * guests).quantize(ZERO_DECIMAL)
 

@@ -1,3 +1,6 @@
+import datetime
+import pytz
+
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
@@ -42,11 +45,15 @@ async def confirm_order(
         if order.user.role.order_confirmer_id != token.role_id:
             raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
 
+        rome_tz = pytz.timezone("Europe/Rome")
+        now_in_rome = datetime.datetime.now(rome_tz)
+
         await order.update_from_dict(
             {
                 "table": item.table,
                 "confirmed_by_id": token.user_id,
                 "is_confirm": True,
+                "confirmed_at": now_in_rome,
             }
         ).save(using_db=connection)
 
