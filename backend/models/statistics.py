@@ -16,6 +16,7 @@ class Statistic(BaseModel):
     total_orders: int
     total_seated: int
     total_take_away: int
+    total_voucher: int
     total_price_with_cover: Decimal
     total_price_without_cover: Decimal
     products: list[StatisticProduct]

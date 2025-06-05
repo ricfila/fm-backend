@@ -57,6 +57,7 @@ async def get_statistic(
         total_seated = sum(
             order.guests or 0 for order in orders if not order.is_take_away
         )
+        total_voucher = sum(1 for order in orders if order.is_voucher)
         total_price_with_cover = Decimal(
             sum(
                 Decimal(order.price)
@@ -111,6 +112,7 @@ async def get_statistic(
         total_orders=len(orders),
         total_seated=total_seated,
         total_take_away=total_take_away,
+        total_voucher=total_voucher,
         total_price_with_cover=total_price_with_cover,
         total_price_without_cover=total_price_without_cover,
         products=result,
