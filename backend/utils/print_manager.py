@@ -56,12 +56,22 @@ class PrintManager:
                 .order_by("created_at")
                 .prefetch_related(*prefetch_values)
             )
+            logger.info(f"Trovati {len(orders)} ordini attivi da processare.")
 
             for order in orders:
-                user_role_printers = list(order.user.role.printers)
-                confirmed_by_role_printers = list(
-                    order.user.role.order_confirmer.printers
+                logger.debug(
+                    f"Elaborazione ordine #{order.id} (Creato il {order.created_at})"
                 )
+                user_role_printers = list(order.user.role.printers)
+                confirmed_by_role_printers = []
+                if order.user.role.order_confirmer:
+                    if order.user.role.order_confirmer.printers:
+                        confirmed_by_role_printers = list(
+                            order.user.role.order_confirmer.printers
+                        )
+                        logger.debug(
+                            f"Ordine #{order.id}: trovati {len(confirmed_by_role_printers)} stampanti da confermatore ruolo."
+                        )
 
                 user_role_printer_ids = {x.id for x in user_role_printers}
                 role_printer_ids = {
@@ -74,8 +84,14 @@ class PrintManager:
                 order_roles_to_print = (
                     set(role_printer_ids.keys()) - order_role_printer_ids
                 )
+                logger.debug(
+                    f"Ordine #{order.id}: ruoli da stampare → {order_roles_to_print}"
+                )
 
                 if order.is_take_away:
+                    logger.debug(
+                        f"Ordine #{order.id} è da asporto, rimozione stampanti per bevande..."
+                    )
                     order_roles_to_print -= {
                         x
                         for x in order_roles_to_print
@@ -84,6 +100,9 @@ class PrintManager:
                     }
 
                 if not order_roles_to_print:
+                    logger.info(
+                        f"Ordine #{order.id} già stampato da tutti i ruoli necessari. Lo segno come completato."
+                    )
                     order.is_done = True
                     await order.save()
 
@@ -96,6 +115,9 @@ class PrintManager:
                 }
 
                 if order.is_take_away or order.is_confirm:
+                    logger.debug(
+                        f"Ordine #{order.id} è confermato o da asporto: applico priorità ai ruoli dell'utente."
+                    )
                     ordered_roles_to_print = sorted(
                         order_roles_to_print,
                         key=lambda x: (x not in user_role_printer_ids, x),
@@ -106,11 +128,20 @@ class PrintManager:
                     key = (order.id, rp.id)
 
                     if key in self.in_progress:
+                        logger.debug(
+                            f"Ordine #{order.id} → Stampante #{rp.printer_id} già in coda, salto."
+                        )
                         continue
 
+                    logger.info(
+                        f"Inserisco in coda: Ordine #{order.id} → Stampante #{rp.printer_id} (RuoloStampante #{rp.id})"
+                    )
                     self.in_progress.add(key)
                     await self.queues[rp.printer_id].put((order, rp))
 
+            logger.debug(
+                f"Fine ciclo. Attesa di {RETRY_DELAY} secondi prima del prossimo aggiornamento."
+            )
             await asyncio.sleep(RETRY_DELAY)
 
     async def _worker(self, printer_id: int):
