@@ -280,8 +280,8 @@ class OrderTextManager:
             result += "\n"
 
         result += f"* Scontrino n. {self.order.id}\n"
-        result += "* Il vostro ordine e' stato elaborato da:\n"
-        result += " " * 4 + self.order.user.username.upper() + "\n"
+        result += "* Operatore di cassa:\n"
+        result += " " * 4 + self.order.user.username + "\n"
         result += (
             "* "
             + self.order.created_at.astimezone(
@@ -294,7 +294,7 @@ class OrderTextManager:
             if not self.order.parent_order
             else self.order.parent_order.customer
         )
-        result += "* Cliente: " + customer.upper() + "\n"
+        result += "* CLIENTE: " + customer.upper() + "\n"
 
         if self.order.is_take_away:
             result += "* Per asporto: si" + "\n"

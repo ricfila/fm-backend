@@ -70,7 +70,7 @@ class PrintManager:
                             order.user.role.order_confirmer.printers
                         )
                         logger.debug(
-                            f"Ordine #{order.id}: trovati {len(confirmed_by_role_printers)} stampanti da confermatore ruolo."
+                            f"Ordine #{order.id}: trovati {len(confirmed_by_role_printers)} stampanti per il ruolo di conferma."
                         )
 
                 user_role_printer_ids = {x.id for x in user_role_printers}
@@ -106,14 +106,20 @@ class PrintManager:
                     order.is_done = True
                     await order.save()
 
+                    for rp in role_printer_ids.keys():
+                        self.in_progress.discard((order.id, rp))
+
                     continue
 
+                # ToDo --> prendere da order_roles_to_print solo printer_type PrinterType.RECEIPT..
                 ordered_roles_to_print = {
                     x
                     for x in user_role_printer_ids
                     if x not in order_role_printer_ids
                 }
 
+                # ToDo Sarebbe meglio che anche per l'asporto prima avvenga solo la stampa dello scontrino
+                #  poi, dopo la conferma, far partire la stampa al cibo
                 if order.is_take_away or order.is_confirm:
                     logger.debug(
                         f"Ordine #{order.id} è confermato o da asporto: applico priorità ai ruoli dell'utente."
@@ -129,12 +135,12 @@ class PrintManager:
 
                     if key in self.in_progress:
                         logger.debug(
-                            f"Ordine #{order.id} → Stampante #{rp.printer_id} già in coda, salto."
+                            f"Ordine #{order.id} → Ruolo #{rp.id} → Stampante #{rp.printer_id} già in coda, salto."
                         )
                         continue
 
                     logger.info(
-                        f"Inserisco in coda: Ordine #{order.id} → Stampante #{rp.printer_id} (RuoloStampante #{rp.id})"
+                        f"Inserisco in coda: Ordine #{order.id} → Ruolo #{rp.id} → Stampante #{rp.printer_id}"
                     )
                     self.in_progress.add(key)
                     await self.queues[rp.printer_id].put((order, rp))
@@ -148,12 +154,20 @@ class PrintManager:
         queue = self.queues[printer_id]
         printer = self.printers[printer_id]
 
+        logger.debug(
+            f"Avvio worker Stampante #{printer_id} coda di {queue.qsize()} ordini"
+        )
+
         while True:
             job = await queue.get()
 
             order = job[0]
             role_printer_printer_type = job[1].printer_type
             role_printer_printer_id = job[1].id
+
+            logger.debug(
+                f"STAMPA -- Stampante #{printer_id} → Ruolo {role_printer_printer_type} → Ordine #{order.id}"
+            )
 
             text = OrderTextManager(order)
             content = await text.generate_text_for_printer(
@@ -172,7 +186,7 @@ class PrintManager:
                         RETRY_DELAY + (attempts - 1) * STEP, MAX_RETRY_DELAY
                     )
 
-                    logger.error(f"Print error on {printer.host}")
+                    logger.error(f"Print error on {printer.host} → Ruolo {role_printer_printer_type} → Ordine #{order.id}")
                     logger.exception(e)
                     await asyncio.sleep(delay)
 
@@ -190,7 +204,6 @@ class PrintManager:
             )
 
             if is_created:
-                self.in_progress.discard((order.id, role_printer_printer_id))
                 logger.success(f"Order {order.id} marked as printed.")
 
     @staticmethod
