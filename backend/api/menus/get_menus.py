@@ -6,12 +6,10 @@ from tortoise.transactions import in_transaction
 from backend.database.models import Menu, ProductIngredient, ProductVariant
 from backend.models.error import BadRequest
 from backend.models.menu import GetMenusResponse, Menu as MenuModel
+from backend.services.orders import get_today_quantities
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.query_filters import build_multiple_query_filter
-from backend.utils.query_utils import (
-    process_query_with_pagination,
-    get_orderable_entities,
-)
+from backend.utils.query_utils import process_query_with_pagination
 
 get_menus_router = APIRouter()
 
@@ -44,24 +42,13 @@ async def get_menus(
             include_fields_products_roles,
         )
 
-        (
-            menus_annotation_expression,
-            query_filter,
-        ) = await get_orderable_entities("order_menus", "quantity")
-
-        if not token.permissions["can_administer"]:
-            menus_query_filter &= query_filter
-
-        menus_query, total_count, limit = await process_query_with_pagination(
+        menus_query, _, limit = await process_query_with_pagination(
             Menu,
             menus_query_filter,
             connection,
             offset,
             limit,
             order_by,
-            menus_annotation_expression
-            if not token.permissions["can_administer"]
-            else None,
         )
 
         try:
@@ -87,8 +74,21 @@ async def get_menus(
         except ParamsError:
             raise BadRequest(code=ErrorCodes.INVALID_OFFSET_OR_LIMIT_NEGATIVE)
 
+        if not token.permissions["can_administer"]:
+            menu_ids = {m.id for m in menus if m.daily_max_sales}
+            today_quantities = await get_today_quantities(
+                menu_ids, connection, True
+            )
+
+            menus = [
+                m
+                for m in menus
+                if not m.daily_max_sales
+                or today_quantities.get(m.id, 0) < m.daily_max_sales
+            ]
+
     return GetMenusResponse(
-        total_count=total_count,
+        total_count=len(menus),
         menus=[
             MenuModel(
                 **await menu.to_dict(

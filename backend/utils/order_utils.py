@@ -19,8 +19,8 @@ from backend.models.orders import (
     CreateOrderMenuFieldItem,
     CreateOrderItem,
 )
+from backend.services.orders import get_today_quantities
 from backend.utils import ErrorCodes
-from backend.utils.query_utils import get_orderable_entities
 
 ZERO_DECIMAL = Decimal("0.00")
 
@@ -119,19 +119,17 @@ async def check_products(
 ) -> tuple[bool, ErrorCodes | None]:
     product_ids = {x.product_id for x in products}  # Extract product IDs
 
-    products_annotation_expression, _ = await get_orderable_entities(
-        "order_products", "quantity"
-    )
-
     # Get products from DB
     products_db = (
         Product.filter(id__in=product_ids)
-        .annotate(**products_annotation_expression)
         .prefetch_related(
             "dates", "ingredients", "roles", "variants", "order_products"
         )
         .using_db(connection)
     )
+
+    # Get today's quantities
+    today_quantities = await get_today_quantities(product_ids, connection)
 
     # Check if all products exist
     total_count = await products_db.count()
@@ -150,18 +148,20 @@ async def check_products(
             return True, ErrorCodes.PRODUCT_DATE_NOT_VALID
 
         # Validate each relevant product in the order
-        relevant_products = [p for p in products if p.product_id == product.id]
+        order_items_for_product = [
+            p for p in products if p.product_id == product.id
+        ]
 
-        products_quantity = sum(x.quantity for x in relevant_products)
+        ordered_quantity = sum(x.quantity for x in order_items_for_product)
 
         if (
             product.daily_max_sales
-            and ((product.total_quantity or 0) + products_quantity)
+            and (today_quantities.get(product.id, 0) + ordered_quantity)
             > product.daily_max_sales
         ):
             return True, ErrorCodes.PRODUCT_DAILY_LIMIT_EXCEEDED
 
-        for product_order in relevant_products:
+        for product_order in order_items_for_product:
             is_invalid, error_code = await _check_generic_product(
                 product, product_order
             )
@@ -330,14 +330,9 @@ async def check_menus(
 ) -> tuple[bool, ErrorCodes | None]:
     menu_ids = {menu.menu_id for menu in menus}
 
-    menus_annotation_expression, _ = await get_orderable_entities(
-        "order_menus", "quantity"
-    )
-
     # Get menus from DB
     menu_db = (
         Menu.filter(id__in=menu_ids)
-        .annotate(**menus_annotation_expression)
         .prefetch_related(
             "dates",
             "menu_fields",
@@ -348,6 +343,9 @@ async def check_menus(
         )
         .using_db(connection)
     )
+
+    # Get today's quantities
+    today_quantities = await get_today_quantities(menu_ids, connection)
 
     # Check if all products exist
     total_count = await menu_db.count()
@@ -364,18 +362,18 @@ async def check_menus(
             return True, ErrorCodes.MENU_DATE_NOT_VALID
 
         # Filter relevant menus for the order
-        relevant_menus = [m for m in menus if m.menu_id == menu.id]
+        order_items_for_menu = [m for m in menus if m.menu_id == menu.id]
 
-        menus_quantity = sum(x.quantity for x in relevant_menus)
+        ordered_quantity = sum(x.quantity for x in order_items_for_menu)
 
         if (
             menu.daily_max_sales
-            and ((menu.total_quantity or 0) + menus_quantity)
+            and (today_quantities.get(menu.id, 0) + ordered_quantity)
             > menu.daily_max_sales
         ):
             return True, ErrorCodes.MENU_DAILY_LIMIT_EXCEEDED
 
-        for order_menu in relevant_menus:
+        for order_menu in order_items_for_menu:
             # Validate menu fields
             is_invalid, error_code = await _check_menu_fields(menu, order_menu)
 

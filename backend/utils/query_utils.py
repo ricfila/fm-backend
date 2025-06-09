@@ -1,10 +1,8 @@
-from datetime import date, timedelta, datetime
 from typing import Type, TypeVar
 
 from tortoise import Model, BaseDBAsyncClient
 from tortoise.exceptions import FieldError
-from tortoise.expressions import Q, F, Expression
-from tortoise.functions import Sum
+from tortoise.expressions import Q, Expression
 from tortoise.queryset import QuerySet
 
 from backend.models.error import NotFound
@@ -40,34 +38,3 @@ async def process_query_with_pagination(
             raise NotFound(code=ErrorCodes.UNKNOWN_ORDER_BY_PARAMETER)
 
     return query, total_count, limit
-
-
-async def get_orderable_entities(
-    relation_name: str,
-    quantity_field: str,
-    order_date_field: str = "created_at",
-    max_daily_field: str = "daily_max_sales",
-    for_date: date = None,
-):
-    target_date = for_date or date.today()
-    start_of_day = datetime.combine(target_date, datetime.min.time())
-    end_of_day = start_of_day + timedelta(days=1)
-
-    quantity_path = f"{relation_name}__{quantity_field}"
-    date_path = f"{relation_name}__order__{order_date_field}"
-
-    date_filter = Q(**{f"{date_path}__gte": start_of_day}) & Q(
-        **{f"{date_path}__lt": end_of_day}
-    )
-
-    annotate_expression = {
-        "total_quantity": Sum(F(quantity_path), _filter=date_filter)
-    }
-
-    availability_filter = (
-        Q(**{f"{max_daily_field}__isnull": True})
-        | Q(total_quantity__lt=F(max_daily_field))
-        | Q(total_quantity__isnull=True)
-    )
-
-    return annotate_expression, availability_filter

@@ -11,12 +11,10 @@ from backend.models.products import (
     Product as ProductModel,
     ProductName,
 )
+from backend.services.orders import get_today_quantities
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 from backend.utils.query_filters import build_multiple_query_filter
-from backend.utils.query_utils import (
-    process_query_with_pagination,
-    get_orderable_entities,
-)
+from backend.utils.query_utils import process_query_with_pagination
 
 get_products_router = APIRouter()
 
@@ -46,28 +44,13 @@ async def get_products(
         if subcategory_id:
             products_query_filter &= Q(subcategory_id=subcategory_id)
 
-        (
-            products_annotation_expression,
-            query_filter,
-        ) = await get_orderable_entities("order_products", "quantity")
-
-        if not token.permissions["can_administer"]:
-            products_query_filter &= query_filter
-
-        (
-            products_query,
-            total_count,
-            limit,
-        ) = await process_query_with_pagination(
+        (products_query, _, limit,) = await process_query_with_pagination(
             Product,
             products_query_filter,
             connection,
             offset,
             limit,
             order_by,
-            products_annotation_expression
-            if not token.permissions["can_administer"]
-            else None,
         )
 
         try:
@@ -90,8 +73,21 @@ async def get_products(
         except ParamsError:
             raise BadRequest(code=ErrorCodes.INVALID_OFFSET_OR_LIMIT_NEGATIVE)
 
+        if not token.permissions["can_administer"]:
+            product_ids = {p.id for p in products if p.daily_max_sales}
+            today_quantities = await get_today_quantities(
+                product_ids, connection
+            )
+
+            products = [
+                p
+                for p in products
+                if not p.daily_max_sales
+                or today_quantities.get(p.id, 0) < p.daily_max_sales
+            ]
+
     return GetProductsResponse(
-        total_count=total_count,
+        total_count=len(products),
         products=[
             ProductName(**await product.to_dict_name())
             if only_name
