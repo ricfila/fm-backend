@@ -8,11 +8,13 @@ class Subcategory(BaseModel):
     id: int
     name: str
     order: int
+    include_cover_charge: bool
 
 
 class SubcategoryName(BaseModel):
     id: int
     name: str
+    include_cover_charge: bool
 
 
 class CreateSubcategoryItem(BaseModel):
@@ -53,3 +55,7 @@ class UpdateSubcategoryOrderItem(BaseModel):
     @classmethod
     def validate_order_field(cls, order: int):
         return validate_order_field(order)
+
+
+class UpdateSubcategoryIncludeCoverChargeItem(BaseModel):
+    include_cover_charge: bool

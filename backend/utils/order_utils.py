@@ -123,7 +123,7 @@ async def check_products(
     products_db = (
         Product.filter(id__in=product_ids)
         .prefetch_related(
-            "dates", "ingredients", "roles", "variants", "order_products"
+            "dates", "ingredients", "roles", "variants", "subcategory"
         )
         .using_db(connection)
     )
@@ -172,6 +172,9 @@ async def check_products(
             product_order._price = (
                 Decimal(product_order._price) * Decimal(product_order.quantity)
             ).quantize(ZERO_DECIMAL)
+            product_order._has_cover_charge = (
+                product.subcategory.include_cover_charge
+            )
 
     return False, None
 
@@ -423,8 +426,14 @@ async def get_order_price(order: CreateOrderItem) -> Decimal:
         if not order.is_take_away and not order.parent_order_id
         else 0
     )
+    price = ZERO_DECIMAL
 
-    price = (cover_change * guests).quantize(ZERO_DECIMAL)
+    include_cover_charge = (
+        any(order._has_cover_charge for order in order.products)
+        or len(order.menus) > 0
+    )
+    if include_cover_charge and not order.is_take_away:
+        price = (cover_change * guests).quantize(ZERO_DECIMAL)
 
     for x in order.products:
         price += Decimal(x._price).quantize(ZERO_DECIMAL)

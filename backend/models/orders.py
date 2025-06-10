@@ -72,6 +72,7 @@ class CreateOrderProductItem(BaseModel):
     quantity: int = Field(ge=1)
 
     _price: Decimal = Decimal("0.00")
+    _has_cover_charge: bool
 
 
 class CreateOrderMenuFieldItem(BaseModel):

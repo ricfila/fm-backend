@@ -32,5 +32,8 @@ async def get_subcategory(
             raise NotFound(code=ErrorCodes.SUBCATEGORY_NOT_FOUND)
 
     return GetSubcategoryResponse(
-        id=subcategory_id, name=subcategory.name, order=subcategory.order
+        id=subcategory_id,
+        name=subcategory.name,
+        order=subcategory.order,
+        include_cover_charge=subcategory.include_cover_charge,
     )
