@@ -68,7 +68,11 @@ async def get_statistic(
 
         total_price_without_cover = Decimal("0.00")
         result_map: dict[str, dict[str, Decimal | int]] = defaultdict(
-            lambda: {"quantity": 0, "total_price": Decimal("0.00")}
+            lambda: {
+                "quantity": 0,
+                "voucher_quantity": 0,
+                "total_price": Decimal("0.00"),
+            }
         )
 
         for order in orders:
@@ -87,21 +91,20 @@ async def get_statistic(
             ]
 
             for x, name in order_products + order_menus:
-                result_map[name]["quantity"] += x.quantity
-                price_to_add = (
-                    Decimal("0.00") if is_voucher else Decimal(x.price)
-                )
-                result_map[name]["total_price"] += price_to_add
-
-                if not is_voucher:
-                    total_price_without_cover += Decimal(x.price)
+                if is_voucher:
+                    result_map[name]["voucher_quantity"] += x.quantity
+                else:
+                    result_map[name]["quantity"] += x.quantity
+                    price_to_add = Decimal(x.price)
+                    result_map[name]["total_price"] += price_to_add
+                    total_price_without_cover += price_to_add
 
         result = [
             StatisticProduct(
                 name=name,
-                quantity=values["quantity"],
+                quantity=values["quantity"] + values["voucher_quantity"],
                 price=(values["total_price"] / values["quantity"])
-                if values["quantity"]
+                if values["quantity"] > 0
                 else Decimal("0.00"),
                 total_price=values["total_price"],
             )
