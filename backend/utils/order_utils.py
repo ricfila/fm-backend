@@ -108,6 +108,7 @@ async def _check_generic_product(
 
     # Assign calculated price to the product
     product._price = product_price
+    product._has_cover_charge = product_db.subcategory.include_cover_charge
 
     return False, None
 
@@ -172,9 +173,6 @@ async def check_products(
             product_order._price = (
                 Decimal(product_order._price) * Decimal(product_order.quantity)
             ).quantize(ZERO_DECIMAL)
-            product_order._has_cover_charge = (
-                product.subcategory.include_cover_charge
-            )
 
     return False, None
 
@@ -340,6 +338,7 @@ async def check_menus(
             "dates",
             "menu_fields",
             "menu_fields__field_products",
+            "menu_fields__field_products__product__subcategory",
             "menu_fields__field_products__product__ingredients",
             "menu_fields__field_products__product__variants",
             "roles",
@@ -428,10 +427,16 @@ async def get_order_price(order: CreateOrderItem) -> Decimal:
     )
     price = ZERO_DECIMAL
 
-    include_cover_charge = (
-        any(order._has_cover_charge for order in order.products)
-        or len(order.menus) > 0
+    include_cover_charge = any(
+        order._has_cover_charge for order in order.products
     )
+    include_cover_charge |= any(
+        product._has_cover_charge
+        for menu in order.menus
+        for field in menu.fields
+        for product in field.products
+    )
+
     if include_cover_charge and not order.is_take_away:
         price = (cover_change * guests).quantize(ZERO_DECIMAL)
 
