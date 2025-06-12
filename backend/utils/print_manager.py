@@ -186,7 +186,9 @@ class PrintManager:
                         RETRY_DELAY + (attempts - 1) * STEP, MAX_RETRY_DELAY
                     )
 
-                    logger.error(f"Print error on {printer.host} → Ruolo {role_printer_printer_type} → Ordine #{order.id}")
+                    logger.error(
+                        f"Print error on {printer.host} → Ruolo {role_printer_printer_type} → Ordine #{order.id}"
+                    )
                     logger.exception(e)
                     await asyncio.sleep(delay)
 
@@ -211,7 +213,17 @@ class PrintManager:
         printer.open()
         for line in re.split(r"(?<=\n)", content):
             printer.set(align="left", font="a")
-            printer.text(line)
+
+            parts = re.split(r"(<DOUBLE>.*?</DOUBLE>)", line)
+            for part in parts:
+                if part.startswith("<DOUBLE>") and part.endswith("</DOUBLE>"):
+                    inner = part[len("<DOUBLE>") : -len("</DOUBLE>")]
+                    printer._raw(b"\x1B\x21\x30")
+                    printer.text(inner)
+                    printer._raw(b"\x1B\x21\x00")
+                else:
+                    printer.text(part)
+
         printer.cut()
 
     async def add_job(self, order: Order, printer_types: list[PrinterType]):

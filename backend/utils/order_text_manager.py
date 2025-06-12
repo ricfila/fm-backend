@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import typing
 import textwrap
 
@@ -20,16 +21,40 @@ class OrderTextManager:
         self.order = order
 
     @staticmethod
+    def _visual_length(text: str) -> int:
+        length = 0
+        pattern = re.compile(r"<DOUBLE>(.*?)</DOUBLE>")
+
+        pos = 0
+        for match in pattern.finditer(text):
+            start, end = match.span()
+            before = text[pos:start]
+            length += len(before)
+            length += len(match.group(1)) * 2
+            pos = end
+
+        length += len(text[pos:])
+        return length
+
+    @staticmethod
     def _align_texts(left: str, right: str) -> str:
         width = OrderTextManager.MAX_WIDTH
-        space = width - len(left) - len(right)
 
-        if space < 0:
-            left = left[: width // 2 - 1]
-            right = right[: width // 2 - 1]
-            space = 1
+        left_len = OrderTextManager._visual_length(left)
+        right_len = OrderTextManager._visual_length(right)
+
+        space = max(width - left_len - right_len, 1)
 
         return left + " " * space + right
+
+    @staticmethod
+    def shorten_by_chars(text: str, width: int, placeholder="..") -> str:
+        if len(text) <= width:
+            return text
+        cut_len = width - len(placeholder)
+        if cut_len <= 0:
+            return placeholder[:width]
+        return text[:cut_len] + placeholder
 
     @staticmethod
     async def _get_products_data(
@@ -38,7 +63,7 @@ class OrderTextManager:
         is_menu: bool = False,
         only_food: bool = False,
         only_drinks: bool = False,
-    ) -> list[str] | list[tuple[str, float]]:
+    ) -> list[dict]:
         products = []
 
         for order_product in order_products:
@@ -68,21 +93,23 @@ class OrderTextManager:
                 ]
             )
 
-            product_text = f"x{product_quantity} {product_name}"
-            product_text += f" - {product_variant}" if product_variant else ""
-            product_text += "\n"
-            product_text += product_ingredients
+            product_main_text = product_name
+            if product_variant:
+                product_main_text += f" - {product_variant}"
 
-            if not is_menu and include_price:
-                if product_ingredients:
-                    product_text += "\n"
-                product_unit_cost = order_product.price / product_quantity
-                product_text += f"{product_quantity} x {product_unit_cost:.2f}"
+            product_data = {
+                "quantity": f"x{product_quantity}",
+                "main_text": product_main_text,
+                "ingredients": product_ingredients,
+            }
 
             if include_price:
-                products.append((product_text, order_product.price))
-            else:
-                products.append(product_text)
+                product_data["unit_price"] = (
+                    order_product.price / product_quantity
+                )
+                product_data["total_price"] = order_product.price
+
+            products.append(product_data)
 
         return products
 
@@ -95,109 +122,150 @@ class OrderTextManager:
         only_food: bool = False,
         only_drinks: bool = False,
     ) -> str:
-        result = ""
+        product_blocks = []
+
         products_data = await cls._get_products_data(
             order_products, include_price, False, only_food, only_drinks
         )
 
-        for i, x in enumerate(products_data):
-            product_text = x[0] if include_price else x
-            product_price = x[1] if include_price else None
+        for product in products_data:
+            lines = []
 
-            price_text = f"€ {product_price:.2f}" if include_price else None
+            quantity = product["quantity"]
+            main_text = product["main_text"]
+            ingredients = product["ingredients"]
+            unit_price = product.get("unit_price")
+            total_price = product.get("total_price")
+
+            price_text = f"€ {total_price:.2f}" if include_price else ""
             width = (
                 (max_width - len(price_text) - 1)
                 if include_price
                 else max_width
             )
+            width_without_quantity = width - len(quantity) - 1
+            wrap_width = width_without_quantity // 2
+            indent = " " * (len(quantity) + 1)
 
-            texts = []
-            for j, y in enumerate(product_text.splitlines()):
-                text = textwrap.wrap(
-                    y,
-                    width=width,
-                    initial_indent=" " * 4 if j > 0 else "",
-                    subsequent_indent=" " * 4,
+            wrapped_main = textwrap.wrap(
+                main_text,
+                width=wrap_width,
+                break_long_words=False,
+            )
+
+            first_double = cls.shorten_by_chars(
+                wrapped_main[0].strip(), wrap_width
+            )
+            full_line = f"{quantity} <DOUBLE>{first_double}</DOUBLE>"
+            if include_price:
+                full_line = cls._align_texts(full_line, price_text)
+            lines.append(full_line)
+
+            for line in wrapped_main[1:]:
+                shortened = cls.shorten_by_chars(line, wrap_width)
+                lines.append(f"{indent}<DOUBLE>{shortened}</DOUBLE>")
+
+            if ingredients:
+                ingredients_wrap_width = width_without_quantity
+                ingredient_lines = textwrap.wrap(
+                    ingredients,
+                    width=ingredients_wrap_width,
                     break_long_words=False,
                 )
-                texts.extend(text)
+                for line in ingredient_lines:
+                    shortened = cls.shorten_by_chars(
+                        line, ingredients_wrap_width
+                    )
+                    lines.append(f"{indent}{shortened}")
 
-            if include_price:
-                result += cls._align_texts(texts[0], price_text)
-            else:
-                result += texts[0]
+            if include_price and unit_price is not None:
+                unit_line = f"{quantity[1:]} x {unit_price:.2f}"
+                lines.append(f"{indent}{unit_line}")
 
-            result += "\n" if len(texts) > 1 else ""
-            result += "\n".join(texts[1:])
-            result += "\n" if i < len(products_data) - 1 else ""
+            product_blocks.append("\n".join(lines))
 
-        return result
+        return "\n".join(product_blocks)
 
     @classmethod
     async def _get_menu_data(
         cls,
         order_menu: ReverseRelation[OrderMenu],
         include_price: bool = False,
-    ) -> list[
-        tuple[str, list[ReverseRelation[OrderProduct]], float, int]
-    ] | list[
-        tuple[str, list[ReverseRelation[OrderProduct]], float, int, float]
-    ]:
+    ) -> list[dict]:
         menus = []
 
-        for order_menu in order_menu:
-            menu_quantity = order_menu.quantity
-            order_name = (await order_menu.menu).short_name
+        for order in order_menu:
+            menu_quantity = order.quantity
+            order_name = (await order.menu).short_name
+            menu_unit_cost = order.price / menu_quantity
+            menu_price = order.price if include_price else None
 
-            menu_text = f"x{menu_quantity} {order_name}"
-            menu_data = [
-                x.order_menu_field_products
-                for x in order_menu.order_menu_fields
-            ]
-            menu_unit_cost = order_menu.price / menu_quantity
+            menu_data = {
+                "quantity": f"x{menu_quantity}",
+                "name": order_name,
+                "unit_price": menu_unit_cost,
+                "price": menu_price,
+                "products_per_field": [
+                    x.order_menu_field_products
+                    for x in order.order_menu_fields
+                ],
+            }
 
-            if include_price:
-                menus.append(
-                    (
-                        menu_text,
-                        menu_data,
-                        menu_unit_cost,
-                        menu_quantity,
-                        order_menu.price,
-                    )
-                )
-            else:
-                menus.append(
-                    (menu_text, menu_data, menu_unit_cost, menu_quantity)
-                )
+            menus.append(menu_data)
 
         return menus
 
     @classmethod
     async def _get_menu_products_text(
         cls,
-        order_products: ReverseRelation[OrderProduct] | list[OrderProduct],
+        order_products: ReverseRelation[OrderProduct],
         max_width: int = MAX_WIDTH,
         only_food: bool = False,
         only_drinks: bool = False,
     ):
+        blocks = []
+
         products_data = await cls._get_products_data(
-            order_products, False, True, only_food, only_drinks
+            list(order_products),
+            include_price=False,
+            is_menu=True,
+            only_food=only_food,
+            only_drinks=only_drinks,
         )
 
-        texts = []
-        for x in products_data:
-            for i, y in enumerate(x.splitlines()):
-                text = textwrap.wrap(
-                    y,
-                    max_width,
-                    initial_indent=" " * 8 if i > 0 else " " * 4,
-                    subsequent_indent=" " * 8,
-                    break_long_words=False,
-                )
-                texts.extend(text)
+        for product in products_data:
+            lines = []
 
-        return "\n".join(texts)
+            quantity = product["quantity"]
+            main_text = product["main_text"]
+            ingredients = product["ingredients"]
+
+            wrap_width = max_width - len(quantity) - 1
+
+            wrapped_main = textwrap.wrap(
+                main_text, width=wrap_width, break_long_words=False
+            )
+
+            first_line = cls.shorten_by_chars(
+                wrapped_main[0].strip(), wrap_width
+            )
+            lines.append(f"{' ' * 4}{quantity} {first_line}")
+
+            for line in wrapped_main[1:]:
+                shortened = cls.shorten_by_chars(line, wrap_width)
+                lines.append(f"{' ' * 8}{shortened}")
+
+            if ingredients:
+                ingredient_lines = textwrap.wrap(
+                    ingredients, width=wrap_width, break_long_words=False
+                )
+                for line in ingredient_lines:
+                    shortened = cls.shorten_by_chars(line, wrap_width)
+                    lines.append(f"{' ' * 8}{shortened}")
+
+            blocks.append("\n".join(lines))
+
+        return "\n".join(blocks)
 
     @classmethod
     async def _get_menu_text(
@@ -207,52 +275,58 @@ class OrderTextManager:
         only_food: bool = False,
         only_drinks: bool = False,
     ) -> str:
-        result = ""
+        menu_blocks = []
         menu_data = await cls._get_menu_data(order_menu, include_price)
 
-        for i, x in enumerate(menu_data):
-            menu_text = x[0]
-            menu_products = x[1]
-            menu_unit_cost = x[2]
-            menu_quantity = x[3]
-            menu_price = x[4] if include_price else None
+        for menu in menu_data:
+            lines = []
 
-            price_text = f"€ {menu_price:.2f}" if include_price else None
-            max_width = (
+            quantity = menu["quantity"]
+            name = menu["name"]
+            unit_price = menu["unit_price"]
+            total_price = menu["price"]
+            products_per_field = menu["products_per_field"]
+
+            price_text = f"€ {total_price:.2f}" if include_price else ""
+            width = (
                 (cls.MAX_WIDTH - len(price_text) - 1)
                 if include_price
                 else cls.MAX_WIDTH
             )
-            menu_products_text = [
-                await cls._get_menu_products_text(
-                    p,
-                    max_width=max_width,
+            wrap_width = width // 2
+            indent = " " * 4
+
+            wrapped_name = textwrap.wrap(
+                name, width=wrap_width, break_long_words=False
+            )
+
+            first_line = f"{quantity} <DOUBLE>{cls.shorten_by_chars(wrapped_name[0], wrap_width)}</DOUBLE>"
+            if include_price:
+                first_line = cls._align_texts(first_line, price_text)
+
+            lines.append(first_line)
+
+            for line in wrapped_name[1:]:
+                shortened = cls.shorten_by_chars(line, wrap_width)
+                lines.append(f"{indent}<DOUBLE>{shortened}</DOUBLE>")
+
+            for product_list in products_per_field:
+                menu_products_text = await cls._get_menu_products_text(
+                    product_list,
+                    max_width=width,
                     only_food=only_food,
                     only_drinks=only_drinks,
                 )
-                for p in menu_products
-            ]
 
-            if all(map(lambda pt: not pt, menu_products_text)):
-                continue
-
-            if not menu_products_text:
-                continue
+                if menu_products_text.strip():
+                    lines.append(menu_products_text)
 
             if include_price:
-                result += cls._align_texts(menu_text, price_text) + "\n"
-            else:
-                result += menu_text + "\n"
+                lines.append(f"{indent}{quantity[1:]} x {unit_price:.2f}")
 
-            result += "\n".join(menu_products_text)
+            menu_blocks.append("\n".join(lines))
 
-            if include_price:
-                result += (
-                    "\n" + " " * 4 + f"{menu_quantity} x {menu_unit_cost:.2f}"
-                )
-            result += "\n" if i < len(menu_data) - 1 else ""
-
-        return result
+        return "\n".join(menu_blocks)
 
     async def _get_ordered_products(self) -> list[OrderProduct]:
         enriched_products = []
@@ -327,8 +401,12 @@ class OrderTextManager:
     async def _render_receipt_text(self) -> str:
         receipt_text = await self._get_header()
 
-        if not self.order.is_take_away and not self.order.parent_order:
-            text_left = f"x{self.order.guests} Coperti"
+        if (
+            not self.order.is_take_away
+            and not self.order.parent_order
+            and self.order.guests
+        ):
+            text_left = f"x{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
             text_right = Session.settings.cover_charge * self.order.guests
             receipt_text += self._align_texts(text_left, f"€ {text_right:.2f}")
             receipt_text += "\n"
@@ -366,8 +444,12 @@ class OrderTextManager:
     ) -> str:
         kitchen_text = await self._get_header()
 
-        if not self.order.is_take_away and not self.order.parent_order:
-            kitchen_text += f"x{self.order.guests} Coperti"
+        if (
+            not self.order.is_take_away
+            and not self.order.parent_order
+            and self.order.guests
+        ):
+            kitchen_text += f"x{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
             kitchen_text += "\n"
 
         products_text = await self._get_products_text(
