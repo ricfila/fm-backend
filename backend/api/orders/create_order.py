@@ -98,7 +98,6 @@ async def create_order(
             else None,
             is_confirm=True
             if not Session.settings.order_requires_confirmation
-            or item.is_take_away
             else False,
             is_voucher=item.is_voucher,
             price=order_price,

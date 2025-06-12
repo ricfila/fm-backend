@@ -111,16 +111,13 @@ class PrintManager:
 
                     continue
 
-                # ToDo --> prendere da order_roles_to_print solo printer_type PrinterType.RECEIPT..
                 ordered_roles_to_print = {
                     x
                     for x in user_role_printer_ids
                     if x not in order_role_printer_ids
                 }
 
-                # ToDo Sarebbe meglio che anche per l'asporto prima avvenga solo la stampa dello scontrino
-                #  poi, dopo la conferma, far partire la stampa al cibo
-                if order.is_take_away or order.is_confirm:
+                if order.is_confirm:
                     logger.debug(
                         f"Ordine #{order.id} è confermato o da asporto: applico priorità ai ruoli dell'utente."
                     )

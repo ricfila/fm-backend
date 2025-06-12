@@ -50,7 +50,7 @@ async def confirm_order(
 
         await order.update_from_dict(
             {
-                "table": item.table,
+                "table": item.table if not order.is_take_away else None,
                 "confirmed_by_id": token.user_id,
                 "is_confirm": True,
                 "confirmed_at": now_in_rome,
