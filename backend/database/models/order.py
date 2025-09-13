@@ -16,12 +16,14 @@ class Order(Model):
     customer = fields.CharField(32)
     guests = fields.IntField(null=True)
     is_take_away = fields.BooleanField()
-    table = fields.IntField(null=True)
-    is_confirm = fields.BooleanField(default=False)
+    table = fields.CharField(32, null=True)
+    is_confirmed = fields.BooleanField(default=False)
     is_done = fields.BooleanField(default=False)
     is_deleted = fields.BooleanField(default=False)
     is_voucher = fields.BooleanField(default=False)
+    notes = fields.CharField(32, null=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = fields.ForeignKeyField("models.PaymentMethod")
     user = fields.ForeignKeyField("models.User")
     confirmed_by = fields.ForeignKeyField(
         "models.User", null=True, related_name="confirmed_by"
@@ -64,6 +66,7 @@ class Order(Model):
         include_products_product_roles: bool = False,
         include_products_product_variants: bool = False,
         include_products_ingredients: bool = False,
+        include_payment_method: bool = False,
         include_user: bool = False,
         include_confirmer_user: bool = False,
     ) -> dict:
@@ -73,9 +76,10 @@ class Order(Model):
             "guests": self.guests,
             "is_take_away": self.is_take_away,
             "table": self.table,
-            "is_confirm": self.is_confirm,
+            "is_confirmed": self.is_confirmed,
             "is_done": self.is_done,
             "is_voucher": self.is_voucher,
+            "notes": self.notes,
             "price": self.price,
             "created_at": self.created_at,
             "confirmed_at": self.confirmed_at,
@@ -113,6 +117,9 @@ class Order(Model):
                 for product in self.order_products
                 if not product.order_menu_field_id
             ]
+
+        if include_payment_method and hasattr(self, "payment_method"):
+            result["payment_method"] = await self.payment_method.to_dict_name()
 
         if include_user and hasattr(self, "user"):
             result["user"] = await self.user.to_dict()

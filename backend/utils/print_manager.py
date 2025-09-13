@@ -117,7 +117,7 @@ class PrintManager:
                     if x not in order_role_printer_ids
                 }
 
-                if order.is_confirm:
+                if order.is_confirmed:
                     logger.debug(
                         f"Ordine #{order.id} è confermato o da asporto: applico priorità ai ruoli dell'utente."
                     )
@@ -227,7 +227,7 @@ class PrintManager:
         printers = list(order.user.role.printers)
         printers_confirmed = (
             list(order.user.role.order_confirmer.printers)
-            if order.is_confirm or order.is_take_away
+            if order.is_confirmed or order.is_take_away
             else []
         )
 

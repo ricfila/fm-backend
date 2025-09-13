@@ -96,11 +96,13 @@ async def create_order(
             and not Session.settings.order_requires_confirmation
             and not item.parent_order_id
             else None,
-            is_confirm=True
+            is_confirmed=True
             if not Session.settings.order_requires_confirmation
             else False,
             is_voucher=item.is_voucher,
+            notes=item.notes,
             price=order_price,
+            payment_method_id=item.payment_method_id,
             user_id=token.user_id,
             parent_order_id=item.parent_order_id,
             using_db=connection,

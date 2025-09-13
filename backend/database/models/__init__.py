@@ -10,6 +10,7 @@ __all__ = (
     "OrderPrinter",
     "OrderProduct",
     "OrderProductIngredient",
+	"PaymentMethod",
     "Printer",
     "Product",
     "ProductDate",
@@ -34,6 +35,7 @@ from .order_menu_field import OrderMenuField
 from .order_printer import OrderPrinter
 from .order_product import OrderProduct
 from .order_product_ingredient import OrderProductIngredient
+from .payment_method import PaymentMethod
 from .printer import Printer
 from .product import Product
 from .product_date import ProductDate

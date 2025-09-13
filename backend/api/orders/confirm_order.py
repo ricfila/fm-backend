@@ -39,7 +39,7 @@ async def confirm_order(
         if not order:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
-        if order.is_confirm:
+        if order.is_confirmed:
             raise Unauthorized(code=ErrorCodes.ORDER_ALREADY_CONFIRMED)
 
         if order.user.role.order_confirmer_id != token.role_id:
@@ -52,7 +52,7 @@ async def confirm_order(
             {
                 "table": item.table if not order.is_take_away else None,
                 "confirmed_by_id": token.user_id,
-                "is_confirm": True,
+                "is_confirmed": True,
                 "confirmed_at": now_in_rome,
             }
         ).save(using_db=connection)

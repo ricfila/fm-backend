@@ -374,12 +374,12 @@ class OrderTextManager:
             result += "* Per asporto: si" + "\n"
         else:
             if self.order.table:
-                result += "* Tavolo: " + str(self.order.table) + "\n"
+                result += "* Tavolo: " + self.order.table + "\n"
             elif self.order.parent_order:
                 result += (
-                    "* Tavolo: " + str(self.order.parent_order.table) + "\n"
+                    "* Tavolo: " + self.order.parent_order.table + "\n"
                 )
-            if self.order.is_confirm:
+            if self.order.is_confirmed:
                 result += (
                     "* Data conferma: "
                     + self.order.confirmed_at.astimezone(

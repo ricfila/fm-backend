@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
 from backend.models.menu import Menu
+from backend.models.payment_methods import PaymentMethodName
 from backend.models.products import Product
 from backend.models.users import User
 from backend.utils import validate_name_field, PrinterType
@@ -45,11 +46,13 @@ class Order(BaseModel):
     customer: str
     guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
-    table: int | None = Field(ge=1, default=None)
-    is_confirm: bool
+    table: str | None = None
+    is_confirmed: bool
     is_done: bool
     is_voucher: bool
+    notes: str
     price: float
+    payment_method: PaymentMethodName
     user: User | None = None
     confirmed_by: User | None = None
     menus: list[OrderMenu] | None = None
@@ -58,7 +61,7 @@ class Order(BaseModel):
 
 
 class ConfirmOrderItem(BaseModel):
-    table: int = Field(ge=1)
+    table: str
 
 
 class CreateOrderProductIngredientItem(BaseModel):
@@ -92,9 +95,11 @@ class CreateOrderItem(BaseModel):
     customer: str
     guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
-    table: int | None = Field(ge=1, default=None)
+    table: str | None = None
     is_voucher: bool
+    notes: str | None = None
     parent_order_id: int | None = None
+    payment_method_id: int
     products: list[CreateOrderProductItem] = Field(default=[])
     menus: list[CreateOrderMenuItem] = Field(default=[])
 

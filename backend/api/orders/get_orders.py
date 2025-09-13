@@ -39,6 +39,7 @@ async def get_orders(
     include_products_product_roles: bool = False,
     include_products_product_variants: bool = False,
     include_products_ingredients: bool = False,
+    include_payment_method: bool = False,
     include_user: bool = False,
     include_confirmer_user: bool = False,
     token: TokenJwt = Depends(validate_token),
@@ -83,6 +84,7 @@ async def get_orders(
                     "order_products__product__ingredients",
                     "order_products__product__roles",
                     "order_products__product__variants",
+                    "payment_method",
                     "user",
                     "confirmed_by",
                 )
@@ -117,6 +119,7 @@ async def get_orders(
                     include_products_product_roles,
                     include_products_product_variants,
                     include_products_ingredients,
+                    include_payment_method,
                     include_user,
                     include_confirmer_user,
                 )
