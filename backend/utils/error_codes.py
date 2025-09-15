@@ -12,6 +12,10 @@ class ErrorCodes(Enum):
     CANNOT_CREATE_ADMIN_USER = auto()
     USER_ALREADY_EXISTS = auto()
 
+    #Ingredients
+    INGREDIENT_ALREADY_EXISTS = auto()
+    INGREDIENT_NOT_FOUND = auto()
+
     # Menus
     MENU_ALREADY_EXISTS = auto()
     MENU_NOT_FOUND = auto()
