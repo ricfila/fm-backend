@@ -73,7 +73,7 @@ class Product(Model):
         # Add ingredients if pre-fetched and requested
         if include_ingredients and hasattr(self, "ingredients"):
             result["ingredients"] = [
-                await ingredient.to_dict() for ingredient in self.ingredients
+                await ingredient.to_dict_name() for ingredient in self.ingredients
             ]
 
         # Add roles if pre-fetched and requested

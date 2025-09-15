@@ -14,6 +14,7 @@ __all__ = (
     "get_products_router",
     "update_product_category_router",
     "update_product_daily_max_sales_router",
+	"update_product_ingredient_router",
     "update_product_is_priority_router",
     "update_product_name_router",
     "update_product_order_router",
@@ -37,9 +38,8 @@ from .delete_product_variant import delete_product_variant_router
 from .get_product import get_product_router
 from .get_products import get_products_router
 from .update_product_category import update_product_category_router
-from .update_product_daily_max_sales import (
-    update_product_daily_max_sales_router,
-)
+from .update_product_daily_max_sales import update_product_daily_max_sales_router
+from .update_product_ingredient import update_product_ingredient_router
 from .update_product_is_priority import update_product_is_priority_router
 from .update_product_name import update_product_name_router
 from .update_product_order import update_product_order_router
@@ -62,6 +62,7 @@ products.include_router(get_product_router)
 products.include_router(get_products_router)
 products.include_router(update_product_category_router)
 products.include_router(update_product_daily_max_sales_router)
+products.include_router(update_product_ingredient_router)
 products.include_router(update_product_is_priority_router)
 products.include_router(update_product_name_router)
 products.include_router(update_product_order_router)

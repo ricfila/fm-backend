@@ -19,8 +19,11 @@ class ProductDate(BaseModel):
 
 class ProductIngredient(BaseModel):
     id: int
+    ingredient_id: int
     name: str
     price: float
+    max_quantity: float
+    is_default: bool
 
 
 class ProductRole(BaseModel):
@@ -66,12 +69,14 @@ class AddProductDateResponse(BaseResponse):
 
 
 class AddProductIngredientItem(BaseModel):
-    name: str
+    ingredient_id: int
     price: float = Field(ge=0)
+    max_quantity: float = Field(gt=0)
+    is_default: bool
 
 
 class AddProductIngredientResponse(BaseResponse):
-    ingredient: ProductIngredient
+    product_ingredient: ProductIngredient
 
 
 class AddProductRoleItem(BaseModel):
@@ -167,3 +172,8 @@ class UpdateProductDailyMaxSalesItem(BaseModel):
 
 class UpdateProductSubcategoryItem(BaseModel):
     subcategory_id: int
+
+class UpdateProductIngredientItem(BaseModel):
+    price: float = Field(ge=0)
+    max_quantity: float = Field(gt=0)
+    is_default: bool

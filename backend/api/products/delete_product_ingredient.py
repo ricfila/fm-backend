@@ -16,7 +16,6 @@ delete_product_ingredient_router = APIRouter()
 )
 @check_role(Permission.CAN_ADMINISTER)
 async def delete_product_ingredient(
-    product_id: int,
     product_ingredient_id: int,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -27,13 +26,8 @@ async def delete_product_ingredient(
     """
 
     async with in_transaction() as connection:
-        product = await Product.get_or_none(id=product_id, using_db=connection)
-
-        if not product:
-            raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
-
         product_ingredient = await ProductIngredient.get_or_none(
-            id=product_ingredient_id, product=product, using_db=connection
+            id=product_ingredient_id, using_db=connection
         )
 
         if not product_ingredient:
