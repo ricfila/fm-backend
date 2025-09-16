@@ -70,7 +70,7 @@ async def _check_generic_product(
 
     # Extract ingredients and their IDs
     product_ingredients = {
-        ingredient.id: ingredient for ingredient in product_db.ingredients
+        ingredient.ingredient_id: ingredient for ingredient in product_db.ingredients
     }
 
     # Validate ingredients
@@ -189,6 +189,7 @@ async def create_order_products(
             price=product._price,
             quantity=product.quantity,
             variant_id=product.variant_id,
+            notes=product.notes,
             order=order,
             order_menu_field=order_menu_field,
             using_db=connection,
@@ -197,7 +198,8 @@ async def create_order_products(
         for ingredient in product.ingredients:
             await OrderProductIngredient.create(
                 order_product=order_product,
-                product_ingredient_id=ingredient.ingredient_id,
+                ingredient_id=ingredient.ingredient_id,
+                quantity=ingredient.quantity,
                 using_db=connection,
             )
 

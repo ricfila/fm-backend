@@ -11,7 +11,11 @@ get_order_router = APIRouter()
 
 
 @get_order_router.get("/{order_id}", response_model=GetOrderResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(
+    Permission.CAN_ADMINISTER,
+    Permission.CAN_ORDER,
+    Permission.CAN_CONFIRM_ORDERS
+)
 async def get_order(
     order_id: int,
     include_menus: bool = False,
@@ -42,7 +46,7 @@ async def get_order(
     """
     Get information about an order.
 
-    **Permission**: can_administer
+    **Permission**: can_administer, can_order, can_confirm_orders
     """
 
     if not token.permissions["can_administer"]:

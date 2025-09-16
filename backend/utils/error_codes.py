@@ -68,6 +68,9 @@ class ErrorCodes(Enum):
     PRODUCT_VARIANT_NOT_EXIST = auto()
     SET_GUESTS_NUMBER = auto()
 
+    # Payment Methods
+    PAYMENT_METHOD_NOT_FOUND = auto()
+    
     # Printers
     PRINTER_NOT_FOUND = auto()
     # Create

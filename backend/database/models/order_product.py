@@ -16,6 +16,7 @@ class OrderProduct(Model):
     product = fields.ForeignKeyField("models.Product")
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     quantity = fields.IntField()
+    notes = fields.CharField(32, null=True)
     variant = fields.ForeignKeyField("models.ProductVariant", null=True)
     order = fields.ForeignKeyField("models.Order", "order_products")
     order_menu_field = fields.ForeignKeyField(
@@ -46,6 +47,7 @@ class OrderProduct(Model):
             "product_id": self.product_id,
             "price": self.price,
             "quantity": self.quantity,
+            "notes": self.notes,
             "variant_id": self.variant_id,
             "order_menu_field_id": self.order_menu_field_id,
         }

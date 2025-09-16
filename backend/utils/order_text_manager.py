@@ -88,7 +88,7 @@ class OrderTextManager:
 
             product_ingredients = " ".join(
                 [
-                    f"+{order_product_ingredient.product_ingredient.name}"
+                    f"+{order_product_ingredient.ingredient.name}"
                     for order_product_ingredient in order_product.order_product_ingredients
                 ]
             )

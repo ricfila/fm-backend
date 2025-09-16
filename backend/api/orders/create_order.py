@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
 from backend.config import Session
-from backend.database.models import Order
+from backend.database.models import Order, PaymentMethod
 from backend.decorators import check_role
 from backend.models.error import BadRequest, Conflict, NotFound
 from backend.models.orders import (
@@ -66,6 +66,14 @@ async def create_order(
 
             if not parent_order:
                 raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
+        
+        if item.payment_method_id:
+            payment_method = await PaymentMethod.get_or_none(
+                id=item.payment_method_id, is_deleted=False, using_db=connection
+            )
+
+            if not payment_method:
+                raise NotFound(code=ErrorCodes.PAYMENT_METHOD_NOT_FOUND)
 
         (has_error_products, error_code_products) = await check_products(
             item.products, token.role_id, connection

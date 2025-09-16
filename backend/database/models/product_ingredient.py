@@ -9,7 +9,7 @@ class ProductIngredient(Model):
 
     id = fields.IntField(pk=True)
     product = fields.ForeignKeyField("models.Product", related_name="ingredients")
-    ingredient = fields.ForeignKeyField("models.Ingredient")
+    ingredient = fields.ForeignKeyField("models.Ingredient", related_name="product_ingredient")
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     max_quantity = fields.DecimalField(max_digits=10, decimal_places=2, default=1)
     is_default = fields.BooleanField(default=True)

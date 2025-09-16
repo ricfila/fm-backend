@@ -29,9 +29,9 @@ async def print_order(
         order = (
             await Order.filter(id=order_id)
             .prefetch_related(
-                "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__product_ingredient",
+                "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__ingredient",
                 "order_menus__menu",
-                "order_products__order_product_ingredients__product_ingredient",
+                "order_products__order_product_ingredients__ingredient",
                 "order_products__variant",
                 "user__role__printers__printer",
                 "user__role__order_confirmer__printers__printer",

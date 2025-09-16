@@ -13,7 +13,8 @@ from backend.utils import validate_name_field, PrinterType
 
 class OrderProductIngredient(BaseModel):
     id: int
-    product_ingredient_id: int
+    ingredient_id: int
+    quantity: Decimal = Field(ge=1, default=Decimal("0.00"))
 
 
 class OrderProduct(BaseModel):
@@ -21,6 +22,7 @@ class OrderProduct(BaseModel):
     product_id: int
     price: float
     quantity: int
+    notes: str | None = None
     variant_id: int | None = None
     order_menu_field_id: int | None = None
     product: Product | None = None
@@ -50,9 +52,9 @@ class Order(BaseModel):
     is_confirmed: bool
     is_done: bool
     is_voucher: bool
-    notes: str
+    notes: str | None = None
     price: float
-    payment_method: PaymentMethodName
+    payment_method: PaymentMethodName | None = None
     user: User | None = None
     confirmed_by: User | None = None
     menus: list[OrderMenu] | None = None
@@ -66,6 +68,7 @@ class ConfirmOrderItem(BaseModel):
 
 class CreateOrderProductIngredientItem(BaseModel):
     ingredient_id: int
+    quantity: Decimal = Field(ge=1, default=Decimal("0.00"))
 
 
 class CreateOrderProductItem(BaseModel):
@@ -73,6 +76,7 @@ class CreateOrderProductItem(BaseModel):
     variant_id: int | None = None
     ingredients: list[CreateOrderProductIngredientItem] = Field(default=[])
     quantity: int = Field(ge=1)
+    notes: str | None = None
 
     _price: Decimal = Decimal("0.00")
     _has_cover_charge: bool
