@@ -93,21 +93,28 @@ async def create_order(
 
         order = await Order.create(
             customer=item.customer,
-            guests=item.guests
-            if not item.is_take_away and not item.parent_order_id
-            else None,
-            is_take_away=item.is_take_away
-            if not item.parent_order_id
-            else False,
-            table=item.table
-            if not item.is_take_away
-            and not Session.settings.order_requires_confirmation
-            and not item.parent_order_id
-            else None,
-            is_confirmed=True
-            if not Session.settings.order_requires_confirmation
-            else False,
+            guests=(item.guests
+                if not item.is_take_away and not item.parent_order_id
+                else None
+            ),
+            is_take_away=(item.is_take_away
+                if not item.parent_order_id
+                else False
+            ),
+            table=(item.table
+                if not item.is_take_away
+                and not Session.settings.order_requires_confirmation
+                and not item.parent_order_id
+                else None
+            ),
+            is_confirmed=(True
+                if not Session.settings.order_requires_confirmation
+                or not item.has_tickets
+                else False
+            ),
+            is_done=not item.has_tickets,
             is_voucher=item.is_voucher,
+            has_tickets=item.has_tickets,
             notes=item.notes,
             price=order_price,
             payment_method_id=item.payment_method_id,

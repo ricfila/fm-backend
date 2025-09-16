@@ -21,6 +21,7 @@ class Order(Model):
     is_done = fields.BooleanField(default=False)
     is_deleted = fields.BooleanField(default=False)
     is_voucher = fields.BooleanField(default=False)
+    has_tickets = fields.BooleanField(default=True)
     notes = fields.CharField(32, null=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     payment_method = fields.ForeignKeyField("models.PaymentMethod")
@@ -79,6 +80,7 @@ class Order(Model):
             "is_confirmed": self.is_confirmed,
             "is_done": self.is_done,
             "is_voucher": self.is_voucher,
+            "has_tickets": self.has_tickets,
             "notes": self.notes,
             "price": self.price,
             "created_at": self.created_at,

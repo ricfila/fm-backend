@@ -52,6 +52,7 @@ class Order(BaseModel):
     is_confirmed: bool
     is_done: bool
     is_voucher: bool
+    has_tickets: bool
     notes: str | None = None
     price: float
     payment_method: PaymentMethodName | None = None
@@ -101,6 +102,7 @@ class CreateOrderItem(BaseModel):
     is_take_away: bool
     table: str | None = None
     is_voucher: bool
+    has_tickets: bool
     notes: str | None = None
     parent_order_id: int | None = None
     payment_method_id: int
