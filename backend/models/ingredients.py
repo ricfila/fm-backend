@@ -41,3 +41,30 @@ class GetIngredientResponse(BaseResponse, Ingredient):
 class GetIngredientsResponse(BaseResponse):
     total_count: int
     ingredients: list[Ingredient | IngredientName]
+
+
+class Stock(BaseModel):
+    id: int
+    ingredient_id: int
+    quantity: float
+    available_from: str
+    is_last_stock: bool
+
+
+class AddStockItem(BaseModel):
+    quantity: float
+    is_last_stock: bool
+
+
+class AddStockResponse(BaseResponse):
+    stock: Stock
+
+
+class UpdateStockItem(BaseModel):
+    quantity: float | None = None
+    is_last_stock: bool | None = None
+
+
+class StockListResponse(BaseResponse):
+    total_quantity: float
+    stocks: list[Stock]

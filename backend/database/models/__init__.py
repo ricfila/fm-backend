@@ -21,6 +21,7 @@ __all__ = (
     "Role",
     "RolePrinter",
     "Setting",
+	"Stock",
     "Subcategory",
     "User",
 )
@@ -47,5 +48,6 @@ from .product_variant import ProductVariant
 from .role import Role
 from .role_printer import RolePrinter
 from .setting import Setting
+from .stock import Stock
 from .subcategory import Subcategory
 from .user import User

@@ -6,6 +6,7 @@ from tortoise.models import Model
 if typing.TYPE_CHECKING:
     from backend.database.models import OrderProductIngredient
     from backend.database.models import ProductIngredient
+    from backend.database.models import Stock
 
 
 class Ingredient(Model):
@@ -20,6 +21,7 @@ class Ingredient(Model):
 
     order_product_ingredients_ingredient: fields.ReverseRelation["OrderProductIngredient"]
     product_ingredient: fields.ReverseRelation["ProductIngredient"]
+    stock: fields.ReverseRelation["Stock"]
 
     class Meta:
         table = "ingredient"

@@ -15,6 +15,9 @@ class ErrorCodes(Enum):
     #Ingredients
     INGREDIENT_ALREADY_EXISTS = auto()
     INGREDIENT_NOT_FOUND = auto()
+    #Stocks
+    STOCK_ALREADY_EXISTS = auto()
+    STOCK_NOT_FOUND = auto()
 
     # Menus
     MENU_ALREADY_EXISTS = auto()
