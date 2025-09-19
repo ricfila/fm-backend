@@ -8,7 +8,7 @@ import pytz
 from tortoise.models import ReverseRelation
 
 from backend.config import Session
-from backend.utils import PrinterType, Category
+from backend.utils import PrinterType
 
 if typing.TYPE_CHECKING:
     from backend.database.models import Order, OrderProduct, OrderMenu
@@ -72,11 +72,11 @@ class OrderTextManager:
 
             product = await order_product.product
 
-            if only_food and product.category != Category.FOOD:
-                continue
+            #if only_food and product.category != Category.FOOD:
+            #    continue
 
-            if only_drinks and product.category != Category.DRINK:
-                continue
+            #if only_drinks and product.category != Category.DRINK:
+            #    continue
 
             product_quantity = order_product.quantity
             product_name = product.short_name

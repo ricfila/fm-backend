@@ -3,8 +3,6 @@ import typing
 from tortoise import fields
 from tortoise.models import Model
 
-from backend.utils import Category
-
 if typing.TYPE_CHECKING:
     from backend.database.models import (
         ProductVariant,

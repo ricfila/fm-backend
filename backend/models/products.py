@@ -4,7 +4,6 @@ from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
 from backend.utils import (
-    Category,
     validate_name_field,
     validate_short_name_field,
     validate_order_field,

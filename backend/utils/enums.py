@@ -1,11 +1,6 @@
 from enum import StrEnum
 
 
-class Category(StrEnum):
-    FOOD = "food"
-    DRINK = "drink"
-
-
 class Permission(StrEnum):
     CAN_ADMINISTER = "can_administer"
     CAN_ORDER = "can_order"
