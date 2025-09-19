@@ -7,10 +7,10 @@ from backend.models import BaseResponse
 from backend.models.error import NotFound
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-delete_subcategories_router = APIRouter()
+delete_subcategory_router = APIRouter()
 
 
-@delete_subcategories_router.delete(
+@delete_subcategory_router.delete(
     "/{subcategory_id}", response_model=BaseResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
