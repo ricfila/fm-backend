@@ -1,0 +1,55 @@
+import typing
+
+from tortoise import fields
+from tortoise.models import Model
+
+if typing.TYPE_CHECKING:
+    from backend.database.models import Product, Ticket
+
+
+class Category(Model):
+    """
+    The Category model
+    """
+
+    id = fields.IntField(pk=True)
+    name = fields.CharField(32, unique=True)
+    print_delay = fields.IntField()
+    #wait_status = fields.ForeignKeyField("models.Status", null=True)
+    printer = fields.ForeignKeyField("models.Printer", null=True)
+    parent_for_take_away = fields.ForeignKeyField(
+        "models.Category",
+        null=True,
+        related_name="take_away_children"
+    )
+    parent_for_main_products = fields.ForeignKeyField(
+        "models.Category",
+        null=True,
+        related_name="main_products_children"
+    )
+
+    products = fields.ReverseRelation["Product"]
+    tickets = fields.ReverseRelation["Ticket"]
+
+    printer_id: int
+    parent_for_take_away_id: int
+    parent_for_main_products_id: int
+
+    class Meta:
+        table = "category"
+
+    async def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "print_delay": self.print_delay,
+            "printer_id": self.printer_id,
+            "parent_for_take_away_id": self.parent_for_take_away_id,
+            "parent_for_main_products_id": self.parent_for_main_products_id
+        }
+
+    async def to_dict_name(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name
+        }

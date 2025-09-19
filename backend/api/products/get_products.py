@@ -25,6 +25,7 @@ async def get_products(
     limit: int | None = None,
     only_name: bool = False,
     order_by: str = None,
+    category_id: int = None,
     subcategory_id: int = None,
     include_dates: bool = False,
     include_ingredients: bool = False,
@@ -40,6 +41,9 @@ async def get_products(
         products_query_filter = build_multiple_query_filter(
             token, include_dates, include_roles
         )
+
+        if category_id:
+            products_query_filter &= Q(category_id=category_id)
 
         if subcategory_id:
             products_query_filter &= Q(subcategory_id=subcategory_id)

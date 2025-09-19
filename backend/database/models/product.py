@@ -23,12 +23,15 @@ class Product(Model):
     name = fields.CharField(32, unique=True)
     short_name = fields.CharField(20, unique=True)
     is_priority = fields.BooleanField(default=False)
+    is_main = fields.BooleanField(default=True)
     price = fields.FloatField()
-    category = fields.CharEnumField(Category)
+    category = fields.ForeignKeyField("models.Category")
+    subcategory = fields.ForeignKeyField("models.Subcategory")
     order = fields.IntField(default=0)
     daily_max_sales = fields.IntField(null=True)
-    subcategory = fields.ForeignKeyField("models.Subcategory")
+    color = fields.CharField(7, null=True, default=None)
 
+    category_id: int
     subcategory_id: int
 
     dates: fields.ReverseRelation["ProductDate"]
@@ -59,11 +62,13 @@ class Product(Model):
             "name": self.name,
             "short_name": self.short_name,
             "is_priority": self.is_priority,
+            "is_main": self.is_main,
             "price": self.price,
-            "category": self.category,
+            "category_id": self.category_id,
+            "subcategory_id": self.subcategory_id,
             "order": self.order,
             "daily_max_sales": self.daily_max_sales,
-            "subcategory_id": self.subcategory_id,
+            "color": self.color
         }
 
         # Add dates if pre-fetched and requested

@@ -1,5 +1,6 @@
 __all__ = (
-	"Ingredient"
+	"Category",
+	"Ingredient",
     "Menu",
     "MenuDate",
     "MenuField",
@@ -26,6 +27,7 @@ __all__ = (
     "User",
 )
 
+from .category import Category
 from .ingredient import Ingredient
 from .menu import Menu
 from .menu_date import MenuDate

@@ -42,11 +42,13 @@ class Product(BaseModel):
     name: str
     short_name: str
     is_priority: bool
+    is_main: bool
     price: float
-    category: Category
+    category_id: int
+    subcategory_id: int
     order: int
     daily_max_sales: int | None
-    subcategory_id: int
+    color: str | None
     dates: list[ProductDate] | None = None
     ingredients: list[ProductIngredient] | None = None
     roles: list[ProductRole] | None = None
@@ -100,7 +102,7 @@ class CreateProductItem(BaseModel):
     name: str
     short_name: str
     price: float = Field(ge=0)
-    category: Category
+    category_id: int
     subcategory_id: int
 
     @field_validator("name")
@@ -163,7 +165,7 @@ class UpdateProductPriceItem(BaseModel):
 
 
 class UpdateProductCategoryItem(BaseModel):
-    category: Category
+    category_id: int
 
 
 class UpdateProductDailyMaxSalesItem(BaseModel):

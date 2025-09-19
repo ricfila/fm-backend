@@ -19,6 +19,13 @@ class ErrorCodes(Enum):
     STOCK_ALREADY_EXISTS = auto()
     STOCK_NOT_FOUND = auto()
 
+    #Categories
+    CATEGORY_ALREADY_EXISTS = auto()
+    CATEGORY_IN_USE = auto()
+    CATEGORY_NOT_FOUND = auto()
+    CYCLIC_LINK_OF_CATEGORIES = auto()
+    PARENT_CATEGORY_NOT_FOUND = auto()
+
     # Menus
     MENU_ALREADY_EXISTS = auto()
     MENU_NOT_FOUND = auto()
