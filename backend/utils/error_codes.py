@@ -125,6 +125,11 @@ class ErrorCodes(Enum):
     # Users
     USER_NOT_FOUND = auto()
 
+    #Tickets
+    TICKET_ALREADY_EXISTS = auto()
+    TICKET_NOT_FOUND = auto()
+    TICKET_UPDATE_FAILED = auto()
+
     # Token
     INVALID_JWT_TOKEN = auto()
 

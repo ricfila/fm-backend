@@ -11,6 +11,7 @@ __all__ = (
     "settings",
     "statistics",
     "subcategories",
+	"tickets",
     "users",
 )
 
@@ -27,6 +28,7 @@ from .roles import roles
 from .settings import settings
 from .statistics import statistics
 from .subcategories import subcategories
+from .tickets import tickets
 from .users import users
 
 api = APIRouter()
@@ -41,4 +43,5 @@ api.include_router(roles)
 api.include_router(settings)
 api.include_router(statistics)
 api.include_router(subcategories)
+api.include_router(tickets)
 api.include_router(users)
