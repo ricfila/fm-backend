@@ -8,6 +8,7 @@ class Ingredient(BaseModel):
     id: int
     name: str
     ward: str
+    is_monitored: bool
 
 
 class IngredientName(BaseModel):
@@ -18,6 +19,7 @@ class IngredientName(BaseModel):
 class CreateIngredientItem(BaseModel):
     name: str
     ward: str
+    is_monitored: bool
 
     @field_validator("name")
     @classmethod

@@ -22,7 +22,7 @@ async def update_product_daily_max_sales(
     """
     Update ingredient.
 
-     **Permission**: can_administer
+    **Permission**: can_administer
     """
 
     async with in_transaction() as connection:
@@ -33,6 +33,7 @@ async def update_product_daily_max_sales(
 
         ingredient.name = item.name
         ingredient.ward = item.ward
+        ingredient.is_monitored = item.is_monitored
 
         try:
             await ingredient.save(using_db=connection)

@@ -18,6 +18,7 @@ class Ingredient(Model):
     name = fields.CharField(32, unique=True)
     ward = fields.CharField(32)
     is_deleted = fields.BooleanField(default=False)
+    is_monitored = fields.BooleanField(default=True)
 
     order_product_ingredients_ingredient: fields.ReverseRelation["OrderProductIngredient"]
     product_ingredient: fields.ReverseRelation["ProductIngredient"]
@@ -30,7 +31,8 @@ class Ingredient(Model):
         return {
             "id": self.id,
             "name": self.name,
-            "ward": self.ward
+            "ward": self.ward,
+            "is_monitored": self.is_monitored
         }
     
     async def to_dict_name(self) -> dict:

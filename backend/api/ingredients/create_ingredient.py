@@ -27,7 +27,8 @@ async def create_ingredient(
 
         new_ingredient = Ingredient(
             name=item.name,
-            ward=item.ward
+            ward=item.ward,
+            is_monitored=item.is_monitored
         )
 
         try:
