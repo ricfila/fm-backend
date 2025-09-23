@@ -7,6 +7,7 @@ from backend.utils import (
     validate_name_field,
     validate_short_name_field,
     validate_order_field,
+    validate_color_field,
 )
 
 
@@ -159,8 +160,21 @@ class UpdateProductIsPriorityItem(BaseModel):
     is_priority: bool
 
 
+class UpdateProductIsMainItem(BaseModel):
+    is_main: bool
+
+
 class UpdateProductPriceItem(BaseModel):
     price: float = Field(ge=0)
+
+
+class UpdateProductColorItem(BaseModel):
+    color: str | None
+
+    @field_validator("color")
+    @classmethod
+    def validate_color_field(cls, color: str):
+        return None if not color else validate_color_field(color)
 
 
 class UpdateProductCategoryItem(BaseModel):
@@ -173,6 +187,7 @@ class UpdateProductDailyMaxSalesItem(BaseModel):
 
 class UpdateProductSubcategoryItem(BaseModel):
     subcategory_id: int
+
 
 class UpdateProductIngredientItem(BaseModel):
     price: float = Field(ge=0)

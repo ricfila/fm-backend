@@ -96,3 +96,18 @@ def validate_receipt_header_field(receipt_header: str):
         )
 
     return receipt_header
+
+
+def validate_color_field(color: str):
+    if not color:
+        raise ValueError("The `color` field can not be empty")
+
+    if len(color) != 7 or not color.startswith("#"):
+        raise ValueError("The `color` field must be a valid hex color code")
+
+    try:
+        int(color[1:], 16)
+    except ValueError:
+        raise ValueError("The `color` field must be a valid hex color code")
+
+    return color
