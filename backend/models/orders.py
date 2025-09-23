@@ -43,6 +43,15 @@ class OrderMenu(BaseModel):
     fields: list[OrderMenuField] | None = None
 
 
+class Revision(BaseModel):
+    id: int
+    order_id: int
+    user_id: int
+    revised_at: datetime.datetime
+    price_difference: float
+    edited_products: int
+
+
 class Order(BaseModel):
     id: int
     customer: str
@@ -56,6 +65,7 @@ class Order(BaseModel):
     notes: str | None = None
     price: float
     payment_method: PaymentMethodName | None = None
+    revisions: list[Revision] | None = None
     user: User | None = None
     confirmed_by: User | None = None
     menus: list[OrderMenu] | None = None

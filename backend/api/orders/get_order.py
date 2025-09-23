@@ -39,6 +39,7 @@ async def get_order(
     include_products_product_variants: bool = False,
     include_products_ingredients: bool = False,
     include_payment_method: bool = False,
+    include_revisions: bool = False,
     include_user: bool = False,
     include_confirmer_user: bool = False,
     token: TokenJwt = Depends(validate_token),
@@ -57,6 +58,8 @@ async def get_order(
             or include_menus_menu_fields_products_roles
             or include_products_product_dates
             or include_products_product_roles
+            or include_revisions
+            or include_payment_method
         ):
             raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
 
@@ -79,6 +82,7 @@ async def get_order(
                 "order_products__product__ingredients",
                 "order_products__product__roles",
                 "order_products__product__variants",
+                "order_revisions",
                 "payment_method",
                 "user",
                 "confirmed_by",
@@ -116,6 +120,7 @@ async def get_order(
             include_products_product_variants,
             include_products_ingredients,
             include_payment_method,
+            include_revisions,
             include_user,
             include_confirmer_user,
         )

@@ -4,7 +4,7 @@ from tortoise import fields
 from tortoise.models import Model
 
 if typing.TYPE_CHECKING:
-    from backend.database.models import OrderMenu, OrderProduct, OrderPrinter
+    from backend.database.models import OrderMenu, OrderProduct, OrderPrinter, Revision
 
 
 class Order(Model):
@@ -57,6 +57,7 @@ class Order(Model):
     order_menus: fields.ReverseRelation["OrderMenu"]
     order_products: fields.ReverseRelation["OrderProduct"]
     order_printers: fields.ReverseRelation["OrderPrinter"]
+    order_revisions: fields.ReverseRelation["Revision"]
 
     class Meta:
         table = "order"
@@ -84,6 +85,7 @@ class Order(Model):
         include_products_product_variants: bool = False,
         include_products_ingredients: bool = False,
         include_payment_method: bool = False,
+        include_revisions: bool = False,
         include_user: bool = False,
         include_confirmer_user: bool = False,
     ) -> dict:
@@ -148,5 +150,11 @@ class Order(Model):
                 if self.confirmed_by
                 else None
             )
+        
+        if include_revisions and hasattr(self, "order_revisions"):
+            result["revisions"] = [
+                await revision.to_dict()
+                for revision in self.order_revisions
+            ]
 
         return result

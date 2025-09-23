@@ -19,6 +19,7 @@ __all__ = (
     "ProductIngredient",
     "ProductRole",
     "ProductVariant",
+	"Revision",
     "Role",
     "RolePrinter",
     "Setting",
@@ -48,6 +49,7 @@ from .product_date import ProductDate
 from .product_ingredient import ProductIngredient
 from .product_role import ProductRole
 from .product_variant import ProductVariant
+from .revision import Revision
 from .role import Role
 from .role_printer import RolePrinter
 from .setting import Setting
