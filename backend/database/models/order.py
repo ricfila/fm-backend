@@ -24,15 +24,31 @@ class Order(Model):
     has_tickets = fields.BooleanField(default=True)
     notes = fields.CharField(32, null=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = fields.ForeignKeyField("models.PaymentMethod")
-    user = fields.ForeignKeyField("models.User")
+    payment_method = fields.ForeignKeyField(
+        model_name="models.PaymentMethod",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
+    user = fields.ForeignKeyField(
+        model_name="models.User",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     confirmed_by = fields.ForeignKeyField(
-        "models.User", null=True, related_name="confirmed_by"
+        model_name="models.User",
+        related_name="confirmed_by",
+        null=True,
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
     )
     created_at = fields.DatetimeField(auto_now_add=True)
     confirmed_at = fields.DatetimeField(null=True)
     parent_order = fields.ForeignKeyField(
-        "models.Order", null=True, related_name="child_orders"
+        model_name="models.Order",
+        related_name="child_orders",
+        null=True,
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
     )
 
     user_id: int

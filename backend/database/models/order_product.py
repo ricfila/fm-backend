@@ -13,14 +13,32 @@ class OrderProduct(Model):
     """
 
     id = fields.IntField(pk=True)
-    product = fields.ForeignKeyField("models.Product")
+    order = fields.ForeignKeyField(
+        model_name="models.Order",
+        related_name="order_products",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
+    product = fields.ForeignKeyField(
+        model_name="models.Product",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     quantity = fields.IntField()
     notes = fields.CharField(32, null=True)
-    variant = fields.ForeignKeyField("models.ProductVariant", null=True)
-    order = fields.ForeignKeyField("models.Order", "order_products")
+    variant = fields.ForeignKeyField(
+        model_name="models.ProductVariant",
+        null=True,
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     order_menu_field = fields.ForeignKeyField(
-        "models.OrderMenuField", "order_menu_field_products", null=True
+        model_name="models.OrderMenuField",
+        related_name="order_menu_field_products",
+        null=True,
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
     )
 
     order_menu_field_id: int

@@ -9,8 +9,17 @@ class MenuFieldProduct(Model):
 
     id = fields.IntField(pk=True)
     price = fields.FloatField()
-    product = fields.ForeignKeyField("models.Product")
-    menu_field = fields.ForeignKeyField("models.MenuField", "field_products")
+    product = fields.ForeignKeyField(
+        model_name="models.Product",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
+    menu_field = fields.ForeignKeyField(
+        model_name="models.MenuField",
+        related_name="field_products",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
 
     product_id: int
     menu_field_id: int

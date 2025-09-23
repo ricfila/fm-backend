@@ -13,7 +13,12 @@ class ProductDate(Model):
     id = fields.IntField(pk=True)
     start_date = fields.DatetimeField()
     end_date = fields.DatetimeField()
-    product = fields.ForeignKeyField("models.Product", "dates")
+    product = fields.ForeignKeyField(
+        model_name="models.Product",
+        related_name="dates",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
 
     product_id: int
 

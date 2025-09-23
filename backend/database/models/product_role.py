@@ -8,8 +8,17 @@ class ProductRole(Model):
     """
 
     id = fields.IntField(pk=True)
-    role = fields.ForeignKeyField("models.Role")
-    product = fields.ForeignKeyField("models.Product", "roles")
+    role = fields.ForeignKeyField(
+        model_name="models.Role",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
+    product = fields.ForeignKeyField(
+        model_name="models.Product",
+        related_name="roles",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
 
     role_id: int
     product_id: int

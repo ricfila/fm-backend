@@ -8,7 +8,11 @@ class Stock(Model):
     """
 
     id = fields.IntField(pk=True)
-    ingredient = fields.ForeignKeyField("models.Ingredient")
+    ingredient = fields.ForeignKeyField(
+        model_name="models.Ingredient",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
     quantity = fields.DecimalField(max_digits=10, decimal_places=2)
     available_from = fields.DatetimeField(auto_now_add=True)
     is_last_stock = fields.BooleanField(default=False)

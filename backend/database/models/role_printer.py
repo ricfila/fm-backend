@@ -10,8 +10,17 @@ class RolePrinter(Model):
     """
 
     id = fields.IntField(pk=True)
-    role = fields.ForeignKeyField("models.Role", "printers")
-    printer = fields.ForeignKeyField("models.Printer")
+    role = fields.ForeignKeyField(
+        model_name="models.Role",
+        related_name="printers",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
+    printer = fields.ForeignKeyField(
+        model_name="models.Printer",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     printer_type = fields.CharEnumField(PrinterType)
 
     role_id: int

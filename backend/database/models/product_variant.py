@@ -11,7 +11,12 @@ class ProductVariant(Model):
     name = fields.CharField(32)
     price = fields.FloatField()
     is_deleted = fields.BooleanField(default=False)
-    product = fields.ForeignKeyField("models.Product", "variants")
+    product = fields.ForeignKeyField(
+        model_name="models.Product",
+        related_name="variants",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
 
     product_id: int
 

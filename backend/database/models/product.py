@@ -23,8 +23,16 @@ class Product(Model):
     is_priority = fields.BooleanField(default=False)
     is_main = fields.BooleanField(default=True)
     price = fields.FloatField()
-    category = fields.ForeignKeyField("models.Category")
-    subcategory = fields.ForeignKeyField("models.Subcategory")
+    category = fields.ForeignKeyField(
+        model_name="models.Category",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
+    subcategory = fields.ForeignKeyField(
+        model_name="models.Subcategory",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     order = fields.IntField(default=0)
     daily_max_sales = fields.IntField(null=True)
     color = fields.CharField(7, null=True, default=None)

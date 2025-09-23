@@ -14,9 +14,16 @@ class OrderMenuField(Model):
 
     id = fields.IntField(pk=True)
     order_menu = fields.ForeignKeyField(
-        "models.OrderMenu", related_name="order_menu_fields"
+        model_name="models.OrderMenu",
+        related_name="order_menu_fields",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
     )
-    menu_field = fields.ForeignKeyField("models.MenuField")
+    menu_field = fields.ForeignKeyField(
+        model_name="models.MenuField",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
 
     order_menu_id: int
     menu_field_id: int

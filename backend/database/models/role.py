@@ -23,7 +23,11 @@ class Role(Model):
     can_priority_statistics = fields.BooleanField(default=False)
     can_confirm_orders = fields.BooleanField(default=False)
     order_confirmer = fields.ForeignKeyField(
-        "models.Role", "roles_to_confirm", null=True
+        model_name="models.Role",
+        related_name="roles_to_confirm",
+        null=True,
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
     )
 
     printers: fields.ReverseRelation["RolePrinter"]

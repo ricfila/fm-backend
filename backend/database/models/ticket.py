@@ -8,8 +8,16 @@ class Ticket(Model):
     """
 
     id = fields.IntField(pk=True)
-    order = fields.ForeignKeyField("models.Order")
-    category = fields.ForeignKeyField("models.Category")
+    order = fields.ForeignKeyField(
+        model_name="models.Order",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
+    category = fields.ForeignKeyField(
+        model_name="models.Category",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     is_printed = fields.BooleanField(default=False)
 
     order_id: int

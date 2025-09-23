@@ -8,8 +8,18 @@ class ProductIngredient(Model):
     """
 
     id = fields.IntField(pk=True)
-    product = fields.ForeignKeyField("models.Product", related_name="ingredients")
-    ingredient = fields.ForeignKeyField("models.Ingredient", related_name="product_ingredient")
+    product = fields.ForeignKeyField(
+        model_name="models.Product",
+        related_name="ingredients",
+        on_delete=fields.CASCADE,
+        on_update=fields.CASCADE
+    )
+    ingredient = fields.ForeignKeyField(
+        model_name="models.Ingredient",
+        related_name="product_ingredient",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     max_quantity = fields.DecimalField(max_digits=10, decimal_places=2, default=1)
     is_default = fields.BooleanField(default=True)
