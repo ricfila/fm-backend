@@ -18,6 +18,7 @@ async def get_product(
     include_dates: bool = False,
     include_ingredients: bool = False,
     include_roles: bool = False,
+    include_subcategory: bool = False,
     include_variants: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -62,6 +63,6 @@ async def get_product(
 
     return GetProductResponse(
         **await product.to_dict(
-            include_dates, include_ingredients, include_roles, include_variants
+            include_dates, include_ingredients, include_roles, include_subcategory, include_variants
         )
     )

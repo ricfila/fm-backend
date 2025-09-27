@@ -30,6 +30,7 @@ async def get_products(
     include_dates: bool = False,
     include_ingredients: bool = False,
     include_roles: bool = False,
+    include_subcategory: bool = False,
     include_variants: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -100,6 +101,7 @@ async def get_products(
                     include_dates,
                     include_ingredients,
                     include_roles,
+                    include_subcategory,
                     include_variants,
                 )
             )

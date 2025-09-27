@@ -4,19 +4,20 @@ from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Subcategory
+from backend.decorators import check_role
 from backend.models.error import BadRequest
 from backend.models.subcategories import (
     GetSubcategoriesResponse,
     Subcategory as SubcategoryModel,
     SubcategoryName,
 )
-from backend.utils import ErrorCodes, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 from backend.utils.query_utils import process_query_with_pagination
 
 get_subcategories_router = APIRouter()
 
-
 @get_subcategories_router.get("/", response_model=GetSubcategoriesResponse)
+@check_role(Permission.CAN_ADMINISTER, Permission.CAN_ORDER)
 async def get_subcategories(
     offset: int = 0,
     limit: int | None = None,
@@ -27,7 +28,7 @@ async def get_subcategories(
     """
     Get list of subcategories.
 
-    **Permission**: can_administer
+    **Permission**: can_administer, can_order
     """
 
     async with in_transaction() as connection:

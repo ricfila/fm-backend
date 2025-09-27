@@ -60,6 +60,7 @@ class Product(Model):
         include_dates: bool = False,
         include_ingredients: bool = False,
         include_roles: bool = False,
+        include_subcategory: bool = False,
         include_variants: bool = False,
     ):
         # Build the base result
@@ -90,6 +91,11 @@ class Product(Model):
         # Add roles if pre-fetched and requested
         if include_roles and hasattr(self, "roles"):
             result["roles"] = [await role.to_dict() for role in self.roles]
+
+        # Add subcategory if pre-fetched and requested
+        if include_subcategory and hasattr(self, "subcategory"):
+            subcategory = await self.subcategory
+            result["subcategory"] = await subcategory.to_dict()
 
         # Add variants if pre-fetched and requested
         if include_variants and hasattr(self, "variants"):

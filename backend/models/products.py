@@ -3,6 +3,7 @@ import datetime
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
+from backend.models.subcategories import Subcategory
 from backend.utils import (
     validate_name_field,
     validate_short_name_field,
@@ -46,6 +47,7 @@ class Product(BaseModel):
     price: float
     category_id: int
     subcategory_id: int
+    subcategory: Subcategory | None = None
     order: int
     daily_max_sales: int | None
     color: str | None
