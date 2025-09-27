@@ -10,7 +10,7 @@ from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 delete_stock_router = APIRouter()
 
 
-@delete_stock_router.post("/{ingredient_id}/stock/{stock_id}", response_model=BaseResponse)
+@delete_stock_router.delete("/{ingredient_id}/stock/{stock_id}", response_model=BaseResponse)
 @check_role(Permission.CAN_ORDER)
 async def delete_stock(
     ingredient_id: int,

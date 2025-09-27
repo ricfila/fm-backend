@@ -10,6 +10,7 @@ class Revision(Model):
     id = fields.IntField(pk=True)
     order = fields.ForeignKeyField(
         model_name="models.Order",
+        related_name="order_revisions",
         on_delete=fields.CASCADE,
         on_update=fields.CASCADE
     )

@@ -22,7 +22,7 @@ class Order(Model):
     is_deleted = fields.BooleanField(default=False)
     is_voucher = fields.BooleanField(default=False)
     has_tickets = fields.BooleanField(default=True)
-    notes = fields.CharField(32, null=True)
+    notes = fields.CharField(64, null=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     payment_method = fields.ForeignKeyField(
         model_name="models.PaymentMethod",

@@ -26,7 +26,7 @@ class OrderProduct(Model):
     )
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     quantity = fields.IntField()
-    notes = fields.CharField(32, null=True)
+    notes = fields.CharField(64, null=True)
     variant = fields.ForeignKeyField(
         model_name="models.ProductVariant",
         null=True,
