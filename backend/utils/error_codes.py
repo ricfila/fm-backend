@@ -79,6 +79,7 @@ class ErrorCodes(Enum):
     SET_GUESTS_NUMBER = auto()
 
     # Payment Methods
+    PAYMENT_METHOD_ALREADY_EXISTS = auto()
     PAYMENT_METHOD_NOT_FOUND = auto()
     
     # Printers

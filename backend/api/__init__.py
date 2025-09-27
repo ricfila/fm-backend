@@ -5,6 +5,7 @@ __all__ = (
 	"ingredients",
     "menus",
     "orders",
+	"payment_methods",
     "printers",
     "products",
     "roles",
@@ -22,6 +23,7 @@ from .categories import categories
 from .ingredients import ingredients
 from .menus import menus
 from .orders import orders
+from .payment_methods import payment_methods
 from .printers import printers
 from .products import products
 from .roles import roles
@@ -37,6 +39,7 @@ api.include_router(categories)
 api.include_router(ingredients)
 api.include_router(menus)
 api.include_router(orders)
+api.include_router(payment_methods)
 api.include_router(printers)
 api.include_router(products)
 api.include_router(roles)
