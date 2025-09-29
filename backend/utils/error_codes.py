@@ -128,6 +128,7 @@ class ErrorCodes(Enum):
 
     #Tickets
     TICKET_ALREADY_EXISTS = auto()
+    TICKET_CREATION_FAILED = auto()
     TICKET_NOT_FOUND = auto()
     TICKET_UPDATE_FAILED = auto()
 

@@ -16,6 +16,7 @@ from backend.utils.order_utils import (
     check_products,
     create_order_menus,
     create_order_products,
+    create_tickets,
     get_order_price,
 )
 
@@ -109,7 +110,8 @@ async def create_order(
                 else None
             ),
             is_confirmed=(True
-                if not Session.settings.order_requires_confirmation
+                if item.is_take_away
+                or not Session.settings.order_requires_confirmation
                 or not item.has_tickets
                 else False
             ),
@@ -126,5 +128,6 @@ async def create_order(
 
         await create_order_products(item.products, order, connection)
         await create_order_menus(item.menus, order, connection)
+        await create_tickets(order, connection)
 
     return CreateOrderResponse(order=OrderModel(**await order.to_dict()))

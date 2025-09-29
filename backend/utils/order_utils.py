@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from tortoise import BaseDBAsyncClient
+from tortoise.exceptions import IntegrityError
 
 from backend.config import Session
 from backend.database.models import (
@@ -12,6 +13,7 @@ from backend.database.models import (
     OrderProduct,
     OrderProductIngredient,
     Product,
+    Ticket,
 )
 from backend.models.orders import (
     CreateOrderMenuItem,
@@ -19,8 +21,10 @@ from backend.models.orders import (
     CreateOrderMenuFieldItem,
     CreateOrderItem,
 )
+from backend.models.error import Conflict
 from backend.services.orders import get_today_quantities
 from backend.utils import ErrorCodes
+from backend.utils.categories import collapseCategories, collapseOrphanCategories
 
 ZERO_DECIMAL = Decimal("0.00")
 
@@ -418,6 +422,38 @@ async def create_order_menus(
             )
 
     return True
+
+
+async def create_tickets(order: Order, connection: BaseDBAsyncClient):    
+    if not order.has_tickets:
+        return
+    
+    order_products = await OrderProduct.filter(order_id=order.id).prefetch_related("product", "product__category").using_db(connection)
+    categories = []
+    main_products = 0
+
+    for op in order_products:
+        if op.product.category not in categories:
+            categories.append(op.product.category)
+
+        if op.product.is_main:
+            main_products += op.quantity
+    
+    if order.is_take_away:
+        categories = await collapseCategories(categories, 'parent_for_take_away_id', connection)
+    
+    if order.guests and (
+        (order.guests <= 4 and main_products <= order.guests) or
+        (order.guests > 4 and main_products <= 4)):
+        categories = await collapseCategories(categories, 'parent_for_main_products_id', connection)
+    
+    categories = await collapseOrphanCategories(categories, 'parent_for_main_products_id', connection)
+    
+    tickets = [Ticket(order_id=order.id, category_id=c.id) for c in categories]
+    try:
+        await Ticket.bulk_create(objects=tickets, using_db=connection)
+    except IntegrityError:
+        raise Conflict(code=ErrorCodes.TICKET_CREATION_FAILED)
 
 
 async def get_order_price(order: CreateOrderItem) -> Decimal:
