@@ -77,6 +77,28 @@ class ConfirmOrderItem(BaseModel):
     table: str
 
 
+class ConfirmOrdersData(BaseModel):
+    order_id: int
+    table: str
+
+
+class ConfirmOrdersItem(BaseModel):
+    confirms: list[ConfirmOrdersData]
+    rollbacks: list[int]
+
+    
+class ConfirmOrdersError(BaseModel):
+    order_id: int
+    type: str
+    message: str
+
+
+class ConfirmOrdersResponse(BaseResponse):
+    confirms_succeeded: list[int]
+    rollbacks_succeeded: list[int]
+    errors: list[ConfirmOrdersError]
+
+
 class CreateOrderProductIngredientItem(BaseModel):
     ingredient_id: int
     quantity: Decimal = Field(ge=1, default=Decimal("0.00"))

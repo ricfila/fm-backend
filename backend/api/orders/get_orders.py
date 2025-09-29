@@ -47,6 +47,7 @@ async def get_orders(
     include_revisions: bool = False,
     include_user: bool = False,
     include_confirmer_user: bool = False,
+    need_confirm: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -67,8 +68,13 @@ async def get_orders(
             raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
 
     async with in_transaction() as connection:
+        query = Q(is_deleted=False)
+
+        if need_confirm:
+            query &= Q(is_confirmed=False)
+
         orders_query, total_count, limit = await process_query_with_pagination(
-            Order, Q(is_deleted=False), connection, offset, limit, order_by
+            Order, query, connection, offset, limit, order_by
         )
 
         try:
