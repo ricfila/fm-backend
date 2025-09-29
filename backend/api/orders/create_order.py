@@ -35,24 +35,24 @@ async def create_order(
     """
 
     if not item.products and not item.menus:
-        raise BadRequest(code=ErrorCodes.NO_PRODUCTS_AND_MENUS)
+        raise BadRequest(code=ErrorCodes.NO_PRODUCTS_AND_MENUS, message="Nessun prodotto e nessun menù selezionato")
 
     if (
         not item.is_take_away
         and not Session.settings.order_requires_confirmation
         and not item.guests
         and not item.table
-        and not item.parent_order_id
+        and not (item.parent_order_id or not item.has_tickets)
     ):
-        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
+        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti o il tavolo")
 
     if (
         not item.is_take_away
         and Session.settings.order_requires_confirmation
         and not item.guests
-        and not item.parent_order_id
+        and not (item.parent_order_id or not item.has_tickets)
     ):
-        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER)
+        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti")
 
     async with in_transaction() as connection:
         await connection.execute_query(
@@ -102,9 +102,10 @@ async def create_order(
                 else False
             ),
             table=(item.table
-                if not item.is_take_away
+                if (not item.is_take_away
                 and not Session.settings.order_requires_confirmation
-                and not item.parent_order_id
+                and not item.parent_order_id)
+                or not item.has_tickets
                 else None
             ),
             is_confirmed=(True

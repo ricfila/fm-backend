@@ -424,7 +424,7 @@ async def get_order_price(order: CreateOrderItem) -> Decimal:
     cover_change = Decimal(Session.settings.cover_charge)
     guests = Decimal(
         order.guests
-        if not order.is_take_away and not order.parent_order_id
+        if not order.is_take_away and not order.parent_order_id and order.guests is not None
         else 0
     )
     price = ZERO_DECIMAL
