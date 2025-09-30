@@ -187,7 +187,19 @@ async def create_order_products(
     connection: BaseDBAsyncClient,
     order_menu_field: OrderMenuField | None = None,
 ) -> bool:
+    product_ids = [p.product_id for p in products]
+    
+    if not product_ids:
+        return True
+
+    products_db = await Product.filter(id__in=product_ids).using_db(connection).only("id", "category_id")
+    product_category_map = { p.id: p.category_id for p in products_db }
+
     for product in products:
+        category_id = product_category_map.get(product.product_id)
+        if category_id is None:
+            raise ValueError(ErrorCodes.PRODUCT_NOT_FOUND)
+        
         order_product = await OrderProduct.create(
             product_id=product.product_id,
             price=product._price,
@@ -196,6 +208,7 @@ async def create_order_products(
             notes=product.notes,
             order=order,
             order_menu_field=order_menu_field,
+            category_id=category_id,
             using_db=connection,
         )
 

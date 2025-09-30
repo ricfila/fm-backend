@@ -40,11 +40,18 @@ class OrderProduct(Model):
         on_delete=fields.CASCADE,
         on_update=fields.CASCADE
     )
+    category = fields.ForeignKeyField(
+        model_name="models.Category",
+        related_name="order_product_category",
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
 
     order_menu_field_id: int
 
     product_id: int
     variant_id: int
+    category_id: int
 
     order_product_ingredients: fields.ReverseRelation["OrderProductIngredient"]
 
@@ -68,6 +75,7 @@ class OrderProduct(Model):
             "notes": self.notes,
             "variant_id": self.variant_id,
             "order_menu_field_id": self.order_menu_field_id,
+            "category_id": self.category_id
         }
 
         if include_product:
