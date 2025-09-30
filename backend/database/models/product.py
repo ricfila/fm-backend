@@ -18,7 +18,7 @@ class Product(Model):
     """
 
     id = fields.IntField(pk=True)
-    name = fields.CharField(32, unique=True)
+    name = fields.CharField(64, unique=True)
     short_name = fields.CharField(20, unique=True)
     is_priority = fields.BooleanField(default=False)
     is_main = fields.BooleanField(default=True)
