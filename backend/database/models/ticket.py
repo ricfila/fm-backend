@@ -10,11 +10,13 @@ class Ticket(Model):
     id = fields.IntField(pk=True)
     order = fields.ForeignKeyField(
         model_name="models.Order",
+        related_name="order_tickets",
         on_delete=fields.CASCADE,
         on_update=fields.CASCADE
     )
     category = fields.ForeignKeyField(
         model_name="models.Category",
+        related_name="ticket_category",
         on_delete=fields.RESTRICT,
         on_update=fields.CASCADE
     )
@@ -35,8 +37,7 @@ class Ticket(Model):
         }
 
     async def to_dict_category(self) -> dict:
-        category = await self.category
-        category_name = await category.to_dict_name()
+        category_name = await self.category.to_dict_name()
         return {
             "id": self.id,
             "category": category_name,

@@ -45,9 +45,11 @@ async def get_orders(
     include_products_ingredients: bool = False,
     include_payment_method: bool = False,
     include_revisions: bool = False,
+    include_tickets: bool = False,
     include_user: bool = False,
     include_confirmer_user: bool = False,
     need_confirm: bool = False,
+    confirmed_by_user: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -72,6 +74,9 @@ async def get_orders(
 
         if need_confirm:
             query &= Q(is_confirmed=False)
+        
+        if confirmed_by_user:
+            query &= Q(confirmed_by_id=token.user_id)
 
         orders_query, total_count, limit = await process_query_with_pagination(
             Order, query, connection, offset, limit, order_by
@@ -96,6 +101,8 @@ async def get_orders(
                     "order_products__product__roles",
                     "order_products__product__variants",
                     "order_revisions",
+                    "order_tickets",
+                    "order_tickets__category",
                     "payment_method",
                     "user",
                     "confirmed_by",
@@ -133,6 +140,7 @@ async def get_orders(
                     include_products_ingredients,
                     include_payment_method,
                     include_revisions,
+                    include_tickets,
                     include_user,
                     include_confirmer_user,
                 )
