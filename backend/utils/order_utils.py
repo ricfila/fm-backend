@@ -452,21 +452,31 @@ async def create_tickets(order: Order, connection: BaseDBAsyncClient):
         if op.product.is_main:
             main_products += op.quantity
     
+    changes = {}
+
     if order.is_take_away:
-        categories = await collapseCategories(categories, 'parent_for_take_away_id', connection)
+        categories, changes = await collapseCategories(categories, 'parent_for_take_away_id', changes, connection)
     
     if order.guests and (
         (order.guests <= 4 and main_products <= order.guests) or
         (order.guests > 4 and main_products <= 4)):
-        categories = await collapseCategories(categories, 'parent_for_main_products_id', connection)
+        categories, changes = await collapseCategories(categories, 'parent_for_main_products_id', changes, connection)
     
-    categories = await collapseOrphanCategories(categories, 'parent_for_main_products_id', connection)
+    categories, changes = await collapseOrphanCategories(categories, changes, connection)
     
+    # Create tickets
     tickets = [Ticket(order_id=order.id, category_id=c.id) for c in categories]
     try:
         await Ticket.bulk_create(objects=tickets, using_db=connection)
     except IntegrityError:
         raise Conflict(code=ErrorCodes.TICKET_CREATION_FAILED)
+    
+    # Update collapsed categories with respective parents for order_products
+    for from_id, to_id in changes.items():
+        await OrderProduct.filter(
+            order_id=order.id,
+            category_id=from_id
+        ).using_db(connection).update(category_id=to_id)
 
 
 async def get_order_price(order: CreateOrderItem) -> Decimal:
