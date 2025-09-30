@@ -22,6 +22,13 @@ class Category(Model):
         on_delete=fields.RESTRICT,
         on_update=fields.CASCADE
     )
+    parent_category = fields.ForeignKeyField(
+        model_name="models.Category",
+        related_name="children_category",
+        null=True,
+        on_delete=fields.RESTRICT,
+        on_update=fields.CASCADE
+    )
     parent_for_take_away = fields.ForeignKeyField(
         model_name="models.Category",
         related_name="take_away_children",
@@ -41,6 +48,7 @@ class Category(Model):
     tickets = fields.ReverseRelation["Ticket"]
 
     printer_id: int
+    parent_category_id: int
     parent_for_take_away_id: int
     parent_for_main_products_id: int
 
@@ -53,6 +61,7 @@ class Category(Model):
             "name": self.name,
             "print_delay": self.print_delay,
             "printer_id": self.printer_id,
+            "parent_category_id": self.parent_category_id,
             "parent_for_take_away_id": self.parent_for_take_away_id,
             "parent_for_main_products_id": self.parent_for_main_products_id
         }
