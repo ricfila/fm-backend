@@ -7,7 +7,7 @@ from backend.models import BaseResponse
 from backend.models.menu import Menu
 from backend.models.payment_methods import PaymentMethodName
 from backend.models.products import Product
-from backend.models.tickets import TicketCategory
+from backend.models.tickets import Ticket
 from backend.models.users import User
 from backend.utils import validate_name_field, PrinterType
 
@@ -28,6 +28,7 @@ class OrderProduct(BaseModel):
     order_menu_field_id: int | None = None
     product: Product | None = None
     ingredients: list[OrderProductIngredient] | None = None
+    category_id: int
 
 
 class OrderMenuField(BaseModel):
@@ -71,8 +72,9 @@ class Order(BaseModel):
     confirmed_by: User | None = None
     menus: list[OrderMenu] | None = None
     products: list[OrderProduct] | None = None
-    tickets: list[TicketCategory] | None = None
+    tickets: list[Ticket] | None = None
     created_at: datetime.datetime
+    confirmed_at: datetime.datetime | None = None
 
 
 class ConfirmOrderItem(BaseModel):

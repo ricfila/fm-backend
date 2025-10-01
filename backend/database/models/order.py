@@ -161,7 +161,7 @@ class Order(Model):
         
         if include_tickets and hasattr(self, "order_tickets"):
             result["tickets"] = [
-                await ticket.to_dict_category()
+                await ticket.to_dict()
                 for ticket in self.order_tickets
             ]
 
