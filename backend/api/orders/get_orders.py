@@ -48,6 +48,8 @@ async def get_orders(
     include_tickets: bool = False,
     include_user: bool = False,
     include_confirmer_user: bool = False,
+    search_by_customer: str = None,
+    search_by_table: str = None,
     need_confirm: bool = False,
     confirmed_by_user: bool = False,
     token: TokenJwt = Depends(validate_token),
@@ -77,6 +79,12 @@ async def get_orders(
         
         if confirmed_by_user:
             query &= Q(confirmed_by_id=token.user_id)
+        
+        if search_by_customer is not None:
+            query &= Q(customer__icontains=search_by_customer.strip())
+
+        if search_by_table is not None:
+            query &= Q(table__icontains=search_by_table.strip())
 
         orders_query, total_count, limit = await process_query_with_pagination(
             Order, query, connection, offset, limit, order_by
