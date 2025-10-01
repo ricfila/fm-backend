@@ -13,7 +13,7 @@ get_subcategory_router = APIRouter()
 @get_subcategory_router.get(
     "/{subcategory_id}", response_model=GetSubcategoryResponse
 )
-@check_role(Permission.CAN_ADMINISTER, Permission.CAN_ORDER)
+@check_role(Permission.CAN_ADMINISTER, Permission.CAN_ORDER, Permission.CAN_CONFIRM_ORDERS)
 async def get_subcategory(
     subcategory_id: int,
     token: TokenJwt = Depends(validate_token)
@@ -21,7 +21,7 @@ async def get_subcategory(
     """
     Get information about a subcategory.
 
-    **Permission**: can_administer, can_order
+    **Permission**: can_administer, can_order, can_confirm_orders
     """
 
     async with in_transaction() as connection:

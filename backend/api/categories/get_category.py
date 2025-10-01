@@ -11,14 +11,14 @@ get_category_router = APIRouter()
 
 
 @get_category_router.get("/{category_id}", response_model=GetCategoryResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(Permission.CAN_ADMINISTER, Permission.CAN_CONFIRM_ORDERS)
 async def get_category(
     category_id: int, token: TokenJwt = Depends(validate_token)
 ):
     """
     Get information about a category.
 
-     **Permission**: can_administer
+    **Permission**: can_administer, can_confirm_orders
     """
 
     async with in_transaction() as connection:

@@ -4,19 +4,21 @@ from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Category
+from backend.decorators import check_role
 from backend.models.error import BadRequest
 from backend.models.categories import (
     GetCategoriesResponse,
     Category as CategoryModel,
     CategoryName,
 )
-from backend.utils import ErrorCodes, TokenJwt, validate_token
+from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 from backend.utils.query_utils import process_query_with_pagination
 
 get_categories_router = APIRouter()
 
 
 @get_categories_router.get("/", response_model=GetCategoriesResponse)
+@check_role(Permission.CAN_ADMINISTER, Permission.CAN_CONFIRM_ORDERS)
 async def get_categories(
     offset: int = 0,
     limit: int | None = None,
@@ -27,7 +29,7 @@ async def get_categories(
     """
     Get list of categories.
 
-    **Permission**: can_administer
+    **Permission**: can_administer, can_confirm_orders
     """
 
     async with in_transaction() as connection:
