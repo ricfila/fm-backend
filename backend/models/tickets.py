@@ -8,13 +8,13 @@ class Ticket(BaseModel):
     id: int
     order_id: int
     category_id: int
-    is_printed: bool
+    printed_at: bool
 
 
 class TicketCategory(BaseModel):
     id: int
     category: CategoryName
-    is_printed: bool
+    printed_at: bool
 
 
 class GetTicketsResponse(BaseResponse):

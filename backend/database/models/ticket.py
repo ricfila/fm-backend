@@ -20,7 +20,7 @@ class Ticket(Model):
         on_delete=fields.RESTRICT,
         on_update=fields.CASCADE
     )
-    is_printed = fields.BooleanField(default=False)
+    printed_at = fields.BooleanField(null=True, default=None)
 
     order_id: int
     category_id: int
@@ -33,7 +33,7 @@ class Ticket(Model):
             "id": self.id,
             "order_id": self.order_id,
             "category_id": self.category_id,
-            "is_printed": self.is_printed
+            "printed_at": self.printed_at
         }
 
     async def to_dict_category(self) -> dict:
@@ -41,5 +41,5 @@ class Ticket(Model):
         return {
             "id": self.id,
             "category": category_name,
-            "is_printed": self.is_printed
+            "printed_at": self.printed_at
         }

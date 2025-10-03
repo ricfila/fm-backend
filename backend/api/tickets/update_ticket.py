@@ -1,3 +1,6 @@
+import datetime
+import pytz
+
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
@@ -30,7 +33,10 @@ async def update_ticket(
         if not ticket:
             raise NotFound(code=ErrorCodes.TICKET_NOT_FOUND)
 
-        ticket.is_printed = is_printed
+        rome_tz = pytz.timezone("Europe/Rome")
+        now_in_rome = datetime.datetime.now(rome_tz)
+
+        ticket.printed_at = now_in_rome if is_printed else None
 
         try:
             await ticket.save(using_db=connection)

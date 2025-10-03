@@ -1,3 +1,6 @@
+import datetime
+import pytz
+
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
@@ -30,11 +33,14 @@ async def update_tickets(
         if not tickets:
             raise NotFound(code=ErrorCodes.TICKET_NOT_FOUND)
 
+        rome_tz = pytz.timezone("Europe/Rome")
+        now_in_rome = datetime.datetime.now(rome_tz)
+
         for ticket in tickets:
-            ticket.is_printed = is_printed
+            ticket.printed_at = now_in_rome if is_printed else None
 
         try:
-            await Ticket.bulk_update(objects=tickets, fields=['is_printed'], using_db=connection)
+            await Ticket.bulk_update(objects=tickets, fields=['printed_at'], using_db=connection)
         except IntegrityError:
             raise Conflict(code=ErrorCodes.TICKET_UPDATE_FAILED)
 
