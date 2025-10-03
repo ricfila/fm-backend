@@ -63,6 +63,7 @@ class Order(BaseModel):
     is_confirmed: bool
     is_done: bool
     is_voucher: bool
+    is_for_service: bool
     has_tickets: bool
     notes: str | None = None
     price: float
@@ -138,6 +139,7 @@ class CreateOrderItem(BaseModel):
     is_take_away: bool
     table: str | None = None
     is_voucher: bool
+    is_for_service: bool
     has_tickets: bool
     notes: str | None = None
     parent_order_id: int | None = None
