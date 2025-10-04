@@ -11,14 +11,15 @@ from backend.config import Session
 from backend.utils import PrinterType
 
 if typing.TYPE_CHECKING:
-    from backend.database.models import Order, OrderProduct, OrderMenu
+    from backend.database.models import Category, Order, OrderProduct, OrderMenu
 
 
 class OrderTextManager:
     MAX_WIDTH = 42
 
-    def __init__(self, order: Order):
+    def __init__(self, order: Order, category: Category):
         self.order = order
+        self.category = category
 
     @staticmethod
     def _visual_length(text: str) -> int:
@@ -60,9 +61,7 @@ class OrderTextManager:
     async def _get_products_data(
         order_products: list[OrderProduct],
         include_price: bool = False,
-        is_menu: bool = False,
-        only_food: bool = False,
-        only_drinks: bool = False,
+        is_menu: bool = False
     ) -> list[dict]:
         products = []
 
@@ -118,15 +117,11 @@ class OrderTextManager:
         cls,
         order_products: list[OrderProduct],
         include_price: bool = False,
-        max_width: int = MAX_WIDTH,
-        only_food: bool = False,
-        only_drinks: bool = False,
+        max_width: int = MAX_WIDTH
     ) -> str:
         product_blocks = []
 
-        products_data = await cls._get_products_data(
-            order_products, include_price, False, only_food, only_drinks
-        )
+        products_data = cls._get_products_data(order_products, include_price, is_menu=False)
 
         for product in products_data:
             lines = []
@@ -219,18 +214,14 @@ class OrderTextManager:
     async def _get_menu_products_text(
         cls,
         order_products: ReverseRelation[OrderProduct],
-        max_width: int = MAX_WIDTH,
-        only_food: bool = False,
-        only_drinks: bool = False,
+        max_width: int = MAX_WIDTH
     ):
         blocks = []
 
         products_data = await cls._get_products_data(
             list(order_products),
             include_price=False,
-            is_menu=True,
-            only_food=only_food,
-            only_drinks=only_drinks,
+            is_menu=True
         )
 
         for product in products_data:
@@ -271,9 +262,7 @@ class OrderTextManager:
     async def _get_menu_text(
         cls,
         order_menu: ReverseRelation[OrderMenu],
-        include_price: bool = False,
-        only_food: bool = False,
-        only_drinks: bool = False,
+        include_price: bool = False
     ) -> str:
         menu_blocks = []
         menu_data = await cls._get_menu_data(order_menu, include_price)
@@ -313,9 +302,7 @@ class OrderTextManager:
             for product_list in products_per_field:
                 menu_products_text = await cls._get_menu_products_text(
                     product_list,
-                    max_width=width,
-                    only_food=only_food,
-                    only_drinks=only_drinks,
+                    max_width=width
                 )
 
                 if menu_products_text.strip():
@@ -332,8 +319,11 @@ class OrderTextManager:
         enriched_products = []
 
         for op in self.order.order_products:
-            product = await op.product
-            subcategory = await product.subcategory if product else None
+            if op.category_id != self.category.id:
+                continue
+
+            product = op.product
+            subcategory = product.subcategory if product else None
 
             subcategory_order = subcategory.order if subcategory else 0
             product_order = product.order if product else 0
@@ -439,10 +429,8 @@ class OrderTextManager:
 
         return receipt_text
 
-    async def _render_kitchen_text(
-        self, only_food: bool = False, only_drinks: bool = False
-    ) -> str:
-        kitchen_text = await self._get_header()
+    def _render_ticket_text(self) -> str:
+        ticket_text = self._get_short_header()
 
         if (
             not self.order.is_take_away
@@ -452,35 +440,21 @@ class OrderTextManager:
             kitchen_text += f"x{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
             kitchen_text += "\n"
 
-        products_text = await self._get_products_text(
-            await self._get_ordered_products(),
-            only_food=only_food,
-            only_drinks=only_drinks,
-        )
-        kitchen_text += products_text
+        products_text = self._get_products_text(self._get_ordered_products())
+        ticket_text += products_text
 
         if products_text:
-            kitchen_text += "\n"
+            ticket_text += "\n"
 
-        menu_text = await self._get_menu_text(
-            self.order.order_menus,
-            only_food=only_food,
-            only_drinks=only_drinks,
-        )
-        kitchen_text += menu_text
+        menu_text = self._get_menu_text(self.order.order_menus)
+        ticket_text += menu_text
 
-        return kitchen_text
+        return ticket_text
 
-    async def generate_text_for_printer(self, printer_type: PrinterType):
-        printer_formatters = {
-            PrinterType.RECEIPT: self._render_receipt_text,
-            PrinterType.DRINKS: lambda: self._render_kitchen_text(
-                only_drinks=True
-            ),
-            PrinterType.FOOD: lambda: self._render_kitchen_text(
-                only_food=True
-            ),
-            PrinterType.FOOD_AND_DRINKS: self._render_kitchen_text,
-        }
-
-        return await printer_formatters[printer_type]()
+    def generate_text_for_printer(self, printer_type: PrinterType):
+        if printer_type == PrinterType.RECEIPT:
+            return self._render_receipt_text()
+        elif printer_type == PrinterType.TICKET:
+            return self._render_ticket_text()
+        
+        return None
