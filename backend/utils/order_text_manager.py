@@ -58,7 +58,7 @@ class OrderTextManager:
         return text[:cut_len] + placeholder
 
     @staticmethod
-    async def _get_products_data(
+    def _get_products_data(
         order_products: list[OrderProduct],
         include_price: bool = False,
         is_menu: bool = False
@@ -69,21 +69,14 @@ class OrderTextManager:
             if order_product.order_menu_field_id and not is_menu:
                 continue
 
-            product = await order_product.product
-
-            #if only_food and product.category != Category.FOOD:
-            #    continue
-
-            #if only_drinks and product.category != Category.DRINK:
-            #    continue
+            product = order_product.product
 
             product_quantity = order_product.quantity
             product_name = product.short_name
 
             product_variant = ""
             if (variant := order_product.variant) is not None:
-                if (v := await variant) is not None:
-                    product_variant = v.name
+                product_variant = variant.name
 
             product_ingredients = " ".join(
                 [
@@ -113,7 +106,7 @@ class OrderTextManager:
         return products
 
     @classmethod
-    async def _get_products_text(
+    def _get_products_text(
         cls,
         order_products: list[OrderProduct],
         include_price: bool = False,
@@ -182,7 +175,7 @@ class OrderTextManager:
         return "\n".join(product_blocks)
 
     @classmethod
-    async def _get_menu_data(
+    def _get_menu_data(
         cls,
         order_menu: ReverseRelation[OrderMenu],
         include_price: bool = False,
@@ -191,7 +184,7 @@ class OrderTextManager:
 
         for order in order_menu:
             menu_quantity = order.quantity
-            order_name = (await order.menu).short_name
+            order_name = order.menu.short_name
             menu_unit_cost = order.price / menu_quantity
             menu_price = order.price if include_price else None
 
@@ -211,14 +204,14 @@ class OrderTextManager:
         return menus
 
     @classmethod
-    async def _get_menu_products_text(
+    def _get_menu_products_text(
         cls,
         order_products: ReverseRelation[OrderProduct],
         max_width: int = MAX_WIDTH
     ):
         blocks = []
 
-        products_data = await cls._get_products_data(
+        products_data = cls._get_products_data(
             list(order_products),
             include_price=False,
             is_menu=True
@@ -259,13 +252,13 @@ class OrderTextManager:
         return "\n".join(blocks)
 
     @classmethod
-    async def _get_menu_text(
+    def _get_menu_text(
         cls,
         order_menu: ReverseRelation[OrderMenu],
         include_price: bool = False
     ) -> str:
         menu_blocks = []
-        menu_data = await cls._get_menu_data(order_menu, include_price)
+        menu_data = cls._get_menu_data(order_menu, include_price)
 
         for menu in menu_data:
             lines = []
@@ -300,7 +293,7 @@ class OrderTextManager:
                 lines.append(f"{indent}<DOUBLE>{shortened}</DOUBLE>")
 
             for product_list in products_per_field:
-                menu_products_text = await cls._get_menu_products_text(
+                menu_products_text = cls._get_menu_products_text(
                     product_list,
                     max_width=width
                 )
@@ -315,7 +308,7 @@ class OrderTextManager:
 
         return "\n".join(menu_blocks)
 
-    async def _get_ordered_products(self) -> list[OrderProduct]:
+    def _get_ordered_products(self) -> list[OrderProduct]:
         enriched_products = []
 
         for op in self.order.order_products:
@@ -334,7 +327,7 @@ class OrderTextManager:
 
         return [op for _, op in sorted(enriched_products)]
 
-    async def _get_header(self) -> str:
+    def _get_header(self) -> str:
         result = ""
 
         for x in Session.settings.receipt_header.split("\n"):
@@ -406,15 +399,13 @@ class OrderTextManager:
             )
             receipt_text += "\n"
 
-        products_text = await self._get_products_text(
-            await self._get_ordered_products(), True
-        )
+        products_text = self._get_products_text(self._get_ordered_products(), include_price=True)
         receipt_text += products_text
 
         if products_text:
             receipt_text += "\n"
 
-        menu_text = await self._get_menu_text(self.order.order_menus, True)
+        menu_text = self._get_menu_text(self.order.order_menus, True)
         receipt_text += menu_text
 
         if menu_text:
