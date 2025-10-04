@@ -9,18 +9,15 @@ from backend.utils import PrinterType
 from backend.utils.order_text_manager import OrderTextManager
 
 MAX_RETRY_DELAY = 60
-RETRY_DELAY = 5
+RETRY_DELAY = 10
 STEP = 2
 
 
 class PrintManager:
     def __init__(self):
-        self.queues: dict[int, asyncio.Queue] = {}
         self.printers: dict[int, Network] = {}
-        self.in_progress: set[tuple[int, int]] = set()
-
-        asyncio.create_task(self.update_worker())
-
+    
+    
     @classmethod
     async def create(cls):
         new_obj = cls()
@@ -29,13 +26,15 @@ class PrintManager:
         for printer in printers:
             new_obj.add_printer(printer.id, printer.ip_address)
 
+        asyncio.create_task(new_obj.update_worker())
+
         return new_obj
 
+    
     def add_printer(self, printer_id: int, printer_ip_address: str):
         if printer_id not in self.printers:
             self.printers[printer_id] = Network(printer_ip_address, timeout=5)
-            self.queues[printer_id] = asyncio.Queue()
-            asyncio.create_task(self._worker(printer_id))
+    
 
     async def update_worker(self):
         prefetch_values = [
@@ -147,63 +146,6 @@ class PrintManager:
             )
             await asyncio.sleep(RETRY_DELAY)
 
-    async def _worker(self, printer_id: int):
-        queue = self.queues[printer_id]
-        printer = self.printers[printer_id]
-
-        logger.debug(
-            f"Avvio worker Stampante #{printer_id} coda di {queue.qsize()} ordini"
-        )
-
-        while True:
-            job = await queue.get()
-
-            order = job[0]
-            role_printer_printer_type = job[1].printer_type
-            role_printer_printer_id = job[1].id
-
-            logger.debug(
-                f"STAMPA -- Stampante #{printer_id} → Ruolo {role_printer_printer_type} → Ordine #{order.id}"
-            )
-
-            text = OrderTextManager(order)
-            content = await text.generate_text_for_printer(
-                role_printer_printer_type
-            )
-
-            attempts = 0
-            while True:
-                try:
-                    await asyncio.to_thread(
-                        self._print_content, printer, content
-                    )
-                except Exception as e:
-                    attempts += 1
-                    delay = min(
-                        RETRY_DELAY + (attempts - 1) * STEP, MAX_RETRY_DELAY
-                    )
-
-                    logger.error(
-                        f"Print error on {printer.host} → Ruolo {role_printer_printer_type} → Ordine #{order.id}"
-                    )
-                    logger.exception(e)
-                    await asyncio.sleep(delay)
-
-                    continue
-
-                logger.success(
-                    f"Successfully printed {order.id} on {printer.host}"
-                )
-                break
-
-            queue.task_done()
-
-            _, is_created = await OrderPrinter.get_or_create(
-                order_id=order.id, role_printer_id=role_printer_printer_id
-            )
-
-            if is_created:
-                logger.success(f"Order {order.id} marked as printed.")
 
     @staticmethod
     def _print_content(printer: Network, content: str):
