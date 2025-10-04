@@ -20,7 +20,7 @@ class Ticket(Model):
         on_delete=fields.RESTRICT,
         on_update=fields.CASCADE
     )
-    printed_at = fields.BooleanField(null=True, default=None)
+    printed_at = fields.DatetimeField(null=True, default=None)
 
     order_id: int
     category_id: int

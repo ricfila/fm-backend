@@ -1,3 +1,6 @@
+import datetime
+import pytz
+
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
@@ -92,6 +95,9 @@ async def create_order(
 
         order_price = await get_order_price(item)
 
+        rome_tz = pytz.timezone("Europe/Rome")
+        now_in_rome = datetime.datetime.now(rome_tz)
+
         order = await Order.create(
             customer=item.customer,
             guests=(item.guests
@@ -114,6 +120,12 @@ async def create_order(
                 or not Session.settings.order_requires_confirmation
                 or not item.has_tickets
                 else False
+            ),
+            confirmed_at=(now_in_rome
+                if item.is_take_away
+                or not Session.settings.order_requires_confirmation
+                or not item.has_tickets
+                else None
             ),
             is_done=not item.has_tickets,
             is_voucher=item.is_voucher,

@@ -1,3 +1,4 @@
+import datetime
 from pydantic import BaseModel
 
 from backend.models.base import BaseResponse
@@ -8,13 +9,13 @@ class Ticket(BaseModel):
     id: int
     order_id: int
     category_id: int
-    printed_at: bool
+    printed_at: datetime.datetime
 
 
 class TicketCategory(BaseModel):
     id: int
     category: CategoryName
-    printed_at: bool
+    printed_at: datetime.datetime
 
 
 class GetTicketsResponse(BaseResponse):
