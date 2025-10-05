@@ -1,11 +1,16 @@
 import asyncio
+import datetime
+import pytz
 import re
 
 from escpos.printer import Network
 from loguru import logger
+from tortoise.exceptions import IntegrityError
+from tortoise.transactions import in_transaction
 
-from backend.database.models import Order, Printer, OrderPrinter
-from backend.utils import PrinterType
+from backend.database.models import Order, Printer, Ticket
+from backend.models.error import Conflict
+from backend.utils import ErrorCodes, PrinterType
 from backend.utils.order_text_manager import OrderTextManager
 
 MAX_RETRY_DELAY = 60
@@ -38,108 +43,71 @@ class PrintManager:
 
     async def update_worker(self):
         prefetch_values = [
-            "order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__ingredient",
-            "order_menus__menu",
-            "order_products__order_product_ingredients__ingredient",
-            "order_products__variant",
-            "user__role__printers__printer",
-            "user__role__order_confirmer__printers__printer",
-            "order_printers__role_printer__printer",
-            "confirmed_by__role__printers__printer",
-            "parent_order",
+            "category__printer",
+            "order__order_products__product__subcategory",
+            "order__order_products__order_product_ingredients__ingredient",
+            "order__order_products__variant",
+            "order__order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__ingredient",
+            "order__order_menus__menu",
+            "order__user",
+            "order__confirmed_by"
         ]
 
         while True:
-            orders = (
-                await Order.filter(is_done=False)
-                .order_by("created_at")
+            tickets = (
+                await Ticket.filter(
+                    printed_at=None,
+                    order__is_done=False,
+                    order__confirmed_at__isnull=False
+                )
                 .prefetch_related(*prefetch_values)
             )
-            logger.info(f"Trovati {len(orders)} ordini attivi da processare.")
 
-            for order in orders:
-                logger.debug(
-                    f"Elaborazione ordine #{order.id} (Creato il {order.created_at})"
-                )
-                user_role_printers = list(order.user.role.printers)
-                confirmed_by_role_printers = []
-                if order.user.role.order_confirmer:
-                    if order.user.role.order_confirmer.printers:
-                        confirmed_by_role_printers = list(
-                            order.user.role.order_confirmer.printers
-                        )
-                        logger.debug(
-                            f"Ordine #{order.id}: trovati {len(confirmed_by_role_printers)} stampanti per il ruolo di conferma."
-                        )
+            rome_tz = pytz.timezone("Europe/Rome")
+            now_in_rome = datetime.datetime.now(rome_tz)
 
-                user_role_printer_ids = {x.id for x in user_role_printers}
-                role_printer_ids = {
-                    x.id: x
-                    for x in user_role_printers + confirmed_by_role_printers
-                }
-                order_role_printer_ids = {
-                    x.role_printer_id for x in order.order_printers
-                }
-                order_roles_to_print = (
-                    set(role_printer_ids.keys()) - order_role_printer_ids
-                )
-                logger.debug(
-                    f"Ordine #{order.id}: ruoli da stampare → {order_roles_to_print}"
-                )
+            ready_tickets = []
+            printed_tickets = []
 
-                if order.is_take_away:
-                    logger.debug(
-                        f"Ordine #{order.id} è da asporto, rimozione stampanti per bevande..."
-                    )
-                    order_roles_to_print -= {
-                        x
-                        for x in order_roles_to_print
-                        if role_printer_ids.get(x).printer_type
-                        == PrinterType.DRINKS
-                    }
+            for t in tickets:
+                confirmed_at = getattr(t.order, "confirmed_at", None)
+                print_delay = getattr(t.category, "print_delay", 0) or 0
 
-                if not order_roles_to_print:
-                    logger.info(
-                        f"Ordine #{order.id} già stampato da tutti i ruoli necessari. Lo segno come completato."
-                    )
-                    order.is_done = True
-                    await order.save()
-
-                    for rp in role_printer_ids.keys():
-                        self.in_progress.discard((order.id, rp))
-
+                if confirmed_at is None:
                     continue
 
-                ordered_roles_to_print = {
-                    x
-                    for x in user_role_printer_ids
-                    if x not in order_role_printer_ids
-                }
+                if confirmed_at + datetime.timedelta(seconds=print_delay) <= now_in_rome:
+                    ready_tickets.append(t)
 
-                if order.is_confirmed:
-                    logger.debug(
-                        f"Ordine #{order.id} è confermato o da asporto: applico priorità ai ruoli dell'utente."
-                    )
-                    ordered_roles_to_print = sorted(
-                        order_roles_to_print,
-                        key=lambda x: (x not in user_role_printer_ids, x),
-                    )
 
-                for role_printer in ordered_roles_to_print:
-                    rp = role_printer_ids.get(role_printer)
-                    key = (order.id, rp.id)
+            logger.info(f"Trovate {len(ready_tickets)} comande da stampare.")
 
-                    if key in self.in_progress:
-                        logger.debug(
-                            f"Ordine #{order.id} → Ruolo #{rp.id} → Stampante #{rp.printer_id} già in coda, salto."
-                        )
-                        continue
+            for ticket in ready_tickets:
+                printed = await self.print_ticket(ticket, update_db=True)
+                if printed:
+                    printed_tickets.append(ticket)
+                
 
-                    logger.info(
-                        f"Inserisco in coda: Ordine #{order.id} → Ruolo #{rp.id} → Stampante #{rp.printer_id}"
-                    )
-                    self.in_progress.add(key)
-                    await self.queues[rp.printer_id].put((order, rp))
+            # Set is_done=True for completed orders in this cycle
+            async with in_transaction() as connection:
+                orders = await Order.filter(
+                    id__in=[t.order_id for t in printed_tickets],
+                    is_done=False
+                ).prefetch_related("order_tickets").using_db(connection)
+
+                for order in orders:
+                    tickets_to_print = len([t for t in order.order_tickets if t.printed_at == None])
+                    if tickets_to_print == 0:
+                        order.is_done = True
+                    else:
+                        orders.remove(order)
+                
+                if len(orders) > 0:
+                    try:
+                        await Order.bulk_update(orders, fields=['is_done'], using_db=connection)
+                    except IntegrityError:
+                        raise Conflict(code=ErrorCodes.ORDER_UPDATE_FAILED)
+
 
             logger.debug(
                 f"Fine ciclo. Attesa di {RETRY_DELAY} secondi prima del prossimo aggiornamento."
@@ -150,8 +118,13 @@ class PrintManager:
     @staticmethod
     def _print_content(printer: Network, content: str):
         printer.open()
-        for line in re.split(r"(?<=\n)", content):
-            printer.set(align="left", font="a")
+        printer.hw("INIT")
+        printer.charcode("CP850")
+        printer.buzzer(times=3, duration=1)
+
+        content = content.replace("\r\n", "\n").replace("\r", "\n")
+        for line in content.splitlines(keepends=True):
+            printer.set(align="left", font="a",)
 
             parts = re.split(r"(<DOUBLE>.*?</DOUBLE>)", line)
             for part in parts:
@@ -165,21 +138,36 @@ class PrintManager:
 
         printer.cut()
 
-    async def add_job(self, order: Order, printer_types: list[PrinterType]):
-        printers = list(order.user.role.printers)
-        printers_confirmed = (
-            list(order.user.role.order_confirmer.printers)
-            if order.is_confirmed or order.is_take_away
-            else []
+
+    async def print_ticket(self, ticket: Ticket, update_db: bool) -> bool:
+        logger.debug(
+            f"Stampa comanda #{ticket.id} (categoria {ticket.category_id} dell'ordine {ticket.order_id})"
         )
 
-        printers_to_print = [
-            p
-            for p in (printers + printers_confirmed)
-            if p.printer_type in printer_types
-        ]
+        text = OrderTextManager(ticket.order, ticket.category)
+        content = text.generate_text_for_printer(PrinterType.TICKET)
 
-        for role_printer in printers_to_print:
-            await self.queues[role_printer.printer_id].put(
-                (order, role_printer)
+        printer_id = ticket.category.printer_id
+        if printer_id is None:
+            return True
+
+        printer = self.printers[printer_id]
+
+        try:
+            self._print_content(printer, content)
+            
+            # Saving printed state of ticket
+            if update_db:
+                rome_tz = pytz.timezone("Europe/Rome")
+                ticket.printed_at = datetime.datetime.now(rome_tz)
+                await ticket.save()
+            
+            return True
+
+        except Exception as e:
+            logger.error(
+                f"Errore di stampa su {printer.host} → comanda #{ticket.id} (categoria {ticket.category_id} dell'ordine {ticket.order_id})"
             )
+            logger.exception(e)
+
+            return False
