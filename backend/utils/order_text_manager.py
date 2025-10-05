@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 
 
 class OrderTextManager:
-    MAX_WIDTH = 42
+    MAX_WIDTH = 48
 
     def __init__(self, order: Order, category: Category):
         self.order = order
@@ -56,6 +56,18 @@ class OrderTextManager:
         if cut_len <= 0:
             return placeholder[:width]
         return text[:cut_len] + placeholder
+    
+    @staticmethod
+    def _row_in_square(text: str = None, is_first: bool = False, is_last: bool = False) -> str:
+        width = OrderTextManager.MAX_WIDTH
+
+        if is_first:
+            return "╔" + "═"*(width - 2) + "╗\n"
+        if is_last:
+            return "╚" + "═"*(width - 2) + "╝\n"
+        if text is not None:
+            return "║" + text + " "*(width - len(text) - 2) + "║\n"
+        return ""
 
     @staticmethod
     def _get_products_data(
@@ -380,9 +392,58 @@ class OrderTextManager:
         result += "\n"
 
         return result
+    
+    
+    def _get_short_header(self) -> str:
+        result = ""
 
-    async def _render_receipt_text(self) -> str:
-        receipt_text = await self._get_header()
+        category_name = self.category.name.upper()
+        date_time = self.order.created_at.astimezone(
+            pytz.timezone("Europe/Rome")
+        ).strftime("%d/%m/%Y %H:%M")
+        result += f"<DOUBLE>{category_name}</DOUBLE>\n"
+        row = f"Ordine n. {self.order.id} - {self.order.user.username} {date_time}"
+        result += row + " "*(self.MAX_WIDTH - len(row))
+
+        result += self._row_in_square(is_first=True)
+        
+        customer = (
+            self.order.customer
+            if not self.order.parent_order
+            else self.order.parent_order.customer
+        )
+        guests = (
+            "   (" + str(self.order.guests) + " copert" + ("o" if self.order.guests == 1 else "i") + ")"
+            if self.order.guests is not None
+            else ""
+        )
+        result += self._row_in_square(" CLIENTE: " + customer.upper() + guests)
+
+        if self.order.table:
+            result += self._row_in_square(" TAVOLO:  " + self.order.table)
+        elif self.order.parent_order:
+            result += self._row_in_square(" TAVOLO:  " + self.order.parent_order.table)
+        
+        if self.order.is_confirmed and self.order.confirmed_by is not None:
+            result += self._row_in_square(
+                " Confermato da " +
+                self.order.confirmed_by.username +
+                " alle " + self.order.confirmed_at.astimezone(
+                    pytz.timezone("Europe/Rome")
+                ).strftime("%H:%M")
+            )
+        
+        result += self._row_in_square(is_last=True)
+
+        if self.order.notes is not None:
+            result += "NOTE: " + self.order.notes + "\n"
+
+        result += "\n"
+
+        return result
+
+    def _render_receipt_text(self) -> str:
+        receipt_text = self._get_header()
 
         if (
             not self.order.is_take_away
