@@ -147,6 +147,10 @@ class PrintManager:
         text = OrderTextManager(ticket.order, ticket.category)
         content = text.generate_text_for_printer(PrinterType.TICKET)
 
+        # TODO: it has to moved into database
+        if ticket.category_id != 3:
+            content += "\n* Con POLENTA (2 fette)\n~ Con PATATINE (1 porzione)\n"
+
         printer_id = ticket.category.printer_id
         if printer_id is None:
             return True

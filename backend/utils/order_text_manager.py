@@ -415,6 +415,7 @@ class OrderTextManager:
         result = ""
 
         category_name = self.category.name.upper()
+        category_name = (f"« {category_name} »").center(self.MAX_WIDTH // 2)
         date_time = self.order.created_at.astimezone(
             pytz.timezone("Europe/Rome")
         ).strftime("%d/%m/%Y %H:%M")
@@ -516,8 +517,6 @@ class OrderTextManager:
 
         if menu_text:
             ticket_text += "\n"
-        
-        ticket_text += "\n* Con POLENTA (2 fette)\n~ Con PATATINE (1 porzione)\n"
 
         return ticket_text
 
