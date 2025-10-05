@@ -85,6 +85,7 @@ class OrderTextManager:
 
             product_quantity = order_product.quantity
             product_name = product.short_name
+            product_notes = order_product.notes
 
             product_variant = ""
             if (variant := order_product.variant) is not None:
@@ -102,10 +103,13 @@ class OrderTextManager:
                 product_main_text += f" - {product_variant}"
 
             product_data = {
-                "quantity": f"x{product_quantity}",
+                "quantity": str(product_quantity),
                 "main_text": product_main_text,
-                "ingredients": product_ingredients,
+                "ingredients": product_ingredients
             }
+
+            if product_notes is not None:
+                product_data["notes"] = product_notes
 
             if include_price:
                 product_data["unit_price"] = (
@@ -122,7 +126,8 @@ class OrderTextManager:
         cls,
         order_products: list[OrderProduct],
         include_price: bool = False,
-        max_width: int = MAX_WIDTH
+        max_width: int = MAX_WIDTH,
+        large_quantity: bool = True
     ) -> str:
         product_blocks = []
 
@@ -134,6 +139,7 @@ class OrderTextManager:
             quantity = product["quantity"]
             main_text = product["main_text"]
             ingredients = product["ingredients"]
+            notes = product.get("notes")
             unit_price = product.get("unit_price")
             total_price = product.get("total_price")
 
@@ -143,9 +149,13 @@ class OrderTextManager:
                 if include_price
                 else max_width
             )
-            width_without_quantity = width - len(quantity) - 1
+
+            quantity_len = len(quantity) + 1
+            if large_quantity: quantity_len *= 2
+
+            width_without_quantity = width - quantity_len
             wrap_width = width_without_quantity // 2
-            indent = " " * (len(quantity) + 1)
+            indent = " " * quantity_len
 
             wrapped_main = textwrap.wrap(
                 main_text,
@@ -156,7 +166,11 @@ class OrderTextManager:
             first_double = cls.shorten_by_chars(
                 wrapped_main[0].strip(), wrap_width
             )
-            full_line = f"{quantity} <DOUBLE>{first_double}</DOUBLE>"
+            if large_quantity:
+                full_line = f"<DOUBLE>{quantity} {first_double}</DOUBLE>"
+            else:
+                full_line = f"{quantity} <DOUBLE>{first_double}</DOUBLE>"
+
             if include_price:
                 full_line = cls._align_texts(full_line, price_text)
             lines.append(full_line)
@@ -181,6 +195,9 @@ class OrderTextManager:
             if include_price and unit_price is not None:
                 unit_line = f"{quantity[1:]} x {unit_price:.2f}"
                 lines.append(f"{indent}{unit_line}")
+            
+            if notes is not None:
+                lines.append(f"{indent}└ {notes}")
 
             product_blocks.append("\n".join(lines))
 
@@ -484,13 +501,9 @@ class OrderTextManager:
     def _render_ticket_text(self) -> str:
         ticket_text = self._get_short_header()
 
-        if (
-            not self.order.is_take_away
-            and not self.order.parent_order
-            and self.order.guests
-        ):
-            kitchen_text += f"x{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
-            kitchen_text += "\n"
+        #if self.order.guests:
+        #    ticket_text += f"{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
+        #    ticket_text += "\n"
 
         products_text = self._get_products_text(self._get_ordered_products())
         ticket_text += products_text
@@ -500,6 +513,11 @@ class OrderTextManager:
 
         menu_text = self._get_menu_text(self.order.order_menus)
         ticket_text += menu_text
+
+        if menu_text:
+            ticket_text += "\n"
+        
+        ticket_text += "\n* Con POLENTA (2 fette)\n~ Con PATATINE (1 porzione)\n"
 
         return ticket_text
 

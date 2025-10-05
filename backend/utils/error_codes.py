@@ -77,6 +77,8 @@ class ErrorCodes(Enum):
     PRODUCT_ROLE_NOT_EXIST = auto()
     PRODUCT_VARIANT_NOT_EXIST = auto()
     SET_GUESTS_NUMBER = auto()
+    # Updade
+    ORDER_UPDATE_FAILED = auto()
 
     # Payment Methods
     PAYMENT_METHOD_ALREADY_EXISTS = auto()
