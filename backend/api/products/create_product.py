@@ -39,6 +39,7 @@ async def create_product(
         new_product = Product(
             name=item.name,
             short_name=item.short_name,
+            frontend_name=item.frontend_name,
             price=item.price,
             category=category,
             subcategory=subcategory,

@@ -34,7 +34,7 @@ def validate_name_field(name: str):
     if not name:
         raise ValueError("The `name` field can not be empty")
 
-    if len(name) > 32:
+    if len(name) > 32: #TODO There are fields with 64 characters
         raise ValueError(
             "The `name` field must have a maximum length of 32 characters"
         )

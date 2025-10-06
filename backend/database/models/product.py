@@ -20,6 +20,7 @@ class Product(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(64, unique=True)
     short_name = fields.CharField(20, unique=True)
+    frontend_name = fields.CharField(32, unique=True)
     is_priority = fields.BooleanField(default=False)
     is_main = fields.BooleanField(default=True)
     price = fields.FloatField()
@@ -53,6 +54,7 @@ class Product(Model):
             "id": self.id,
             "name": self.name,
             "short_name": self.short_name,
+            "frontend_name": self.frontend_name,
         }
 
     async def to_dict(
@@ -68,6 +70,7 @@ class Product(Model):
             "id": self.id,
             "name": self.name,
             "short_name": self.short_name,
+            "frontend_name": self.frontend_name,
             "is_priority": self.is_priority,
             "is_main": self.is_main,
             "price": self.price,

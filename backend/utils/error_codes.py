@@ -93,6 +93,7 @@ class ErrorCodes(Enum):
     PRODUCT_ALREADY_EXISTS = auto()
     PRODUCT_NOT_FOUND = auto()
     PRODUCT_SHORT_NAME_ALREADY_EXISTS = auto()
+    PRODUCT_FRONTEND_NAME_ALREADY_EXISTS = auto()
     # Add product date
     PRODUCT_DATE_ALREADY_EXISTS = auto()
     # Add product ingredient

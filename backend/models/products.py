@@ -42,6 +42,7 @@ class Product(BaseModel):
     id: int
     name: str
     short_name: str
+    frontend_name: str
     is_priority: bool
     is_main: bool
     price: float
@@ -61,6 +62,7 @@ class ProductName(BaseModel):
     id: int
     name: str
     short_name: str
+    frontend_name: str
 
 
 class AddProductDateItem(BaseModel):
@@ -103,6 +105,7 @@ class AddProductVariantResponse(BaseResponse):
 class CreateProductItem(BaseModel):
     name: str
     short_name: str
+    frontend_name: str
     price: float = Field(ge=0)
     category_id: int
     subcategory_id: int
@@ -116,6 +119,11 @@ class CreateProductItem(BaseModel):
     @classmethod
     def validate_short_name_field(cls, short_name: str):
         return validate_short_name_field(short_name)
+    
+    @field_validator("frontend_name")
+    @classmethod
+    def validate_frontend_name_field(cls, frontend_name: str):
+        return validate_name_field(frontend_name)
 
 
 class CreateProductResponse(BaseResponse):
@@ -156,6 +164,15 @@ class UpdateProductShortNameItem(BaseModel):
     @classmethod
     def validate_short_name_field(cls, short_name: str):
         return validate_short_name_field(short_name)
+    
+
+class UpdateProductFrontendNameItem(BaseModel):
+    frontend_name: str
+
+    @field_validator("frontend_name")
+    @classmethod
+    def validate_frontend_name_field(cls, frontend_name: str):
+        return validate_name_field(frontend_name)
 
 
 class UpdateProductIsPriorityItem(BaseModel):
