@@ -9,13 +9,13 @@ class Ticket(BaseModel):
     id: int
     order_id: int
     category_id: int
-    printed_at: datetime.datetime
+    printed_at: datetime.datetime | None
 
 
 class TicketCategory(BaseModel):
     id: int
     category: CategoryName
-    printed_at: datetime.datetime
+    printed_at: datetime.datetime | None
 
 
 class GetTicketsResponse(BaseResponse):

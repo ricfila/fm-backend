@@ -149,7 +149,7 @@ class PrintManager:
 
         # TODO: it has to moved into database
         if ticket.category_id != 3:
-            content += "\n* Con POLENTA (2 fette)\n~ Con PATATINE (1 porzione)\n"
+            content += "\n* Con POLENTA (2 fette)\n# Con PATATINE (1 porzione)\n"
 
         printer_id = ticket.category.printer_id
         if printer_id is None:
