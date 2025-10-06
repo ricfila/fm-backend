@@ -34,6 +34,7 @@ async def update_product_daily_max_sales(
         ingredient.name = item.name
         ingredient.ward = item.ward
         ingredient.is_monitored = item.is_monitored
+        ingredient.cooking_time = item.cooking_time
 
         try:
             await ingredient.save(using_db=connection)

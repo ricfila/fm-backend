@@ -9,6 +9,7 @@ class Ingredient(BaseModel):
     name: str
     ward: str
     is_monitored: bool
+    cooking_time: int | None
 
 
 class IngredientName(BaseModel):
@@ -20,6 +21,7 @@ class CreateIngredientItem(BaseModel):
     name: str
     ward: str
     is_monitored: bool
+    cooking_time: int | None
 
     @field_validator("name")
     @classmethod
