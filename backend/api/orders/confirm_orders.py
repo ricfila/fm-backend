@@ -65,10 +65,6 @@ async def confirm_orders(
                 errors.append({"order_id": order_id, "type": "confirm", "message": "Ordine non trovato"})
                 continue
 
-            if order.is_confirmed:
-                confirms_succeeded.append(order_id)
-                continue
-
             if order.user.role.order_confirmer_id != token.role_id:
                 errors.append({"order_id": order_id, "type": "confirm",  "message": "Non autorizzato alla conferma di quest'ordine"})
                 continue
@@ -77,14 +73,16 @@ async def confirm_orders(
             now_in_rome = datetime.datetime.now(rome_tz)
 
             try:
-                await order.update_from_dict(
-                    {
-                        "table": confirm.table if not order.is_take_away else None,
-                        "confirmed_by_id": token.user_id,
-                        "is_confirmed": True,
-                        "confirmed_at": now_in_rome,
-                    }
-                ).save(using_db=connection)
+                update_dict = {
+                    "table": confirm.table if not order.is_take_away else None,
+                    "confirmed_by_id": token.user_id,
+                    "is_confirmed": True,
+                }
+                
+                if not order.is_confirmed:
+                    update_dict["confirmed_at"] = now_in_rome
+                
+                await order.update_from_dict(update_dict).save(using_db=connection)
 
                 confirms_succeeded.append(order_id)
             except:
