@@ -17,6 +17,7 @@ async def get_stock_list(
     ingredient_id: int,
     from_date: str = None,
     to_date: str = None,
+    valid: bool = True,
     last_stock: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -33,6 +34,7 @@ async def get_stock_list(
         stocks = await Stock.filter(
             query,
             ingredient_id=ingredient_id,
+            is_valid=valid,
             last_stock=last_stock,
             order_by=Stock.available_from
         ).using_db(connection).all()

@@ -34,9 +34,6 @@ async def update_stock(
         
         if item.quantity is not None:
             stock.quantity = item.quantity
-
-        if item.is_last_stock is not None:
-            stock.is_last_stock = item.is_last_stock
         
         try:
             await stock.save(using_db=connection)

@@ -19,7 +19,9 @@ class Ingredient(Model):
     ward = fields.CharField(32)
     is_deleted = fields.BooleanField(default=False)
     is_monitored = fields.BooleanField(default=True)
+    sell_if_stocked = fields.BooleanField(default=False)
     cooking_time = fields.IntField(null=True, default=None)
+    target_quantity = fields.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
 
     order_product_ingredients_ingredient: fields.ReverseRelation["OrderProductIngredient"]
     product_ingredient: fields.ReverseRelation["ProductIngredient"]
@@ -34,7 +36,9 @@ class Ingredient(Model):
             "name": self.name,
             "ward": self.ward,
             "is_monitored": self.is_monitored,
-            "cooking_time": self.cooking_time
+            "sell_if_stocked": self.sell_if_stocked,
+            "cooking_time": self.cooking_time,
+            "target_quantity": self.target_quantity,
         }
     
     async def to_dict_name(self) -> dict:

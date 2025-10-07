@@ -1,3 +1,4 @@
+import datetime
 from pydantic import BaseModel, field_validator
 
 from backend.models import BaseResponse
@@ -9,7 +10,9 @@ class Ingredient(BaseModel):
     name: str
     ward: str
     is_monitored: bool
+    sell_if_stocked: bool
     cooking_time: int | None
+    target_quantity: float | None
 
 
 class IngredientName(BaseModel):
@@ -17,11 +20,26 @@ class IngredientName(BaseModel):
     name: str
 
 
+class IngredientStock(BaseModel):
+    id: int
+    name: str
+    ward: str
+    is_monitored: bool
+    sell_if_stocked: bool
+    cooking_time: int | None
+    target_quantity: float | None
+    added_stock: float | None = None
+    consumed_stock: float | None = None
+    stock_starting_from: datetime.datetime | None = None
+
+
 class CreateIngredientItem(BaseModel):
     name: str
     ward: str
     is_monitored: bool
+    sell_if_stocked: bool
     cooking_time: int | None
+    target_quantity: float | None
 
     @field_validator("name")
     @classmethod
@@ -42,9 +60,18 @@ class GetIngredientResponse(BaseResponse, Ingredient):
     pass
 
 
+class GetIngredientStockResponse(BaseResponse, IngredientStock):
+    pass
+
+
 class GetIngredientsResponse(BaseResponse):
     total_count: int
-    ingredients: list[Ingredient | IngredientName]
+    ingredients: list[Ingredient | IngredientName | IngredientStock]
+
+
+class GetWardsResponse(BaseResponse):
+    total_count: int
+    wards: list[str]
 
 
 class Stock(BaseModel):
@@ -52,12 +79,10 @@ class Stock(BaseModel):
     ingredient_id: int
     quantity: float
     available_from: str
-    is_last_stock: bool
 
 
 class AddStockItem(BaseModel):
     quantity: float
-    is_last_stock: bool
 
 
 class AddStockResponse(BaseResponse):
@@ -66,7 +91,6 @@ class AddStockResponse(BaseResponse):
 
 class UpdateStockItem(BaseModel):
     quantity: float | None = None
-    is_last_stock: bool | None = None
 
 
 class StockListResponse(BaseResponse):

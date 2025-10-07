@@ -439,7 +439,7 @@ async def create_order_menus(
 
 async def create_tickets(order: Order, connection: BaseDBAsyncClient):    
     if not order.has_tickets:
-        return
+        return #TODO: set NULL into order_product.category_id if there are no tickets
     
     order_products = await OrderProduct.filter(order_id=order.id).prefetch_related("product", "product__category").using_db(connection)
     categories = []
