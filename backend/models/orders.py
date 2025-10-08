@@ -67,6 +67,7 @@ class Order(BaseModel):
     has_tickets: bool
     notes: str | None = None
     price: float
+    payment_method_id: int
     payment_method: PaymentMethodName | None = None
     revisions: list[Revision] | None = None
     user: User | None = None

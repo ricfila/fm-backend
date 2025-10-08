@@ -52,6 +52,7 @@ async def get_orders(
     search_by_table: str = None,
     need_confirm: bool = False,
     confirmed_by_user: bool = False,
+    created_by_user: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -85,6 +86,9 @@ async def get_orders(
 
         if search_by_table is not None:
             query &= Q(table__icontains=search_by_table.strip())
+        
+        if created_by_user:
+            query &= Q(user_id=token.user_id)
 
         orders_query, total_count, limit = await process_query_with_pagination(
             Order, query, connection, offset, limit, order_by

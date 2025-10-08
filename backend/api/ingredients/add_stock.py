@@ -31,8 +31,7 @@ async def add_stock(
         
         new_stock = Stock(
             ingredient=ingredient,
-            quantity=item.quantity,
-            is_last_stock=item.is_last_stock
+            quantity=item.quantity
         )
 
         try:

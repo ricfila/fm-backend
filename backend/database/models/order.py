@@ -52,6 +52,7 @@ class Order(Model):
         on_update=fields.CASCADE
     )
 
+    payment_method_id: int
     user_id: int
     parent_order_id: int
 
@@ -107,6 +108,7 @@ class Order(Model):
             "price": self.price,
             "created_at": self.created_at,
             "confirmed_at": self.confirmed_at,
+            "payment_method_id": self.payment_method_id
         }
 
         if include_menus and hasattr(self, "order_menus"):
