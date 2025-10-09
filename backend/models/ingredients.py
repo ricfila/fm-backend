@@ -74,11 +74,15 @@ class GetWardsResponse(BaseResponse):
     wards: list[str]
 
 
+class UpdateIngredientSellIfStockedItem(BaseModel):
+    sell_if_stocked: bool
+
+
 class Stock(BaseModel):
     id: int
     ingredient_id: int
     quantity: float
-    available_from: str
+    available_from: datetime.datetime
 
 
 class AddStockItem(BaseModel):

@@ -10,6 +10,7 @@ __all__ = (
 	"get_wards",
 	"resume_ingredient",
 	"update_ingredient",
+	"update_ingredient_sell_if_stocked",
 	"update_stock"
 )
 
@@ -20,6 +21,7 @@ from .get_ingredient import get_ingredient_router
 from .get_ingredients import get_ingredients_router
 from .create_ingredient import create_ingredient_router
 from .update_ingredient import update_ingredient_router
+from .update_ingredient_sell_if_stocked import update_ingredient_sell_if_stocked_router
 from .delete_ingredient import delete_ingredient_router
 from .resume_ingredient import resume_ingredient_router
 from .add_stock import add_stock_router
@@ -33,6 +35,7 @@ ingredients.include_router(get_ingredient_router)
 ingredients.include_router(get_ingredients_router)
 ingredients.include_router(create_ingredient_router)
 ingredients.include_router(update_ingredient_router)
+ingredients.include_router(update_ingredient_sell_if_stocked_router)
 ingredients.include_router(delete_ingredient_router)
 ingredients.include_router(resume_ingredient_router)
 ingredients.include_router(add_stock_router)
