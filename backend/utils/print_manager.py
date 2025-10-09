@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import pytz
 import re
+import threading
 
 from escpos.printer import Network
 from loguru import logger
@@ -21,6 +22,7 @@ STEP = 2
 class PrintManager:
     def __init__(self):
         self.printers: dict[int, Network] = {}
+        self._printer_locks: dict[int, threading.Lock] = {}
     
     
     @classmethod
@@ -39,7 +41,16 @@ class PrintManager:
     def add_printer(self, printer_id: int, printer_ip_address: str):
         if printer_id not in self.printers:
             self.printers[printer_id] = Network(printer_ip_address, timeout=5)
+            self._printer_locks[printer_id] = threading.Lock()
     
+
+    def _threaded_print(self, printer: Network, content: str, lock: threading.Lock):
+        # Eseguito in thread tramite asyncio.to_thread
+        with lock:
+            # _print_content è già sincrona e fa I/O di rete
+            self._print_content(printer, content)
+            return True
+
 
     async def update_worker(self):
         prefetch_values = [
@@ -156,9 +167,11 @@ class PrintManager:
             return True
 
         printer = self.printers[printer_id]
+        lock = self._printer_locks.get(printer_id, threading.Lock())
 
         try:
-            self._print_content(printer, content)
+            #self._print_content(printer, content)
+            await asyncio.to_thread(self._threaded_print, printer, content, lock)
             
             # Saving printed state of ticket
             if update_db:
