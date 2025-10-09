@@ -136,7 +136,7 @@ class CreateOrderMenuItem(BaseModel):
 
 class CreateOrderItem(BaseModel):
     customer: str
-    guests: int | None = Field(ge=1, default=None)
+    guests: int | None = Field(ge=0, default=None) #TODO guests ge=1
     is_take_away: bool
     table: str | None = None
     is_voucher: bool

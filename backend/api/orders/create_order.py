@@ -50,14 +50,15 @@ async def create_order(
     ):
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti o il tavolo")
 
+    """#TODO remove comment: guests must be > 0
     if (
         not item.is_take_away
         and Session.settings.order_requires_confirmation
-        and not item.guests
+        #and not item.guests
         and not (item.parent_order_id or not item.has_tickets)
     ):
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti")
-
+    """
     async with in_transaction() as connection:
         await connection.execute_query(
             "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
