@@ -36,12 +36,12 @@ async def get_ingredients(
 
     async with in_transaction() as connection:
         if include_stock_quantities:
-            ingredients = await get_ingredient_stock(connection, await_cooking_time=await_cooking_time)
+            ingredients = await get_ingredient_stock(connection, ward=ward, await_cooking_time=await_cooking_time)
 
             return GetIngredientsResponse(
                 total_count=len(ingredients),
                 ingredients=[
-                    IngredientStock(ingredient)
+                    IngredientStock(**ingredient)
                     for ingredient in ingredients
                 ]
             )

@@ -1,8 +1,13 @@
 from tortoise.backends.base.client import TransactionContext
 
-from backend.database.models import Ingredient
-
-async def get_ingredient_stock(connection: TransactionContext, ingredient_id: int = None, await_cooking_time: bool = False):
+async def get_ingredient_stock(
+        connection: TransactionContext,
+        ingredient_id: int = None,
+        ward: str = None,
+        await_cooking_time: bool = False,
+        only_monitored: bool = False,
+        only_locked: bool = False
+    ):
     query_stock = """
     SELECT
         i.id,
@@ -13,7 +18,7 @@ async def get_ingredient_stock(connection: TransactionContext, ingredient_id: in
         i.cooking_time,
         i.target_quantity,
         s.added_stock,
-        COALESCE(od.default_q, 0) + COALESCE(od.choosen_q, 0) AS consumed_stock
+        COALESCE(od.default_q, 0) + COALESCE(od.choosen_q, 0) AS consumed_stock,
         s.stock_starting_from
     FROM ingredient i
     LEFT JOIN (
@@ -55,12 +60,26 @@ async def get_ingredient_stock(connection: TransactionContext, ingredient_id: in
                 ) - (i.cooking_time * INTERVAL '1 second') < CURRENT_TIMESTAMP
             ))
            """ if await_cooking_time else "") + """
-    ) AS od ON TRUE
-    """ + """
-    WHERE NOT i.is_deleted AND i.is_monitored
+    ) AS od ON TRUE    
+    WHERE"""
+
+    if ingredient_id is None:
+        query_stock += " NOT i.is_deleted"
+        if only_locked:
+            query_stock += " AND i.sell_if_stocked"
+        else:
+            if ward is not None:
+                query_stock += f" AND i.ward = '{ward}'"
+                if only_monitored:
+                    query_stock += " AND i.is_monitored"
+            else:
+                if only_monitored:
+                    query_stock += " AND i.is_monitored"
+    else:
+       query_stock += f" i.id = {ingredient_id}"
+    
+    query_stock += """
     ORDER BY i.id;
-    """ if ingredient_id is None else f"""
-    WHERE i.id = {ingredient_id}
     """
 
     return await connection.execute_query_dict(query_stock)
