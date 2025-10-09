@@ -56,6 +56,7 @@ class Product(BaseModel):
     ingredients: list[ProductIngredient] | None = None
     roles: list[ProductRole] | None = None
     variants: list[ProductVariant] | None = None
+    locked: bool | None
 
 
 class ProductName(BaseModel):
