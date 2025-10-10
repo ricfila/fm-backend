@@ -159,7 +159,7 @@ class PrintManager:
         content = text.generate_text_for_printer(PrinterType.TICKET)
 
         # TODO: it has to moved into database
-        if ticket.category_id != 3:
+        if ticket.category_id != 3 and ticket.category_id != 5:
             content += "\n* Con POLENTA (2 fette)\n# Con PATATINE (1 porzione)\n"
 
         printer_id = ticket.category.printer_id
@@ -172,7 +172,7 @@ class PrintManager:
         try:
             #self._print_content(printer, content)
             await asyncio.to_thread(self._threaded_print, printer, content, lock)
-            
+
             # Saving printed state of ticket
             if update_db:
                 rome_tz = pytz.timezone("Europe/Rome")

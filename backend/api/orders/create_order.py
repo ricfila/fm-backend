@@ -40,7 +40,8 @@ async def create_order(
 
     if not item.products and not item.menus:
         raise BadRequest(code=ErrorCodes.NO_PRODUCTS_AND_MENUS, message="Nessun prodotto e nessun menù selezionato")
-
+    
+    """#TODO remove comment: guests must be > 0
     if (
         not item.is_take_away
         and not Session.settings.order_requires_confirmation
@@ -50,7 +51,6 @@ async def create_order(
     ):
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti o il tavolo")
 
-    """#TODO remove comment: guests must be > 0
     if (
         not item.is_take_away
         and Session.settings.order_requires_confirmation

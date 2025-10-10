@@ -143,7 +143,7 @@ class OrderTextManager:
             unit_price = product.get("unit_price")
             total_price = product.get("total_price")
 
-            price_text = f"€ {total_price:.2f}" if include_price else ""
+            price_text = f"EURO {total_price:.2f}" if include_price else ""
             width = (
                 (max_width - len(price_text) - 1)
                 if include_price
@@ -506,7 +506,7 @@ class OrderTextManager:
         #    ticket_text += f"{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
         #    ticket_text += "\n"
 
-        products_text = self._get_products_text(self._get_ordered_products())
+        products_text = self._get_products_text(self._get_ordered_products(), include_price=True)
         ticket_text += products_text
 
         if products_text:
