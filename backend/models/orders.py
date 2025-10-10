@@ -57,7 +57,7 @@ class Revision(BaseModel):
 class Order(BaseModel):
     id: int
     customer: str
-    guests: int | None = Field(ge=1, default=None)
+    guests: int | None = Field(ge=0, default=None) #TODO ge=1
     is_take_away: bool
     table: str | None = None
     is_confirmed: bool
@@ -77,6 +77,7 @@ class Order(BaseModel):
     tickets: list[Ticket] | None = None
     created_at: datetime.datetime
     confirmed_at: datetime.datetime | None = None
+    is_deleted: bool | None = None
 
 
 class ConfirmOrderItem(BaseModel):
@@ -116,6 +117,9 @@ class CreateOrderProductItem(BaseModel):
     ingredients: list[CreateOrderProductIngredientItem] = Field(default=[])
     quantity: int = Field(ge=1)
     notes: str | None = None
+    edited_product: bool | None = None
+    original_quantity: int | None = None
+    category_id: int | None = None
 
     _price: Decimal = Decimal("0.00")
     _has_cover_charge: bool

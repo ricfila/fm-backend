@@ -7,16 +7,16 @@ from backend.models import BaseResponse
 from backend.models.error import NotFound
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-delete_order_router = APIRouter()
+resume_order_router = APIRouter()
 
 
-@delete_order_router.delete("/{order_id}")
+@resume_order_router.post("/{order_id}")
 @check_role(Permission.CAN_ADMINISTER, Permission.CAN_ORDER)
-async def delete_order(
+async def resume_order(
     order_id: int, token: TokenJwt = Depends(validate_token)
 ):
     """
-    Delete an order from the id.
+    Resume an order from the id.
 
     **Permission**: can_administer, can_order
     """
@@ -27,8 +27,7 @@ async def delete_order(
         if not order:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
-        order.is_deleted = True
-        order.is_done = True #TODO remove this: is for secure with print tickets
+        order.is_deleted = False
         await order.save(using_db=connection)
 
     return BaseResponse()

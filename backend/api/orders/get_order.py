@@ -43,6 +43,7 @@ async def get_order(
     include_tickets: bool = False,
     include_user: bool = False,
     include_confirmer_user: bool = False,
+    include_deleted_orders: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -97,7 +98,7 @@ async def get_order(
         if not order:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
-        if order.is_deleted:
+        if order.is_deleted and not include_deleted_orders:
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
     return GetOrderResponse(
@@ -127,5 +128,6 @@ async def get_order(
             include_tickets,
             include_user,
             include_confirmer_user,
-        )
+        ),
+        is_deleted=order.is_deleted if include_deleted_orders else None
     )

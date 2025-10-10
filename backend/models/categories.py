@@ -9,6 +9,7 @@ class Category(BaseModel):
     name: str
     print_delay: int
     printer_id: int | None
+    parent_category_id: int | None
     parent_for_take_away_id: int | None
     parent_for_main_products_id: int | None
 
