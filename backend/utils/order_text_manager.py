@@ -512,7 +512,7 @@ class OrderTextManager:
         #    ticket_text += f"{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
         #    ticket_text += "\n"
 
-        products_text = self._get_products_text(self._get_ordered_products(), include_price=True)
+        products_text = self._get_products_text(self._get_ordered_products())
         ticket_text += products_text
 
         if products_text:
