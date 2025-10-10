@@ -419,7 +419,13 @@ class OrderTextManager:
         date_time = self.order.created_at.astimezone(
             pytz.timezone("Europe/Rome")
         ).strftime("%d/%m/%Y %H:%M")
-        result += f"<DOUBLE>{category_name}</DOUBLE>\n"
+
+        if self.category.id == 5:
+            row1 = "« HOSTARIA »".center(self.MAX_WIDTH // 2)
+            row2 = "CENTRO PARROCCHIALE".center(self.MAX_WIDTH // 2)
+            result += f"<DOUBLE>{row1}</DOUBLE>\n<DOUBLE>{row2}</DOUBLE>\n"
+        else:
+            result += f"<DOUBLE>{category_name}</DOUBLE>\n"
         row = f"Ordine n. {self.order.id} - {self.order.user.username} {date_time}"
         result += row + " "*(self.MAX_WIDTH - len(row))
 
