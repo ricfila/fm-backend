@@ -33,6 +33,15 @@ class IngredientStock(BaseModel):
     stock_starting_from: datetime.datetime | None = None
 
 
+class IngredientQuantities(BaseModel):
+    id: int
+    name: str
+    ward: str
+    is_monitored: bool
+    sold_quantity: float | None = None
+    completed_quantity: float | None = None
+
+
 class CreateIngredientItem(BaseModel):
     name: str
     ward: str
@@ -66,7 +75,7 @@ class GetIngredientStockResponse(BaseResponse, IngredientStock):
 
 class GetIngredientsResponse(BaseResponse):
     total_count: int
-    ingredients: list[Ingredient | IngredientName | IngredientStock]
+    ingredients: list[Ingredient | IngredientName | IngredientStock | IngredientQuantities]
 
 
 class GetWardsResponse(BaseResponse):

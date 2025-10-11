@@ -9,11 +9,12 @@ from backend.models.ingredients import (
     GetIngredientsResponse,
     Ingredient as IngredientModel,
     IngredientName,
-    IngredientStock
+    IngredientStock,
+    IngredientQuantities
 )
 from backend.utils import TokenJwt, validate_token, ErrorCodes
 from backend.utils.query_utils import process_query_with_pagination
-from backend.services.ingredients import get_ingredient_stock
+from backend.services.ingredients import get_ingredient_stock, get_ingredients_completed_quantities
 
 get_ingredients_router = APIRouter()
 
@@ -27,6 +28,7 @@ async def get_ingredients(
     ward: str = None,
     deleted: bool = False,
     include_stock_quantities: bool = False,
+    include_completed_quantities: bool = False,
     await_cooking_time: bool = False,
     token: TokenJwt = Depends(validate_token),
 ):
@@ -45,6 +47,18 @@ async def get_ingredients(
                     for ingredient in ingredients
                 ]
             )
+        
+        elif include_completed_quantities:
+            ingredients = await get_ingredients_completed_quantities(connection, ward=ward, only_monitored=True)
+
+            return GetIngredientsResponse(
+                total_count=len(ingredients),
+                ingredients=[
+                    IngredientQuantities(**ingredient)
+                    for ingredient in ingredients
+                ]
+            )
+        
         else:
             query = Q(is_deleted=deleted)
 

@@ -1,3 +1,4 @@
+import datetime
 from tortoise.backends.base.client import TransactionContext
 
 async def get_ingredient_stock(
@@ -83,3 +84,80 @@ async def get_ingredient_stock(
     """
 
     return await connection.execute_query_dict(query_stock)
+
+
+async def get_ingredients_completed_quantities(
+        connection: TransactionContext,
+        ward: str = None,
+        from_date: datetime = None,
+        to_date: datetime = None,
+        only_monitored: bool = False,
+    ):
+    query = f"""
+SELECT
+    i.id,
+    i.name,
+    i.ward,
+    i.is_monitored,
+    COALESCE(d.total_sold, 0) + COALESCE(ch.total_sold, 0) AS sold_quantity,
+    COALESCE(d.total_completed, 0) + COALESCE(ch.total_completed, 0) AS completed_quantity
+FROM ingredient i
+LEFT JOIN (
+    SELECT
+        pi.ingredient_id,
+        SUM(
+            CASE
+                WHEN tk.completed_at IS NULL AND NOT o.is_done
+                THEN op.quantity * pi.max_quantity
+                ELSE 0
+            END
+        ) AS total_sold,
+        SUM(
+            CASE
+                WHEN tk.completed_at IS NOT NULL OR o.is_done
+                THEN op.quantity * pi.max_quantity
+                ELSE 0
+            END
+        ) AS total_completed
+    FROM product_ingredient pi
+    JOIN order_product op ON op.product_id = pi.product_id
+    JOIN "order" o ON o.id = op.order_id
+    LEFT JOIN ticket tk ON tk.order_id = op.order_id AND tk.category_id = op.category_id
+    WHERE
+        NOT pi.is_deleted
+        AND pi.is_default
+        AND NOT o.is_deleted
+        AND o.created_at >= '2025-10-11'
+    GROUP BY pi.ingredient_id
+) AS d ON d.ingredient_id = i.id
+LEFT JOIN (
+    SELECT
+        opi.ingredient_id,
+        SUM(
+            CASE
+                WHEN tk.completed_at IS NULL AND NOT o.is_done
+                THEN op.quantity * opi.quantity
+                ELSE 0
+            END
+        ) AS total_sold,
+        SUM(
+            CASE
+                WHEN tk.completed_at IS NOT NULL OR o.is_done
+                THEN op.quantity * opi.quantity
+                ELSE 0
+            END
+        ) AS total_completed
+    FROM order_product_ingredient opi
+    JOIN order_product op ON op.id = opi.order_product_id
+    JOIN "order" o ON o.id = op.order_id
+    LEFT JOIN ticket tk ON tk.order_id = op.order_id AND tk.category_id = op.category_id
+    WHERE
+        NOT o.is_deleted
+        AND o.created_at >= '2025-10-11'
+    GROUP BY opi.ingredient_id
+) AS ch ON ch.ingredient_id = i.id
+WHERE NOT i.is_deleted AND i.is_monitored AND i.ward = '{ward}'
+ORDER BY i.id;
+    """
+
+    return await connection.execute_query_dict(query)
