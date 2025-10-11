@@ -116,7 +116,7 @@ class CreateOrderProductItem(BaseModel):
     product_id: int
     variant_id: int | None = None
     ingredients: list[CreateOrderProductIngredientItem] = Field(default=[])
-    quantity: int = Field(ge=1)
+    quantity: int = Field(ge=0) #For accepting edited products
     notes: str | None = None
     edited_product: bool | None = None
     original_quantity: int | None = None

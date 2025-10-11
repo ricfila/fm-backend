@@ -13,3 +13,10 @@ class Ticket(BaseModel):
 class GetTicketsItem(BaseModel):
     pass
 
+
+class UpdateTicketCompletedItem(BaseModel):
+    is_completed: bool
+
+
+class UpdateTicketPrintedItem(BaseModel):
+    is_printed: bool

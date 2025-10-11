@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from tortoise.transactions import in_transaction
 from tortoise.expressions import Q
 
@@ -17,7 +17,7 @@ async def get_tickets(
     is_confirmed: bool = None,
     is_printed: bool = None,
     is_completed: bool = None,
-    categories: list[int] = [],
+    categories: list[int] = Query(default=[]),
     token: TokenJwt = Depends(validate_token)
 ):
     """

@@ -9,6 +9,7 @@ from backend.database.models import Ticket
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
+from backend.models.tickets import UpdateTicketPrintedItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 update_ticket_printed_router = APIRouter()
@@ -16,9 +17,9 @@ update_ticket_printed_router = APIRouter()
 
 @update_ticket_printed_router.put("/{ticket_id}/printed", response_model=BaseResponse)
 @check_role(Permission.CAN_ADMINISTER)
-async def update_ticket(
+async def update_ticket_printed(
     ticket_id: int,
-    is_printed: bool,
+    item: UpdateTicketPrintedItem,
     token: TokenJwt = Depends(validate_token)
 ):
     """
@@ -36,7 +37,7 @@ async def update_ticket(
         rome_tz = pytz.timezone("Europe/Rome")
         now_in_rome = datetime.datetime.now(rome_tz)
 
-        ticket.printed_at = now_in_rome if is_printed else None
+        ticket.printed_at = now_in_rome if item.is_printed else None
 
         try:
             await ticket.save(using_db=connection)

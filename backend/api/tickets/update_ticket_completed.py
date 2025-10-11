@@ -9,6 +9,7 @@ from backend.database.models import Ticket
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
+from backend.models.tickets import UpdateTicketCompletedItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 update_ticket_completed_router = APIRouter()
@@ -18,7 +19,7 @@ update_ticket_completed_router = APIRouter()
 @check_role(Permission.CAN_ADMINISTER, Permission.CAN_CONFIRM_ORDERS)
 async def update_ticket_completed(
     ticket_id: int,
-    is_completed: bool,
+    item: UpdateTicketCompletedItem,
     token: TokenJwt = Depends(validate_token)
 ):
     """
@@ -36,7 +37,7 @@ async def update_ticket_completed(
         rome_tz = pytz.timezone("Europe/Rome")
         now_in_rome = datetime.datetime.now(rome_tz)
 
-        ticket.completed_at = now_in_rome if is_completed else None
+        ticket.completed_at = now_in_rome if item.is_completed else None
 
         try:
             await ticket.save(using_db=connection)
