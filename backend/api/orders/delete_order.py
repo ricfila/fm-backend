@@ -28,7 +28,6 @@ async def delete_order(
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
         order.is_deleted = True
-        order.is_done = True #TODO remove this: is for secure with print tickets
         await order.save(using_db=connection)
 
     return BaseResponse()

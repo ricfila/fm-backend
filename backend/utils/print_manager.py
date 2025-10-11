@@ -10,7 +10,7 @@ from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Order, Printer, Ticket
-from backend.models.error import Conflict
+from backend.models.error import Conflict, NotFound
 from backend.utils import ErrorCodes, PrinterType
 from backend.utils.order_text_manager import OrderTextManager
 
@@ -68,7 +68,9 @@ class PrintManager:
             tickets = (
                 await Ticket.filter(
                     printed_at=None,
+                    completed_at=None,
                     order__is_done=False,
+                    order__is_deleted=False,
                     order__confirmed_at__isnull=False
                 )
                 .prefetch_related(*prefetch_values)
@@ -81,7 +83,18 @@ class PrintManager:
             printed_tickets = []
 
             for t in tickets:
-                confirmed_at = getattr(t.order, "confirmed_at", None)
+                if getattr(t.category, "wait_parent_category"):
+                    parent_t = await Ticket.filter(
+                        order_id=t.order_id,
+                        category_id=getattr(t.category, "parent_category_id")
+                    ).first()
+                    if not parent_t:
+                        raise NotFound(ErrorCodes.TICKET_NOT_FOUND, message=f"Ticket genitore non trovato per l'ordine {t.order_id}")
+                    
+                    confirmed_at = getattr(parent_t, "completed_at", None)
+                else:
+                    confirmed_at = getattr(t.order, "confirmed_at", None)
+                
                 print_delay = getattr(t.category, "print_delay", 0) or 0
 
                 if confirmed_at is None:
