@@ -21,6 +21,7 @@ class Ticket(Model):
         on_update=fields.CASCADE
     )
     printed_at = fields.DatetimeField(null=True, default=None)
+    completed_at = fields.DatetimeField(null=True, default=None)
 
     order_id: int
     category_id: int
@@ -33,7 +34,8 @@ class Ticket(Model):
             "id": self.id,
             "order_id": self.order_id,
             "category_id": self.category_id,
-            "printed_at": self.printed_at
+            "printed_at": self.printed_at,
+            "completed_at": self.completed_at
         }
 
     async def to_dict_category(self) -> dict:
@@ -41,5 +43,16 @@ class Ticket(Model):
         return {
             "id": self.id,
             "category": category_name,
-            "printed_at": self.printed_at
+            "printed_at": self.printed_at,
+            "completed_at": self.completed_at
+        }
+    
+    async def to_dict_order(self) -> dict:
+        return {
+            "id": self.id,
+            "order_id": self.order_id,
+            "category_id": self.category_id,
+            "printed_at": self.printed_at,
+            "completed_at": self.completed_at,
+            "order": await self.order.to_dict(include_user=True, include_confirmer_user=True)
         }
