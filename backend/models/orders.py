@@ -4,6 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
+from backend.models.categories import CategoryName
 from backend.models.menu import Menu
 from backend.models.payment_methods import PaymentMethodName
 from backend.models.products import Product
@@ -173,3 +174,24 @@ class GetOrdersResponse(BaseResponse):
 
 class PrintOrderItem(BaseModel):
     printer_types: list[PrinterType] | None = None
+
+
+class TicketOrder(BaseModel):
+    id: int
+    order_id: int
+    category_id: int
+    printed_at: datetime.datetime | None
+    completed_at: datetime.datetime | None
+    order: Order | None
+
+
+class TicketCategory(BaseModel):
+    id: int
+    category: CategoryName
+    printed_at: datetime.datetime | None
+    completed_at: datetime.datetime | None
+
+
+class GetTicketsResponse(BaseResponse):
+    total_count: int
+    tickets: list[Ticket | TicketCategory | TicketOrder]
