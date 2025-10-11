@@ -84,7 +84,7 @@ class OrderTextManager:
             product = order_product.product
 
             product_quantity = order_product.quantity
-            product_name = product.short_name
+            product_name = product.name
             product_notes = order_product.notes
 
             product_variant = ""
@@ -441,10 +441,10 @@ class OrderTextManager:
             if self.order.guests is not None
             else ""
         )
-        result += self._row_in_square(" CLIENTE: " + customer.upper() + guests)
+        result += "║ CLI: <DOUBLE>" + customer.upper() + "</DOUBLE>\n"
 
         if self.order.table:
-            result += self._row_in_square(" TAVOLO:  " + self.order.table)
+            result += "║ TAV: <DOUBLE>" + self.order.table + "</DOUBLE>\n"
         elif self.order.parent_order:
             result += self._row_in_square(" TAVOLO:  " + self.order.parent_order.table)
         

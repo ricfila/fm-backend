@@ -113,6 +113,7 @@ class PrintManager:
                 
 
             # Set is_done=True for completed orders in this cycle
+            """
             async with in_transaction() as connection:
                 orders = await Order.filter(
                     id__in=[t.order_id for t in printed_tickets],
@@ -131,7 +132,7 @@ class PrintManager:
                         await Order.bulk_update(orders, fields=['is_done'], using_db=connection)
                     except IntegrityError:
                         raise Conflict(code=ErrorCodes.ORDER_UPDATE_FAILED)
-
+            """
 
             logger.debug(
                 f"Fine ciclo. Attesa di {RETRY_DELAY} secondi prima del prossimo aggiornamento."
@@ -170,10 +171,6 @@ class PrintManager:
 
         text = OrderTextManager(ticket.order, ticket.category)
         content = text.generate_text_for_printer(PrinterType.TICKET)
-
-        # TODO: it has to moved into database
-        if ticket.category_id != 3 and ticket.category_id != 5:
-            content += "\n* Con POLENTA (2 fette)\n# Con PATATINE (1 porzione)\n"
 
         printer_id = ticket.category.printer_id
         if printer_id is None:
