@@ -2,15 +2,16 @@ from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Ticket
-from backend.models.tickets import GetTicketsResponse, Ticket as TicketModel, TicketCategory
+from backend.models.orders import GetTicketsResponse, TicketCategory
+from backend.models.tickets import Ticket as TicketModel
 from backend.models.error import NotFound
 from backend.utils import ErrorCodes, TokenJwt, validate_token
 
-get_tickets_router = APIRouter()
+get_order_tickets_router = APIRouter()
 
 
-@get_tickets_router.get("/{order_id}/tickets", response_model=GetTicketsResponse)
-async def get_tickets(
+@get_order_tickets_router.get("/{order_id}/tickets", response_model=GetTicketsResponse)
+async def get_order_tickets(
     order_id: int,
     include_category_name: bool = False,
     token: TokenJwt = Depends(validate_token)
