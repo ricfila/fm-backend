@@ -8,6 +8,7 @@ class Category(BaseModel):
     id: int
     name: str
     print_delay: int
+    wait_parent_category: bool
     printer_id: int | None
     parent_category_id: int | None
     parent_for_take_away_id: int | None
