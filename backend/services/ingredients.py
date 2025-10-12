@@ -127,7 +127,7 @@ LEFT JOIN (
         NOT pi.is_deleted
         AND pi.is_default
         AND NOT o.is_deleted
-        AND o.created_at >= '2025-10-11'
+        AND o.created_at >= '2025-10-12'
     GROUP BY pi.ingredient_id
 ) AS d ON d.ingredient_id = i.id
 LEFT JOIN (
@@ -153,7 +153,7 @@ LEFT JOIN (
     LEFT JOIN ticket tk ON tk.order_id = op.order_id AND tk.category_id = op.category_id
     WHERE
         NOT o.is_deleted
-        AND o.created_at >= '2025-10-11'
+        AND o.created_at >= '2025-10-12'
     GROUP BY opi.ingredient_id
 ) AS ch ON ch.ingredient_id = i.id
 WHERE NOT i.is_deleted AND i.is_monitored AND i.ward = '{ward}'
