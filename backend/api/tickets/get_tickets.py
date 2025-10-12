@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, Query
 from tortoise.transactions import in_transaction
 from tortoise.expressions import Q
@@ -13,6 +15,8 @@ get_tickets_router = APIRouter()
 
 @get_tickets_router.get("/", response_model=GetTicketsResponse)
 async def get_tickets(
+    from_date: datetime = None,
+    to_date: datetime = None,
     include_order: bool = False,
     is_confirmed: bool = None,
     is_printed: bool = None,
@@ -26,6 +30,12 @@ async def get_tickets(
 
     async with in_transaction() as connection:
         query = Q(order__is_deleted=False)
+
+        #if from_date is not None:
+        #    query &= Q(order__created_at__ge=from_date)
+
+        #if to_date is not None:
+        #    query &= Q(order__created_at__lt=to_date)
 
         if is_confirmed is not None:
             query &= Q(order__is_confirmed=is_confirmed)

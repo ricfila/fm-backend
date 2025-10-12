@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import ParamsError
 from tortoise.expressions import Q
@@ -23,6 +25,8 @@ async def get_orders(
     offset: int = 0,
     limit: int | None = None,
     order_by: str = None,
+    from_date: datetime = None,
+    to_date: datetime = None,
     include_menus: bool = False,
     include_menus_menu: bool = False,
     include_menus_menu_dates: bool = False,
@@ -75,8 +79,14 @@ async def get_orders(
     async with in_transaction() as connection:
         query = Q(is_deleted=False)
 
+        #if from_date is not None:
+        #    query &= Q(created_at__ge=from_date)
+
+        #if to_date is not None:
+        #    query &= Q(created_at__lt=to_date)
+        
         if need_confirm:
-            query &= Q(is_confirmed=False)
+            query &= Q(is_confirmed=False, is_done=False)
         
         if confirmed_by_user:
             query &= Q(confirmed_by_id=token.user_id)
