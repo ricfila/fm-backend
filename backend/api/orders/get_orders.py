@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import ParamsError
 from tortoise.expressions import Q
@@ -25,8 +23,6 @@ async def get_orders(
     offset: int = 0,
     limit: int | None = None,
     order_by: str = None,
-    from_date: datetime = None,
-    to_date: datetime = None,
     include_menus: bool = False,
     include_menus_menu: bool = False,
     include_menus_menu_dates: bool = False,

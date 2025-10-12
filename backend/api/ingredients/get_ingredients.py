@@ -30,8 +30,6 @@ async def get_ingredients(
     include_stock_quantities: bool = False,
     include_completed_quantities: bool = False,
     await_cooking_time: bool = False,
-    from_date: str = None,
-    to_date: str = None,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -51,7 +49,7 @@ async def get_ingredients(
             )
         
         elif include_completed_quantities:
-            ingredients = await get_ingredients_completed_quantities(connection, ward=ward, only_monitored=True, from_date=from_date, to_date=to_date)
+            ingredients = await get_ingredients_completed_quantities(connection, ward=ward, only_monitored=True)
 
             return GetIngredientsResponse(
                 total_count=len(ingredients),
