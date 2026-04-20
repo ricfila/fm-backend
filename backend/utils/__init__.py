@@ -2,6 +2,7 @@ __all__ = (
     "Permission",
     "PrinterType",
     "ErrorCodes",
+    "generate_password",
     "to_snake_case",
     "TokenJwt",
     "decode_jwt",
@@ -22,7 +23,7 @@ __all__ = (
 
 from .enums import Permission, PrinterType
 from .error_codes import ErrorCodes
-from .text_utils import to_snake_case
+from .text_utils import generate_password, to_snake_case
 from .token_jwt import TokenJwt, decode_jwt, encode_jwt, validate_token
 from .validators import (
     validate_name_field,
