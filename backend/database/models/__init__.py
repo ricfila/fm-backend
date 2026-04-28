@@ -22,9 +22,11 @@ __all__ = (
 	"Revision",
     "Role",
     "RolePrinter",
+    "RoleTable",
     "Setting",
 	"Stock",
     "Subcategory",
+    "Table",
 	"Ticket",
     "User",
 )
@@ -52,8 +54,10 @@ from .product_variant import ProductVariant
 from .revision import Revision
 from .role import Role
 from .role_printer import RolePrinter
+from .role_table import RoleTable
 from .setting import Setting
 from .stock import Stock
 from .subcategory import Subcategory
+from .table import Table
 from .ticket import Ticket
 from .user import User

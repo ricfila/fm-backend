@@ -147,3 +147,8 @@ def validate_color_field(color: str):
         raise ValueError("The `color` field must be a valid hex color code")
 
     return color
+
+
+def check_seat_range(seat_start: int, seat_end: int):
+    if seat_start >= seat_end:
+        raise ValueError("`seat_start` must be less than `seat_end`")
