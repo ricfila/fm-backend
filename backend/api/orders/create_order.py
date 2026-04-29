@@ -7,7 +7,7 @@ from tortoise.transactions import in_transaction
 from backend.config import Session
 from backend.database.models import Order, PaymentMethod
 from backend.decorators import check_role
-from backend.models.error import BadRequest, Conflict, NotFound
+from backend.models.error import BadRequest, Conflict, NotFound, Unauthorized
 from backend.models.orders import (
     CreateOrderItem,
     CreateOrderResponse,
@@ -21,6 +21,7 @@ from backend.utils.order_utils import (
     create_order_products,
     create_tickets,
     get_order_price,
+    is_table_allowed_for_role,
 )
 
 create_order_router = APIRouter()
@@ -71,7 +72,7 @@ async def create_order(
 
             if not parent_order:
                 raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
-        
+
         if item.payment_method_id:
             payment_method = await PaymentMethod.get_or_none(
                 id=item.payment_method_id, is_deleted=False, using_db=connection
@@ -79,15 +80,23 @@ async def create_order(
 
             if not payment_method:
                 raise NotFound(code=ErrorCodes.PAYMENT_METHOD_NOT_FOUND)
+        
+        if (
+            not Session.settings.order_requires_confirmation
+            and not await is_table_allowed_for_role(
+                token.role_id, item.table, connection
+            )
+        ):
+            raise Unauthorized(code=ErrorCodes.TABLE_NOT_ALLOWED_FOR_ROLE)
 
-        (has_error_products, error_code_products) = await check_products(
+        has_error_products, error_code_products = await check_products(
             item.products, token.role_id, connection
         )
 
         if has_error_products:
             raise Conflict(code=error_code_products)
 
-        (has_error_menus, error_code_menus) = await check_menus(
+        has_error_menus, error_code_menus = await check_menus(
             item.menus, token.role_id, connection
         )
 
@@ -101,22 +110,24 @@ async def create_order(
 
         order = await Order.create(
             customer=item.customer,
-            guests=(item.guests
+            guests=(
+                item.guests
                 if not item.is_take_away and not item.parent_order_id
                 else None
             ),
-            is_take_away=(item.is_take_away
-                if not item.parent_order_id
-                else False
+            is_take_away=(
+                item.is_take_away if not item.parent_order_id else False
             ),
-            table=(item.table
+            table=(
+                item.table
                 if (not item.is_take_away
                 and not Session.settings.order_requires_confirmation
                 and not item.parent_order_id)
                 or not item.has_tickets
                 else None
             ),
-            is_confirmed=(True
+            is_confirmed=(
+                True
                 if item.is_take_away
                 or not Session.settings.order_requires_confirmation
                 or not item.has_tickets
