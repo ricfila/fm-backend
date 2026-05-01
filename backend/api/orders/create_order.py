@@ -46,9 +46,8 @@ async def create_order(
     if (
         not item.is_take_away
         and not Session.settings.order_requires_confirmation
-        and not item.guests
-        and not item.table
         and not (item.parent_order_id or not item.has_tickets)
+        and (not item.guests or not item.table)
     ):
         raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti o il tavolo")
 
