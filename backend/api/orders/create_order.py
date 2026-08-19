@@ -82,6 +82,7 @@ async def create_order(
         
         if (
             not Session.settings.order_requires_confirmation
+            and not item.is_take_away
             and not await is_table_allowed_for_role(
                 token.role_id, item.table, connection
             )
