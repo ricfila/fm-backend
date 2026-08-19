@@ -23,7 +23,7 @@ class Product(Model):
     print_name = fields.CharField(64, unique=True)
     is_priority = fields.BooleanField(default=False)
     is_main = fields.BooleanField(default=True)
-    price = fields.FloatField()
+    price = fields.DecimalField(max_digits=10, decimal_places=2)
     category = fields.ForeignKeyField(
         model_name="models.Category",
         on_delete=fields.RESTRICT,
