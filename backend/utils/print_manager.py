@@ -141,7 +141,7 @@ class PrintManager:
 
 
     @staticmethod
-    def _print_content(printer: Network, content: str):
+    def _print_content(printer: Network, content: str, order_id: int):
         printer.open()
         printer.hw("INIT")
         printer.charcode("CP850")
@@ -155,12 +155,13 @@ class PrintManager:
             for part in parts:
                 if part.startswith("<DOUBLE>") and part.endswith("</DOUBLE>"):
                     inner = part[len("<DOUBLE>") : -len("</DOUBLE>")]
-                    printer._raw(b"\x1B\x21\x30")
+                    printer._raw(b"\x1b\x21\x30")
                     printer.text(inner)
-                    printer._raw(b"\x1B\x21\x00")
+                    printer._raw(b"\x1b\x21\x00")
                 else:
                     printer.text(part)
 
+        #printer.barcode(str(order_id), "CODE128", height=100, width=3)
         printer.cut()
 
 
