@@ -51,13 +51,15 @@ async def get_products(
         if subcategory_id:
             products_query_filter &= Q(subcategory_id=subcategory_id)
 
-        (products_query, _, limit,) = await process_query_with_pagination(
-            Product,
-            products_query_filter,
-            connection,
-            offset,
-            limit,
-            order_by,
+        products_query, total_count, limit = (
+            await process_query_with_pagination(
+                Product,
+                products_query_filter,
+                connection,
+                offset,
+                limit,
+                order_by,
+            )
         )
 
         try:
@@ -101,25 +103,27 @@ async def get_products(
                 ingredient_stock_levels[ing["id"]] = added - ing["consumed_stock"]
 
     return GetProductsResponse(
-        total_count=len(products),
+        total_count=total_count,
         products=[
-            ProductName(**await product.to_dict_name())
-            if only_name
-            else ProductModel(
-                **await product.to_dict(
-                    include_dates,
-                    include_ingredients,
-                    include_roles,
-                    include_subcategory,
-                    include_variants,
-                ),
-                locked=(
-                    len([
-                        ing
-                        for ing in product.ingredients
-                        if ing.is_default and ing.max_quantity > ingredient_stock_levels.get(ing.ingredient_id, ing.max_quantity)]
-                    ) > 0
-                ) if include_locks else None
+            (
+                ProductName(**await product.to_dict_name())
+                if only_name
+                else ProductModel(
+                    **await product.to_dict(
+                        include_dates,
+                        include_ingredients,
+                        include_roles,
+                        include_subcategory,
+                        include_variants,
+                    ),
+                    locked=(
+                        len([
+                            ing
+                            for ing in product.ingredients
+                            if ing.is_default and ing.max_quantity > ingredient_stock_levels.get(ing.ingredient_id, ing.max_quantity)]
+                        ) > 0
+                    ) if include_locks else None
+                )
             )
             for product in products
         ],
