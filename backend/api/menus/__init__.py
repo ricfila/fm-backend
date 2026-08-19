@@ -21,6 +21,7 @@ __all__ = (
     "update_menu_field_name_router",
     "update_menu_name_router",
     "update_menu_price_router",
+    "update_menu_print_name_router",
     "update_menu_short_name_router",
 )
 
@@ -53,6 +54,7 @@ from .update_menu_field_max_sortable_elements import (
 from .update_menu_field_name import update_menu_field_name_router
 from .update_menu_name import update_menu_name_router
 from .update_menu_price import update_menu_price_router
+from .update_menu_print_name import update_menu_print_name_router
 from .update_menu_short_name import update_menu_short_name_router
 
 menus = APIRouter(prefix="/menus", tags=["menu"])
@@ -77,4 +79,5 @@ menus.include_router(update_menu_field_max_sortable_elements_router)
 menus.include_router(update_menu_field_name_router)
 menus.include_router(update_menu_name_router)
 menus.include_router(update_menu_price_router)
+menus.include_router(update_menu_print_name_router)
 menus.include_router(update_menu_short_name_router)

@@ -34,9 +34,21 @@ def validate_name_field(name: str):
     if not name:
         raise ValueError("The `name` field can not be empty")
 
-    if len(name) > 32: #TODO There are fields with 64 characters
+    if len(name) > 32:
         raise ValueError(
             "The `name` field must have a maximum length of 32 characters"
+        )
+
+    return name
+
+
+def validate_product_name_field(name: str): # Only for product and menu name validation
+    if not name:
+        raise ValueError("The `name` field can not be empty")
+
+    if len(name) > 64:
+        raise ValueError(
+            "The `name` field must have a maximum length of 64 characters"
         )
 
     return name
@@ -46,12 +58,36 @@ def validate_short_name_field(short_name: str):
     if not short_name:
         raise ValueError("The `short_name` field can not be empty")
 
-    if len(short_name) > 20:
+    if len(short_name) > 32:
         raise ValueError(
-            "The `short_name` field must have a maximum length of 20 characters"
+            "The `short_name` field must have a maximum length of 32 characters"
         )
 
     return short_name
+
+
+def validate_print_name_field(print_name: str):
+    if not print_name:
+        raise ValueError("The `print_name` field can not be empty")
+
+    if len(print_name) > 64:
+        raise ValueError(
+            "The `print_name` field must have a maximum length of 64 characters"
+        )
+
+    return print_name
+
+
+def validate_ward_field(ward: str):
+    if not ward:
+        raise ValueError("The `ward` field can not be empty")
+
+    if len(ward) > 16:
+        raise ValueError(
+            "The `ward` field must have a maximum length of 16 characters"
+        )
+
+    return ward
 
 
 def validate_permissions_field(permissions: dict[Permission, bool]):

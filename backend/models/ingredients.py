@@ -2,7 +2,7 @@ import datetime
 from pydantic import BaseModel, field_validator
 
 from backend.models import BaseResponse
-from backend.utils import validate_name_field
+from backend.utils import validate_name_field, validate_ward_field
 
 
 class Ingredient(BaseModel):
@@ -58,7 +58,7 @@ class CreateIngredientItem(BaseModel):
     @field_validator("ward")
     @classmethod
     def validate_ward_field(cls, ward: str):
-        return validate_name_field(ward)
+        return validate_ward_field(ward)
 
 
 class CreateIngredientResponse(BaseResponse):

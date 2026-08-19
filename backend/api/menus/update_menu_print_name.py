@@ -6,23 +6,23 @@ from backend.database.models import Menu
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
-from backend.models.menu import UpdateMenuNameItem
+from backend.models.menu import UpdateMenuPrintNameItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-update_menu_name_router = APIRouter()
+update_menu_print_name_router = APIRouter()
 
 
-@update_menu_name_router.put(
-    "/{menu_id}/name", response_model=BaseResponse
+@update_menu_print_name_router.put(
+    "/{menu_id}/print_name", response_model=BaseResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
-async def update_menu_name(
+async def update_menu_print_name(
     menu_id: int,
-    item: UpdateMenuNameItem,
+    item: UpdateMenuPrintNameItem,
     token: TokenJwt = Depends(validate_token),
 ):
     """
-    Update name of menu.
+    Update print name of menu.
 
      **Permission**: can_administer
     """
@@ -33,12 +33,12 @@ async def update_menu_name(
         if not menu:
             raise NotFound(code=ErrorCodes.MENU_NOT_FOUND)
 
-        menu.name = item.name
+        menu.print_name = item.print_name
 
         try:
             await menu.save(using_db=connection)
 
         except IntegrityError:
-            raise Conflict(code=ErrorCodes.MENU_ALREADY_EXISTS)
+            raise Conflict(code=ErrorCodes.MENU_PRINT_NAME_ALREADY_EXISTS)
 
     return BaseResponse()

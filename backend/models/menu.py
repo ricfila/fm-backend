@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
 from backend.models.products import Product
-from backend.utils import validate_name_field, validate_short_name_field
+from backend.utils import validate_name_field, validate_product_name_field, validate_short_name_field, validate_print_name_field
 
 
 class MenuDate(BaseModel):
@@ -38,6 +38,7 @@ class Menu(BaseModel):
     id: int
     name: str
     short_name: str
+    print_name: str
     price: float
     daily_max_sales: int | None
     dates: list[MenuDate] | None = None
@@ -89,17 +90,23 @@ class AddMenuRoleResponse(BaseResponse):
 class CreateMenuItem(BaseModel):
     name: str
     short_name: str
+    print_name: str
     price: float = Field(ge=0)
 
     @field_validator("name")
     @classmethod
     def validate_name_field(cls, name: str):
-        return validate_name_field(name)
+        return validate_product_name_field(name)
 
     @field_validator("short_name")
     @classmethod
     def validate_short_name_field(cls, short_name: str):
         return validate_short_name_field(short_name)
+
+    @field_validator("print_name")
+    @classmethod
+    def validate_print_name_field(cls, print_name: str):
+        return validate_print_name_field(print_name)
 
 
 class CreateMenuResponse(BaseResponse):
@@ -154,7 +161,7 @@ class UpdateMenuNameItem(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name_field(cls, name: str):
-        return validate_name_field(name)
+        return validate_product_name_field(name)
 
 
 class UpdateMenuShortNameItem(BaseModel):
@@ -164,6 +171,15 @@ class UpdateMenuShortNameItem(BaseModel):
     @classmethod
     def validate_short_name_field(cls, short_name: str):
         return validate_short_name_field(short_name)
+
+
+class UpdateMenuPrintNameItem(BaseModel):
+    print_name: str
+
+    @field_validator("print_name")
+    @classmethod
+    def validate_print_name_field(cls, print_name: str):
+        return validate_print_name_field(print_name)
 
 
 class UpdateMenuPriceItem(BaseModel):

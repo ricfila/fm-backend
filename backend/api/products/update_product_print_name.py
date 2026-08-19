@@ -6,23 +6,23 @@ from backend.database.models import Product
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
-from backend.models.products import UpdateProductFrontendNameItem
+from backend.models.products import UpdateProductPrintNameItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-update_product_frontend_name_router = APIRouter()
+update_product_print_name_router = APIRouter()
 
 
-@update_product_frontend_name_router.put(
-    "/{product_id}/frontend_name", response_model=BaseResponse
+@update_product_print_name_router.put(
+    "/{product_id}/print_name", response_model=BaseResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
-async def update_product_frontend_name(
+async def update_product_print_name(
     product_id: int,
-    item: UpdateProductFrontendNameItem,
+    item: UpdateProductPrintNameItem,
     token: TokenJwt = Depends(validate_token),
 ):
     """
-    Update frontend name of product.
+    Update print name of product.
 
     **Permission**: can_administer
     """
@@ -33,12 +33,12 @@ async def update_product_frontend_name(
         if not product:
             raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-        product.frontend_name = item.frontend_name
+        product.print_name = item.print_name
 
         try:
             await product.save(using_db=connection)
 
         except IntegrityError:
-            raise Conflict(code=ErrorCodes.PRODUCT_FRONTEND_NAME_ALREADY_EXISTS)
+            raise Conflict(code=ErrorCodes.PRODUCT_PRINT_NAME_ALREADY_EXISTS)
 
     return BaseResponse()

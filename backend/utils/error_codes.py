@@ -30,6 +30,7 @@ class ErrorCodes(Enum):
     MENU_ALREADY_EXISTS = auto()
     MENU_NOT_FOUND = auto()
     MENU_SHORT_NAME_ALREADY_EXISTS = auto()
+    MENU_PRINT_NAME_ALREADY_EXISTS = auto()
     # Add menu date
     MENU_DATE_ALREADY_EXISTS = auto()
     # Add menu field
@@ -93,7 +94,7 @@ class ErrorCodes(Enum):
     PRODUCT_ALREADY_EXISTS = auto()
     PRODUCT_NOT_FOUND = auto()
     PRODUCT_SHORT_NAME_ALREADY_EXISTS = auto()
-    PRODUCT_FRONTEND_NAME_ALREADY_EXISTS = auto()
+    PRODUCT_PRINT_NAME_ALREADY_EXISTS = auto()
     # Add product date
     PRODUCT_DATE_ALREADY_EXISTS = auto()
     # Add product ingredient

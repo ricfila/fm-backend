@@ -16,7 +16,7 @@ class Ingredient(Model):
 
     id = fields.IntField(pk=True)
     name = fields.CharField(32, unique=True)
-    ward = fields.CharField(32)
+    ward = fields.CharField(16)
     is_deleted = fields.BooleanField(default=False)
     is_monitored = fields.BooleanField(default=True)
     sell_if_stocked = fields.BooleanField(default=False)

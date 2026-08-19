@@ -13,8 +13,9 @@ class Menu(Model):
     """
 
     id = fields.IntField(pk=True)
-    name = fields.CharField(32, unique=True)
-    short_name = fields.CharField(20, unique=True)
+    name = fields.CharField(64, unique=True)
+    short_name = fields.CharField(32, unique=True)
+    print_name = fields.CharField(64, unique=True)
     price = fields.FloatField()
     daily_max_sales = fields.IntField(null=True)
 
@@ -41,6 +42,7 @@ class Menu(Model):
             "id": self.id,
             "name": self.name,
             "short_name": self.short_name,
+            "print_name": self.print_name,
             "price": self.price,
             "daily_max_sales": self.daily_max_sales,
         }

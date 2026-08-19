@@ -5,8 +5,9 @@ from pydantic import BaseModel, Field, field_validator
 from backend.models import BaseResponse
 from backend.models.subcategories import Subcategory
 from backend.utils import (
-    validate_name_field,
+    validate_product_name_field,
     validate_short_name_field,
+    validate_print_name_field,
     validate_order_field,
     validate_color_field,
 )
@@ -42,7 +43,7 @@ class Product(BaseModel):
     id: int
     name: str
     short_name: str
-    frontend_name: str
+    print_name: str
     is_priority: bool
     is_main: bool
     price: float
@@ -63,7 +64,7 @@ class ProductName(BaseModel):
     id: int
     name: str
     short_name: str
-    frontend_name: str
+    print_name: str
 
 
 class AddProductDateItem(BaseModel):
@@ -106,7 +107,7 @@ class AddProductVariantResponse(BaseResponse):
 class CreateProductItem(BaseModel):
     name: str
     short_name: str
-    frontend_name: str
+    print_name: str
     price: float = Field(ge=0)
     category_id: int
     subcategory_id: int
@@ -114,17 +115,17 @@ class CreateProductItem(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name_field(cls, name: str):
-        return validate_name_field(name)
+        return validate_product_name_field(name)
 
     @field_validator("short_name")
     @classmethod
     def validate_short_name_field(cls, short_name: str):
         return validate_short_name_field(short_name)
     
-    @field_validator("frontend_name")
+    @field_validator("print_name")
     @classmethod
-    def validate_frontend_name_field(cls, frontend_name: str):
-        return validate_name_field(frontend_name)
+    def validate_print_name_field(cls, print_name: str):
+        return validate_print_name_field(print_name)
 
 
 class CreateProductResponse(BaseResponse):
@@ -146,7 +147,7 @@ class UpdateProductNameItem(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name_field(cls, name: str):
-        return validate_name_field(name)
+        return validate_product_name_field(name)
 
 
 class UpdateProductOrderItem(BaseModel):
@@ -167,13 +168,13 @@ class UpdateProductShortNameItem(BaseModel):
         return validate_short_name_field(short_name)
     
 
-class UpdateProductFrontendNameItem(BaseModel):
-    frontend_name: str
+class UpdateProductPrintNameItem(BaseModel):
+    print_name: str
 
-    @field_validator("frontend_name")
+    @field_validator("print_name")
     @classmethod
-    def validate_frontend_name_field(cls, frontend_name: str):
-        return validate_name_field(frontend_name)
+    def validate_print_name_field(cls, print_name: str):
+        return validate_print_name_field(print_name)
 
 
 class UpdateProductIsPriorityItem(BaseModel):

@@ -25,7 +25,10 @@ async def create_menu(
 
     async with in_transaction() as connection:
         new_menu = Menu(
-            name=item.name, short_name=item.short_name, price=item.price
+            name=item.name,
+            short_name=item.short_name,
+            print_name=item.print_name,
+            price=item.price
         )
 
         try:
