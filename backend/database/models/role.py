@@ -21,6 +21,7 @@ class Role(Model):
     can_statistics = fields.BooleanField(default=False)
     can_priority_statistics = fields.BooleanField(default=False)
     can_confirm_orders = fields.BooleanField(default=False)
+    can_complete_tickets = fields.BooleanField(default=False)
     order_confirmer = fields.ForeignKeyField(
         model_name="models.Role",
         related_name="roles_to_confirm",
@@ -50,6 +51,7 @@ class Role(Model):
             "can_statistics": self.can_statistics,
             "can_priority_statistics": self.can_priority_statistics,
             "can_confirm_orders": self.can_confirm_orders,
+            "can_complete_tickets": self.can_complete_tickets,
         }
 
     async def to_dict_name(self) -> dict:
