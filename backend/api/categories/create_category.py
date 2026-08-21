@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Category
+from backend.database.models import Category, Printer
 from backend.decorators import check_role
 from backend.models.error import Conflict
 from backend.models.categories import (
@@ -27,7 +27,15 @@ async def create_category(
     """
 
     async with in_transaction() as connection:
-        new_category = Category(name=item.name, print_delay=item.print_delay)
+        printer = await Printer.get_or_none(id=item.printer_id, using_db=connection)
+        if not printer:
+            raise Conflict(code=ErrorCodes.PRINTER_NOT_FOUND)
+
+        new_category = Category(
+            name=item.name,
+            printer=printer,
+            print_delay=item.print_delay
+        )
 
         try:
             await new_category.save(using_db=connection)

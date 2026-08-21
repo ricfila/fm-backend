@@ -9,7 +9,7 @@ class Category(BaseModel):
     name: str
     print_delay: int
     wait_parent_category: bool
-    printer_id: int | None
+    printer_id: int
     parent_category_id: int | None
     parent_for_take_away_id: int | None
     parent_for_main_products_id: int | None
@@ -22,6 +22,7 @@ class CategoryName(BaseModel):
 
 class CreateCategoryItem(BaseModel):
     name: str
+    printer_id: int
     print_delay: int = Field(ge=0)
 
     @field_validator("name")
@@ -57,7 +58,7 @@ class UpdateCategoryPrintDelayItem(BaseModel):
 
 
 class UpdateCategoryPrinterItem(BaseModel):
-    printer_id: int | None
+    printer_id: int
 
 
 class UpdateParentCategoryItem(BaseModel):

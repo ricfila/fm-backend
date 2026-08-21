@@ -19,7 +19,6 @@ class Category(Model):
     printer = fields.ForeignKeyField(
         model_name="models.Printer",
         related_name="category_printer",
-        null=True,
         on_delete=fields.RESTRICT,
         on_update=fields.CASCADE
     )

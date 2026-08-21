@@ -30,14 +30,11 @@ async def update_category_printer(
         if not category:
             raise NotFound(code=ErrorCodes.CATEGORY_NOT_FOUND)
 
-        if item.printer_id is None:
-            category.printer = None
-        else:
-            printer = await Printer.get_or_none(id=item.printer_id, using_db=connection)
-            if not printer:
-                raise NotFound(code=ErrorCodes.PRINTER_NOT_FOUND)
-            
-            category.printer = printer
+        printer = await Printer.get_or_none(id=item.printer_id, using_db=connection)
+        if not printer:
+            raise NotFound(code=ErrorCodes.PRINTER_NOT_FOUND)
+        
+        category.printer = printer
 
         try:
             await category.save(using_db=connection)

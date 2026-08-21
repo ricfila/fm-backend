@@ -47,7 +47,7 @@ class Product(BaseModel):
     is_priority: bool
     is_main: bool
     price: float
-    category_id: int
+    category_id: int | None
     subcategory_id: int
     subcategory: Subcategory | None = None
     order: int
@@ -109,7 +109,6 @@ class CreateProductItem(BaseModel):
     short_name: str
     print_name: str
     price: float = Field(ge=0)
-    category_id: int
     subcategory_id: int
 
     @field_validator("name")

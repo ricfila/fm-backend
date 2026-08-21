@@ -469,10 +469,11 @@ async def create_tickets(order: Order, connection: BaseDBAsyncClient):
 
     if order.is_take_away:
         categories, changes = await collapseCategories(categories, 'parent_for_take_away_id', changes, connection)
-    
+
+    max_guests = Session.settings.max_guests_for_main_products
     if order.guests and (
-        (order.guests <= 4 and main_products <= order.guests) or
-        (order.guests > 4 and main_products <= 4)):
+        (main_products <= order.guests and (max_guests is None or order.guests <= max_guests)) or
+        (max_guests is not None and order.guests > max_guests and main_products <= max_guests)):
         categories, changes = await collapseCategories(categories, 'parent_for_main_products_id', changes, connection)
     
     categories, changes = await collapseOrphanCategories(categories, changes, connection)

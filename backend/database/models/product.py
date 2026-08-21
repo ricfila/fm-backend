@@ -26,6 +26,7 @@ class Product(Model):
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     category = fields.ForeignKeyField(
         model_name="models.Category",
+        null=True,
         on_delete=fields.RESTRICT,
         on_update=fields.CASCADE
     )

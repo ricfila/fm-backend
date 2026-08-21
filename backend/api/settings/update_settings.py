@@ -14,7 +14,8 @@ update_settings_router = APIRouter()
 @update_settings_router.put("/", response_model=BaseResponse)
 @check_role(Permission.CAN_ADMINISTER)
 async def update_settings(
-    item: UpdateSettingsItem, token: TokenJwt = Depends(validate_token)
+    item: UpdateSettingsItem,
+    token: TokenJwt = Depends(validate_token)
 ):
     """
     Update settings.
@@ -23,6 +24,8 @@ async def update_settings(
     """
 
     item_data = {k: v for k, v in item.model_dump().items() if v is not None}
+    if item_data.get("max_guests_for_main_products") is not None and item_data["max_guests_for_main_products"] < 0:
+        item_data["max_guests_for_main_products"] = None
 
     async with in_transaction() as connection:
         setting = await Setting.first(using_db=connection)

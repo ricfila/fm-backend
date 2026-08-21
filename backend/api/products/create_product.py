@@ -41,7 +41,6 @@ async def create_product(
             short_name=item.short_name,
             print_name=item.print_name,
             price=item.price,
-            category=category,
             subcategory=subcategory,
         )
 

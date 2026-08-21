@@ -6,6 +6,7 @@ __all__ = (
     "add_product_variant_router",
     "create_product_router",
     "delete_product_router",
+	"delete_product_category_router",
     "delete_product_date_router",
     "delete_product_ingredient_router",
     "delete_product_role_router",
@@ -34,6 +35,7 @@ from .add_product_role import add_product_role_router
 from .add_product_variant import add_product_variant_router
 from .create_product import create_product_router
 from .delete_product import delete_product_router
+from .delete_product_category import delete_product_category_router
 from .delete_product_date import delete_product_date_router
 from .delete_product_ingredient import delete_product_ingredient_router
 from .delete_product_role import delete_product_role_router
@@ -60,6 +62,7 @@ products.include_router(add_product_role_router)
 products.include_router(add_product_variant_router)
 products.include_router(create_product_router)
 products.include_router(delete_product_router)
+products.include_router(delete_product_category_router)
 products.include_router(delete_product_date_router)
 products.include_router(delete_product_ingredient_router)
 products.include_router(delete_product_role_router)
