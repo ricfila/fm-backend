@@ -107,14 +107,14 @@ LEFT JOIN (
         pi.ingredient_id,
         SUM(
             CASE
-                WHEN tk.completed_at IS NULL AND NOT o.is_done
+                WHEN tk.completed_at IS NULL
                 THEN op.quantity * pi.max_quantity
                 ELSE 0
             END
         ) AS total_sold,
         SUM(
             CASE
-                WHEN tk.completed_at IS NOT NULL OR o.is_done
+                WHEN tk.completed_at IS NOT NULL
                 THEN op.quantity * pi.max_quantity
                 ELSE 0
             END
@@ -135,14 +135,14 @@ LEFT JOIN (
         opi.ingredient_id,
         SUM(
             CASE
-                WHEN tk.completed_at IS NULL AND NOT o.is_done
+                WHEN tk.completed_at IS NULL
                 THEN op.quantity * opi.quantity
                 ELSE 0
             END
         ) AS total_sold,
         SUM(
             CASE
-                WHEN tk.completed_at IS NOT NULL OR o.is_done
+                WHEN tk.completed_at IS NOT NULL
                 THEN op.quantity * opi.quantity
                 ELSE 0
             END

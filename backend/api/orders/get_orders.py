@@ -82,7 +82,7 @@ async def get_orders(
         #    query &= Q(created_at__lt=to_date)
         
         if need_confirm:
-            query &= Q(is_confirmed=False, is_done=False)
+            query &= Q(is_confirmed=False)
         
         if confirmed_by_user:
             query &= Q(confirmed_by_id=token.user_id)

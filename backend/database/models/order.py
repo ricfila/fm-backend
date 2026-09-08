@@ -18,7 +18,6 @@ class Order(Model):
     is_take_away = fields.BooleanField()
     table = fields.CharField(32, null=True)
     is_confirmed = fields.BooleanField(default=False)
-    is_done = fields.BooleanField(default=False)
     is_deleted = fields.BooleanField(default=False)
     is_voucher = fields.BooleanField(default=False)
     is_for_service = fields.BooleanField(default=False)
@@ -100,7 +99,6 @@ class Order(Model):
             "is_take_away": self.is_take_away,
             "table": self.table,
             "is_confirmed": self.is_confirmed,
-            "is_done": self.is_done,
             "is_voucher": self.is_voucher,
             "is_for_service": self.is_for_service,
             "has_tickets": self.has_tickets,

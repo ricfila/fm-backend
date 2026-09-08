@@ -62,7 +62,6 @@ class Order(BaseModel):
     is_take_away: bool
     table: str | None = None
     is_confirmed: bool
-    is_done: bool
     is_voucher: bool
     is_for_service: bool
     has_tickets: bool

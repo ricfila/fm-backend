@@ -139,7 +139,6 @@ async def create_order(
                 or not item.has_tickets
                 else None
             ),
-            is_done=not item.has_tickets,
             is_voucher=item.is_voucher,
             is_for_service=item.is_for_service,
             has_tickets=item.has_tickets,

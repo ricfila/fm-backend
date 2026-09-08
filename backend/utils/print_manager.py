@@ -110,29 +110,7 @@ class PrintManager:
                 printed = await self.print_ticket(ticket, update_db=True)
                 if printed:
                     printed_tickets.append(ticket)
-                
 
-            # Set is_done=True for completed orders in this cycle
-            """
-            async with in_transaction() as connection:
-                orders = await Order.filter(
-                    id__in=[t.order_id for t in printed_tickets],
-                    is_done=False
-                ).prefetch_related("order_tickets").using_db(connection)
-
-                for order in orders:
-                    tickets_to_print = len([t for t in order.order_tickets if t.printed_at == None])
-                    if tickets_to_print == 0:
-                        order.is_done = True
-                    else:
-                        orders.remove(order)
-                
-                if len(orders) > 0:
-                    try:
-                        await Order.bulk_update(orders, fields=['is_done'], using_db=connection)
-                    except IntegrityError:
-                        raise Conflict(code=ErrorCodes.ORDER_UPDATE_FAILED)
-            """
 
             logger.debug(
                 f"Fine ciclo. Attesa di {RETRY_DELAY} secondi prima del prossimo aggiornamento."
