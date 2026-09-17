@@ -4,11 +4,10 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
-from backend.models.categories import CategoryName
 from backend.models.menu import Menu
 from backend.models.payment_methods import PaymentMethodName
 from backend.models.products import Product
-from backend.models.tickets import Ticket
+from backend.models.tickets import Ticket, TicketCategory
 from backend.models.users import User
 from backend.utils import validate_name_field, PrinterType
 
@@ -29,7 +28,7 @@ class OrderProduct(BaseModel):
     order_menu_field_id: int | None = None
     product: Product | None = None
     ingredients: list[OrderProductIngredient] | None = None
-    category_id: int
+    category_id: int | None = None
 
 
 class OrderMenuField(BaseModel):
@@ -58,10 +57,10 @@ class Revision(BaseModel):
 class Order(BaseModel):
     id: int
     customer: str
-    guests: int | None = Field(ge=0, default=None) #TODO ge=1
+    guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
     table: str | None = None
-    is_confirmed: bool
+    needs_confirmation: bool
     is_voucher: bool
     is_for_service: bool
     has_tickets: bool
@@ -69,6 +68,7 @@ class Order(BaseModel):
     price: float
     payment_method_id: int
     payment_method: PaymentMethodName | None = None
+    parent_order_id: int | None = None
     revisions: list[Revision] | None = None
     user: User | None = None
     confirmed_by: User | None = None
@@ -140,7 +140,7 @@ class CreateOrderMenuItem(BaseModel):
 
 class CreateOrderItem(BaseModel):
     customer: str
-    guests: int | None = Field(ge=0, default=None) #TODO guests ge=1
+    guests: int | None = Field(ge=1, default=None)
     is_take_away: bool
     table: str | None = None
     is_voucher: bool
@@ -181,16 +181,10 @@ class TicketOrder(BaseModel):
     category_id: int
     printed_at: datetime.datetime | None
     completed_at: datetime.datetime | None
+    has_collapsed_categories: bool
     order: Order | None
-
-
-class TicketCategory(BaseModel):
-    id: int
-    category: CategoryName
-    printed_at: datetime.datetime | None
-    completed_at: datetime.datetime | None
 
 
 class GetTicketsResponse(BaseResponse):
     total_count: int
-    tickets: list[Ticket | TicketCategory | TicketOrder]
+    tickets: list[Ticket | TicketOrder | TicketCategory]

@@ -119,9 +119,7 @@ async def _check_generic_product(
                 ),
             )
 
-        product_price += (Decimal(product_ingredient.price)).quantize(
-            ZERO_DECIMAL
-        )
+        product_price += (Decimal(product_ingredient.price)).quantize(ZERO_DECIMAL)
 
     # Assign calculated price to the product
     product._price = product_price
@@ -135,7 +133,8 @@ async def check_products(
     role_id: int,
     connection: BaseDBAsyncClient,
 ) -> tuple[bool, ErrorCodes | None]:
-    product_ids = {x.product_id for x in products}  # Extract product IDs
+    # Extract product IDs
+    product_ids = {p.product_id for p in products}
 
     # Get products from DB
     products_db = (
@@ -209,10 +208,6 @@ async def create_order_products(
     product_category_map = { p.id: p.category_id for p in products_db }
 
     for product in products:
-        category_id = product_category_map.get(product.product_id)
-        if category_id is None:
-            raise ValueError(ErrorCodes.PRODUCT_NOT_FOUND)
-        
         order_product = await OrderProduct.create(
             product_id=product.product_id,
             price=product._price,
@@ -221,7 +216,7 @@ async def create_order_products(
             notes=product.notes,
             order=order,
             order_menu_field=order_menu_field,
-            category_id=category_id,
+            category_id=product_category_map.get(product.product_id),
             using_db=connection,
         )
 
@@ -452,54 +447,98 @@ async def create_order_menus(
 
 async def create_tickets(order: Order, connection: BaseDBAsyncClient):    
     if not order.has_tickets:
-        return #TODO: set NULL into order_product.category_id if there are no tickets
-    
-    order_products = await OrderProduct.filter(order_id=order.id).prefetch_related("product", "product__category").using_db(connection)
+        await OrderProduct.filter(order_id=order.id).using_db(connection).update(category_id=None)
+        return True
+
+
+    # Collapsing categories
+    order_products = await OrderProduct.filter(order_id=order.id).prefetch_related(
+        "product", "product__category"
+    ).using_db(connection)
+
     categories = []
-    main_products = 0
+    parent_categories = []
+    changes = {}
 
     for op in order_products:
         if op.product.category not in categories:
             categories.append(op.product.category)
 
-        if op.product.is_main:
-            main_products += op.quantity
-    
-    changes = {}
+        if op.product.category.parent_for_main_products_id and op.product.category.parent_for_main_products_id not in parent_categories:
+            parent_categories.append(op.product.category.parent_for_main_products_id)
 
+
+    # Collapsing categories for take_away orders
     if order.is_take_away:
-        categories, changes = await collapseCategories(categories, 'parent_for_take_away_id', changes, connection)
+        categories, changes = await collapseCategories(
+            categories=categories,
+            parent_field='parent_for_take_away_id',
+            changes=changes,
+            connection=connection
+        )
 
+
+    # Collapsing categories for main products
+    categories_main_products = {}
     max_guests = Session.settings.max_guests_for_main_products
-    if order.guests and (
-        (main_products <= order.guests and (max_guests is None or order.guests <= max_guests)) or
-        (max_guests is not None and order.guests > max_guests and main_products <= max_guests)):
-        categories, changes = await collapseCategories(categories, 'parent_for_main_products_id', changes, connection)
-    
+
+    for op in order_products:
+        if op.product.is_main:
+            category_id = changes.get(op.product.category_id, op.product.category_id)
+            categories_main_products[category_id] = categories_main_products.get(category_id, 0) + op.quantity
+
+    if order.guests and (not max_guests or order.guests <= max_guests):
+        for parent_category_id in parent_categories:
+            if categories_main_products.get(parent_category_id, 0) < order.guests:
+                categories, changes = await collapseCategories(
+                    categories=categories,
+                    parent_field='parent_for_main_products_id',
+                    changes=changes,
+                    connection=connection,
+                    parent_id=parent_category_id
+                )
+
+
+    # Collapsing categories for adding orders
+    if not order.guests and not order.is_take_away:
+        categories, changes = await collapseCategories(
+            categories=categories,
+            parent_field='parent_category_id',
+            changes=changes,
+            connection=connection
+        )
+
+
+    # Collapsing orphan categories
     categories, changes = await collapseOrphanCategories(categories, changes, connection)
+
     
     # Create tickets
-    tickets = [Ticket(order_id=order.id, category_id=c.id) for c in categories]
+    tickets = [Ticket(
+        order_id=order.id,
+        category_id=c.id,
+        has_collapsed_categories=bool(c.id in changes.values())
+    ) for c in categories]
+
     try:
         await Ticket.bulk_create(objects=tickets, using_db=connection)
     except IntegrityError:
         raise Conflict(code=ErrorCodes.TICKET_CREATION_FAILED)
+
     
-    # Update collapsed categories with respective parents for order_products
+    # Update collapsed categories with respective parents in order_product
     for from_id, to_id in changes.items():
         await OrderProduct.filter(
             order_id=order.id,
             category_id=from_id
         ).using_db(connection).update(category_id=to_id)
 
+    return True
 
-async def get_order_price(order: CreateOrderItem) -> Decimal:
+
+async def get_order_price(order: CreateOrderItem, guests: int) -> Decimal:
     cover_change = Decimal(Session.settings.cover_charge)
-    guests = Decimal(
-        order.guests
-        if not order.is_take_away and not order.parent_order_id and order.guests is not None
-        else 0
-    )
+    guests = Decimal(guests)
     price = ZERO_DECIMAL
 
     include_cover_charge = any(
@@ -512,14 +551,8 @@ async def get_order_price(order: CreateOrderItem) -> Decimal:
         for product in field.products
     )
 
-    if (
-        include_cover_charge
-        and not order.is_take_away
-        and not order.parent_order_id
-    ):
+    if include_cover_charge:
         price = (cover_change * guests).quantize(ZERO_DECIMAL)
-    else:
-        order.guests = None
 
     for x in order.products:
         price += Decimal(x._price).quantize(ZERO_DECIMAL)

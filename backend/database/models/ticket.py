@@ -22,6 +22,7 @@ class Ticket(Model):
     )
     printed_at = fields.DatetimeField(null=True, default=None)
     completed_at = fields.DatetimeField(null=True, default=None)
+    has_collapsed_categories = fields.BooleanField(default=False)
 
     order_id: int
     category_id: int
@@ -35,7 +36,8 @@ class Ticket(Model):
             "order_id": self.order_id,
             "category_id": self.category_id,
             "printed_at": self.printed_at,
-            "completed_at": self.completed_at
+            "completed_at": self.completed_at,
+            "has_collapsed_categories": self.has_collapsed_categories
         }
 
     async def to_dict_category(self) -> dict:
@@ -44,7 +46,8 @@ class Ticket(Model):
             "id": self.id,
             "category": category_name,
             "printed_at": self.printed_at,
-            "completed_at": self.completed_at
+            "completed_at": self.completed_at,
+            "has_collapsed_categories": self.has_collapsed_categories
         }
     
     async def to_dict_order(self) -> dict:
@@ -54,5 +57,6 @@ class Ticket(Model):
             "category_id": self.category_id,
             "printed_at": self.printed_at,
             "completed_at": self.completed_at,
+            "has_collapsed_categories": self.has_collapsed_categories,
             "order": await self.order.to_dict(include_user=True, include_confirmer_user=True)
         }

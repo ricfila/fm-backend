@@ -12,6 +12,7 @@ class Setting(Model):
     receipt_header = fields.TextField(default="")
     cover_charge = fields.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     max_guests_for_main_products = fields.IntField(default=None, null=True)
+    delay_after_confirmation = fields.IntField(default=0)
 
     class Meta:
         name = "setting"
@@ -22,4 +23,5 @@ class Setting(Model):
             "receipt_header": self.receipt_header,
             "cover_charge": self.cover_charge,
             "max_guests_for_main_products": self.max_guests_for_main_products,
+            "delay_after_confirmation": self.delay_after_confirmation
         }

@@ -1,6 +1,3 @@
-import datetime
-import pytz
-
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
@@ -36,29 +33,36 @@ async def create_order(
     """
     Create a new order.
 
-    **Permission**: can_order
+     **Permission**: can_order
     """
 
     if not item.products and not item.menus:
         raise BadRequest(code=ErrorCodes.NO_PRODUCTS_AND_MENUS, message="Nessun prodotto e nessun menù selezionato")
-    
-    """#TODO remove comment: guests must be > 0
-    if (
-        not item.is_take_away
-        and not Session.settings.order_requires_confirmation
-        and not (item.parent_order_id or not item.has_tickets)
-        and (not item.guests or not item.table)
-    ):
-        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti o il tavolo")
 
-    if (
-        not item.is_take_away
-        and Session.settings.order_requires_confirmation
-        #and not item.guests
-        and not (item.parent_order_id or not item.has_tickets)
-    ):
-        raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti")
-    """
+    eat_in = not item.is_take_away and item.has_tickets and not item.parent_order_id
+
+    if eat_in:
+        if not item.table:
+            if not Session.settings.order_requires_confirmation:
+                raise BadRequest(code=ErrorCodes.SET_TABLE, message="Specificare il numero del tavolo")
+            
+            if not item.guests:
+                raise BadRequest(code=ErrorCodes.SET_GUESTS_NUMBER, message="Specificare il numero di coperti")
+    
+    else:
+        if item.guests:
+            raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED, message="Per quest'ordine non è consentito specificare il numero di coperti")
+        
+        if item.table:
+            raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED, message="Per quest'ordine non è consentito specificare il tavolo")
+    
+        if item.is_take_away and item.parent_order_id:
+            raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED, message="Un ordine figlio non può essere da asporto")
+            
+        if item.is_take_away and not item.has_tickets:
+            raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED, message="Un ordine per asporto deve avere delle comande")
+
+
     async with in_transaction() as connection:
         await connection.execute_query(
             "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
@@ -72,17 +76,15 @@ async def create_order(
             if not parent_order:
                 raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
-        if item.payment_method_id:
-            payment_method = await PaymentMethod.get_or_none(
-                id=item.payment_method_id, is_deleted=False, using_db=connection
-            )
+        payment_method = await PaymentMethod.get_or_none(
+            id=item.payment_method_id, is_deleted=False, using_db=connection
+        )
 
-            if not payment_method:
-                raise NotFound(code=ErrorCodes.PAYMENT_METHOD_NOT_FOUND)
-        
+        if not payment_method:
+            raise NotFound(code=ErrorCodes.PAYMENT_METHOD_NOT_FOUND)
+    
         if (
-            not Session.settings.order_requires_confirmation
-            and not item.is_take_away
+            item.table is not None
             and not await is_table_allowed_for_role(
                 token.role_id, item.table, connection
             )
@@ -103,50 +105,23 @@ async def create_order(
         if has_error_menus:
             raise Conflict(code=error_code_menus)
 
-        order_price = await get_order_price(item)
-
-        rome_tz = pytz.timezone("Europe/Rome")
-        now_in_rome = datetime.datetime.now(rome_tz)
+        guests = item.guests if eat_in else None
+        order_price = await get_order_price(item, guests or 0)
 
         order = await Order.create(
             customer=item.customer,
-            guests=(
-                item.guests
-                if not item.is_take_away and not item.parent_order_id
-                else None
-            ),
-            is_take_away=(
-                item.is_take_away if not item.parent_order_id else False
-            ),
-            table=(
-                item.table
-                if (not item.is_take_away
-                and not Session.settings.order_requires_confirmation
-                and not item.parent_order_id)
-                or not item.has_tickets
-                else None
-            ),
-            is_confirmed=(
-                True
-                if item.is_take_away
-                or not Session.settings.order_requires_confirmation
-                or not item.has_tickets
-                else False
-            ),
-            confirmed_at=(now_in_rome
-                if item.is_take_away
-                or not Session.settings.order_requires_confirmation
-                or not item.has_tickets
-                else None
-            ),
+            guests=guests,
+            is_take_away=item.is_take_away,
+            table=item.table if eat_in else None,
+            needs_confirmation=bool(eat_in and not item.table),
             is_voucher=item.is_voucher,
             is_for_service=item.is_for_service,
             has_tickets=item.has_tickets,
             notes=item.notes,
             price=order_price,
+            parent_order_id=item.parent_order_id,
             payment_method_id=item.payment_method_id,
             user_id=token.user_id,
-            parent_order_id=item.parent_order_id,
             using_db=connection,
         )
 

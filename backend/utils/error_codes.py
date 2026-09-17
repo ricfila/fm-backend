@@ -79,6 +79,7 @@ class ErrorCodes(Enum):
     PRODUCT_ROLE_NOT_EXIST = auto()
     PRODUCT_VARIANT_NOT_EXIST = auto()
     SET_GUESTS_NUMBER = auto()
+    SET_TABLE = auto()
     # Updade
     ORDER_UPDATE_FAILED = auto()
 
@@ -157,10 +158,12 @@ class ErrorCodes(Enum):
     # Validation
     DATE_RANGE_INVALID = auto()
     DUPLICATE_DATE = auto()
+    INVALID_OFFSET_OR_LIMIT_NEGATIVE = auto()
+    INVALID_QUERY_PARAMS = auto()
+    METHOD_NOT_ALLOWED = auto()
     ONLY_ONE_STATISTICS_CAN_BE_TRUE = auto()
     PAPER_SIZE_REQUIRED_IF_CAN_ORDER = auto()
     UNKNOWN_ORDER_BY_PARAMETER = auto()
-    INVALID_OFFSET_OR_LIMIT_NEGATIVE = auto()
 
     # Default
     GENERIC_HTTP_EXCEPTION = auto()

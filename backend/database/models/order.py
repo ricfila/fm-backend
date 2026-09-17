@@ -17,7 +17,7 @@ class Order(Model):
     guests = fields.IntField(null=True)
     is_take_away = fields.BooleanField()
     table = fields.CharField(32, null=True)
-    is_confirmed = fields.BooleanField(default=False)
+    needs_confirmation = fields.BooleanField(default=False)
     is_deleted = fields.BooleanField(default=False)
     is_voucher = fields.BooleanField(default=False)
     is_for_service = fields.BooleanField(default=False)
@@ -42,7 +42,7 @@ class Order(Model):
         on_update=fields.CASCADE
     )
     created_at = fields.DatetimeField(auto_now_add=True)
-    confirmed_at = fields.DatetimeField(null=True)
+    confirmed_at = fields.DatetimeField(default=None, null=True)
     parent_order = fields.ForeignKeyField(
         model_name="models.Order",
         related_name="child_orders",
@@ -98,7 +98,7 @@ class Order(Model):
             "guests": self.guests,
             "is_take_away": self.is_take_away,
             "table": self.table,
-            "is_confirmed": self.is_confirmed,
+            "needs_confirmation": self.needs_confirmation,
             "is_voucher": self.is_voucher,
             "is_for_service": self.is_for_service,
             "has_tickets": self.has_tickets,
@@ -106,6 +106,7 @@ class Order(Model):
             "price": self.price,
             "created_at": self.created_at,
             "confirmed_at": self.confirmed_at,
+            "parent_order_id": self.parent_order_id,
             "payment_method_id": self.payment_method_id
         }
 

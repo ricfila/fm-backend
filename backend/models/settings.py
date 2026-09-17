@@ -9,12 +9,14 @@ class Settings(BaseModel):
     receipt_header: str
     cover_charge: float
     max_guests_for_main_products: int | None
+    delay_after_confirmation: int
 
 
 class SettingsUser(BaseModel):
     order_requires_confirmation: bool
     cover_charge: float
     max_guests_for_main_products: int | None
+    delay_after_confirmation: int
 
 
 class GetSettingsResponse(BaseResponse):
@@ -26,6 +28,7 @@ class UpdateSettingsItem(BaseModel):
     receipt_header: str | None = None
     cover_charge: float | None = Field(ge=0, default=None)
     max_guests_for_main_products: int | None = Field(ge=-1, default=None)
+    delay_after_confirmation: int | None = Field(ge=0, default=None)
 
     @field_validator("receipt_header")
     @classmethod

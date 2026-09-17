@@ -58,7 +58,12 @@ class OrderTextManager:
         return text[:cut_len] + placeholder
     
     @staticmethod
-    def _row_in_square(text: str = None, is_first: bool = False, is_last: bool = False) -> str:
+    def _row_in_square(
+        text: str = None,
+        is_first: bool = False,
+        is_last: bool = False,
+        length: int = None
+    ) -> str:
         width = OrderTextManager.MAX_WIDTH
 
         if is_first:
@@ -66,7 +71,9 @@ class OrderTextManager:
         if is_last:
             return "╚" + "═"*(width - 2) + "╝\n"
         if text is not None:
-            return "║" + text + " "*(width - len(text) - 2) + "║\n"
+            if length is None:
+                length = len(text)
+            return "║" + text + " "*(width - length - 2) + "║\n"
         return ""
 
     @staticmethod
@@ -397,7 +404,7 @@ class OrderTextManager:
                 result += (
                     "* Tavolo: " + self.order.parent_order.table + "\n"
                 )
-            if self.order.is_confirmed:
+            if self.order.confirmed_at is not None:
                 result += (
                     "* Data conferma: "
                     + self.order.confirmed_at.astimezone(
@@ -432,29 +439,23 @@ class OrderTextManager:
             result += f"<DOUBLE>{row1}</DOUBLE>\n<DOUBLE>{row2}</DOUBLE>\n"
         else:
             result += f"<DOUBLE>{category_name}</DOUBLE>\n"
-        row = f"Ordine n. {self.order.id} - {self.order.user.username} {date_time}"
+        row = f"Ordine n. {self.order.id} - {self.order.user.username} - {date_time}"
         result += row + " "*(self.MAX_WIDTH - len(row))
+
+        if (self.order.guests is not None):
+            row = f"Coperti: {self.order.guests}"
+            result += row + " "*(self.MAX_WIDTH - len(row))
 
         result += self._row_in_square(is_first=True)
         
-        customer = (
-            self.order.customer
-            if not self.order.parent_order
-            else self.order.parent_order.customer
-        )
-        guests = (
-            "   (" + str(self.order.guests) + " copert" + ("o" if self.order.guests == 1 else "i") + ")"
-            if self.order.guests is not None
-            else ""
-        )
-        result += "║ CLI: <DOUBLE>" + customer.upper() + "</DOUBLE>\n"
+        customer = self.order.customer
+        table = self.order.table or (self.order.parent_order.table if self.order.parent_order is not None else None)
 
-        if self.order.table:
-            result += "║ TAV: <DOUBLE>" + self.order.table + "</DOUBLE>\n"
-        elif self.order.parent_order:
-            result += self._row_in_square(" TAVOLO:  " + self.order.parent_order.table)
+        result += self._row_in_square(" CLI: <DOUBLE>" + customer.upper() + "</DOUBLE>", length=6+2*len(customer))
+        if table:
+            result += self._row_in_square(" TAV: <DOUBLE>" + table + "</DOUBLE>", length=6+2*len(table))
         
-        if self.order.is_confirmed and self.order.confirmed_by is not None:
+        if self.order.confirmed_at is not None and self.order.confirmed_by is not None:
             result += self._row_in_square(
                 " Confermato da " +
                 self.order.confirmed_by.username +
@@ -513,10 +514,6 @@ class OrderTextManager:
 
     def _render_ticket_text(self) -> str:
         ticket_text = self._get_short_header()
-
-        #if self.order.guests:
-        #    ticket_text += f"{self.order.guests} <DOUBLE>Coperti</DOUBLE>"
-        #    ticket_text += "\n"
 
         products_text = self._get_products_text(self._get_ordered_products())
         ticket_text += products_text

@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import pytz
 import re
 import threading
 
@@ -9,12 +8,14 @@ from loguru import logger
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Order, Printer, Ticket
-from backend.models.error import Conflict, NotFound
-from backend.utils import ErrorCodes, PrinterType
+from backend.config import Session
+from backend.database.models import Printer, Ticket
+from backend.database.utils import get_current_time
+from backend.utils import PrinterType
 from backend.utils.order_text_manager import OrderTextManager
 
 MAX_RETRY_DELAY = 60
+PRINTER_TIMEOUT = 5
 RETRY_DELAY = 10
 STEP = 2
 
@@ -40,14 +41,14 @@ class PrintManager:
     
     def add_printer(self, printer_id: int, printer_ip_address: str):
         if printer_id not in self.printers:
-            self.printers[printer_id] = Network(printer_ip_address, timeout=5)
+            self.printers[printer_id] = Network(printer_ip_address, timeout=PRINTER_TIMEOUT)
             self._printer_locks[printer_id] = threading.Lock()
     
 
     def _threaded_print(self, printer: Network, content: str, lock: threading.Lock):
-        # Eseguito in thread tramite asyncio.to_thread
+        # Executed in thread with asyncio.to_thread
         with lock:
-            # _print_content è già sincrona e fa I/O di rete
+            # _print_content is already synchronous and does I/O on network
             self._print_content(printer, content)
             return True
 
@@ -60,25 +61,23 @@ class PrintManager:
             "order__order_products__variant",
             "order__order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__ingredient",
             "order__order_menus__menu",
+            "order__parent_order",
             "order__user",
             "order__confirmed_by"
         ]
 
         while True:
+            # Fetch all ticket that are not printed and not completed
             tickets = (
                 await Ticket.filter(
                     printed_at=None,
                     completed_at=None,
-                    order__is_done=False,
-                    order__is_deleted=False,
-                    order__confirmed_at__isnull=False
+                    order__is_deleted=False
                 )
                 .prefetch_related(*prefetch_values)
             )
 
-            rome_tz = pytz.timezone("Europe/Rome")
-            now_in_rome = datetime.datetime.now(rome_tz)
-
+            current_time = get_current_time()
             ready_tickets = []
             printed_tickets = []
 
@@ -88,19 +87,33 @@ class PrintManager:
                         order_id=t.order_id,
                         category_id=getattr(t.category, "parent_category_id")
                     ).first()
-                    if not parent_t:
-                        raise NotFound(ErrorCodes.TICKET_NOT_FOUND, message=f"Ticket genitore non trovato per l'ordine {t.order_id}")
-                    
-                    confirmed_at = getattr(parent_t, "completed_at", None)
-                else:
-                    confirmed_at = getattr(t.order, "confirmed_at", None)
-                
-                print_delay = getattr(t.category, "print_delay", 0) or 0
 
-                if confirmed_at is None:
+                    if not parent_t:
+                        logger.error(f"Ticket genitore non trovato per l'ordine {t.order_id}")
+                        continue
+                    
+                    trigger_time = getattr(parent_t, "completed_at", None)
+
+                else:
+                    if getattr(t.order, "needs_confirmation"):
+                        trigger_time = getattr(t.order, "confirmed_at", None)
+                    else:
+                        trigger_time = getattr(t.order, "created_at")
+
+                
+                if trigger_time is None:
                     continue
 
-                if confirmed_at + datetime.timedelta(seconds=print_delay) <= now_in_rome:
+                if getattr(t.order, "guests") is None and not getattr(t.order, "is_take_away"):
+                    # print_delay is forced to 0 for adding orders
+                    print_delay = 0
+                else:
+                    print_delay = getattr(t.category, "print_delay", 0)
+
+                    if getattr(t.order, "needs_confirmation") and not getattr(t.category, "wait_parent_category"):
+                        print_delay += Session.settings.delay_after_confirmation
+
+                if trigger_time + datetime.timedelta(seconds=print_delay) <= current_time:
                     ready_tickets.append(t)
 
 
@@ -115,11 +128,13 @@ class PrintManager:
             logger.debug(
                 f"Fine ciclo. Attesa di {RETRY_DELAY} secondi prima del prossimo aggiornamento."
             )
+
+            # Wait for the next update cycle
             await asyncio.sleep(RETRY_DELAY)
 
 
     @staticmethod
-    def _print_content(printer: Network, content: str, order_id: int):
+    def _print_content(printer: Network, content: str, order_id: int = None):
         printer.open()
         printer.hw("INIT")
         printer.charcode("CP850")
@@ -152,8 +167,6 @@ class PrintManager:
         content = text.generate_text_for_printer(PrinterType.TICKET)
 
         printer_id = ticket.category.printer_id
-        if printer_id is None:
-            return True
 
         printer = self.printers[printer_id]
         lock = self._printer_locks.get(printer_id, threading.Lock())
@@ -164,8 +177,7 @@ class PrintManager:
 
             # Saving printed state of ticket
             if update_db:
-                rome_tz = pytz.timezone("Europe/Rome")
-                ticket.printed_at = datetime.datetime.now(rome_tz)
+                ticket.printed_at = get_current_time()
                 await ticket.save()
             
             return True

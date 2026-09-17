@@ -60,7 +60,6 @@ async def get_order(
             or include_menus_menu_fields_products_roles
             or include_products_product_dates
             or include_products_product_roles
-            or include_revisions
             or include_payment_method
         ):
             raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
@@ -87,6 +86,7 @@ async def get_order(
                 "order_revisions",
                 "order_tickets",
                 "order_tickets__category",
+                "parent_order",
                 "payment_method",
                 "user",
                 "confirmed_by",
@@ -95,10 +95,7 @@ async def get_order(
             .first()
         )
 
-        if not order:
-            raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
-
-        if order.is_deleted and not include_deleted_orders:
+        if not order or (order.is_deleted and not include_deleted_orders):
             raise NotFound(code=ErrorCodes.ORDER_NOT_FOUND)
 
     return GetOrderResponse(

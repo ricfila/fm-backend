@@ -43,6 +43,7 @@ class OrderProduct(Model):
     category = fields.ForeignKeyField(
         model_name="models.Category",
         related_name="order_product_category",
+        null=True,
         on_delete=fields.RESTRICT,
         on_update=fields.CASCADE
     )

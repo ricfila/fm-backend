@@ -48,17 +48,19 @@ async def get_orders(
     include_tickets: bool = False,
     include_user: bool = False,
     include_confirmer_user: bool = False,
-    search_by_customer: str = None,
-    search_by_table: str = None,
-    need_confirm: bool = False,
+    need_confirmation: bool = None,
+    confirmed: bool = None,
     confirmed_by_user: bool = False,
     created_by_user: bool = False,
+    has_tickets: bool = None,
+    search_by_customer: str = None,
+    search_by_table: str = None,
     token: TokenJwt = Depends(validate_token),
 ):
     """
     Get list of orders.
 
-    **Permission**: can_administer, can_order, can_confirm_orders
+     **Permission**: can_administer, can_order, can_confirm_orders
     """
 
     if not token.permissions["can_administer"]:
@@ -72,6 +74,10 @@ async def get_orders(
         ):
             raise Unauthorized(code=ErrorCodes.ADMIN_OPTION_REQUIRED)
 
+    if need_confirmation == False and confirmed is not None:
+        raise BadRequest(code=ErrorCodes.INVALID_QUERY_PARAMS)
+
+    
     async with in_transaction() as connection:
         query = Q(is_deleted=False)
 
@@ -80,21 +86,28 @@ async def get_orders(
 
         #if to_date is not None:
         #    query &= Q(created_at__lt=to_date)
+
+        if need_confirmation is not None and confirmed is None:
+            query &= Q(needs_confirmation=need_confirmation)
         
-        if need_confirm:
-            query &= Q(is_confirmed=False)
+        if confirmed is not None:
+            query &= Q(needs_confirmation=True)
+            query &= Q(confirmed_at__isnull=not confirmed)
         
         if confirmed_by_user:
             query &= Q(confirmed_by_id=token.user_id)
+        
+        if created_by_user:
+            query &= Q(user_id=token.user_id)
+
+        if has_tickets is not None:
+            query &= Q(has_tickets=has_tickets)
         
         if search_by_customer is not None:
             query &= Q(customer__icontains=search_by_customer.strip())
 
         if search_by_table is not None:
             query &= Q(table__icontains=search_by_table.strip())
-        
-        if created_by_user:
-            query &= Q(user_id=token.user_id)
 
         orders_query, total_count, limit = await process_query_with_pagination(
             Order, query, connection, offset, limit, order_by
@@ -121,6 +134,7 @@ async def get_orders(
                     "order_revisions",
                     "order_tickets",
                     "order_tickets__category",
+                    "parent_order",
                     "payment_method",
                     "user",
                     "confirmed_by",

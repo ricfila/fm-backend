@@ -1,15 +1,14 @@
-import datetime
-import pytz
-
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
 from backend.config import Session
 from backend.database.models import Order
+from backend.database.utils import get_current_time
 from backend.decorators import check_role
-from backend.models.error import Unauthorized
+from backend.models.error import BadRequest
 from backend.models.orders import ConfirmOrdersItem, ConfirmOrdersResponse
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
+from backend.utils.order_utils import is_table_allowed_for_role
 
 confirm_orders_router = APIRouter()
 
@@ -20,9 +19,14 @@ async def confirm_orders(
     item: ConfirmOrdersItem,
     token: TokenJwt = Depends(validate_token),
 ):
-    if (not Session.settings.order_requires_confirmation
-        or not token.permissions["can_confirm_orders"]):
-        raise Unauthorized(code=ErrorCodes.NOT_ALLOWED)
+    """
+    Confirm or rollback batch of orders.
+
+     **Permission**: can_confirm_orders
+    """
+
+    if not Session.settings.order_requires_confirmation:
+        raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED)
 
     confirms_succeeded = []
     rollbacks_succeeded = []
@@ -35,14 +39,17 @@ async def confirm_orders(
             if not order:
                 errors.append({"order_id": order_id, "type": "rollback",  "message": "Ordine non trovato"})
                 continue
+
+            if not order.needs_confirmation:
+                errors.append({"order_id": order_id, "type": "rollback",  "message": "Non è consentito dissociare il tavolo per quest'ordine"})
+                continue
             
             try:
                 await order.update_from_dict(
                     {
                         "table": None,
-                        "confirmed_by_id": None,
-                        "is_confirmed": False,
                         "confirmed_at": None,
+                        "confirmed_by_id": None,
                     }
                 ).save(using_db=connection)
 
@@ -65,22 +72,28 @@ async def confirm_orders(
                 errors.append({"order_id": order_id, "type": "confirm", "message": "Ordine non trovato"})
                 continue
 
-            if order.user.role.order_confirmer_id != token.role_id:
-                errors.append({"order_id": order_id, "type": "confirm",  "message": "Non autorizzato alla conferma di quest'ordine"})
+            if not order.needs_confirmation:
+                errors.append({"order_id": order_id, "type": "confirm",  "message": "Non è consentito confermare quest'ordine"})
                 continue
 
-            rome_tz = pytz.timezone("Europe/Rome")
-            now_in_rome = datetime.datetime.now(rome_tz)
+            if order.user.role.order_confirmer_id != token.role_id:
+                errors.append({"order_id": order_id, "type": "confirm",  "message": "Utente non autorizzato alla conferma di quest'ordine"})
+                continue
+
+            if not order.is_take_away and not await is_table_allowed_for_role(
+                token.role_id, confirm.table, connection
+            ):
+                errors.append({"order_id": order_id, "type": "confirm",  "message": "Utente non autorizzato all'associazione di questo tavolo"})
+                continue
 
             try:
                 update_dict = {
-                    "table": confirm.table if not order.is_take_away else None,
+                    "table": confirm.table,
                     "confirmed_by_id": token.user_id,
-                    "is_confirmed": True,
                 }
                 
-                if not order.is_confirmed:
-                    update_dict["confirmed_at"] = now_in_rome
+                if order.confirmed_at is None:
+                    update_dict["confirmed_at"] = get_current_time()
                 
                 await order.update_from_dict(update_dict).save(using_db=connection)
 
