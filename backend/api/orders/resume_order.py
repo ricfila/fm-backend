@@ -13,12 +13,13 @@ resume_order_router = APIRouter()
 @resume_order_router.post("/{order_id}")
 @check_role(Permission.CAN_ADMINISTER, Permission.CAN_ORDER)
 async def resume_order(
-    order_id: int, token: TokenJwt = Depends(validate_token)
+    order_id: int,
+    token: TokenJwt = Depends(validate_token)
 ):
     """
     Resume an order from the id.
 
-    **Permission**: can_administer, can_order
+     **Permission**: can_administer, can_order
     """
 
     async with in_transaction() as connection:

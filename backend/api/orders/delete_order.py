@@ -13,12 +13,13 @@ delete_order_router = APIRouter()
 @delete_order_router.delete("/{order_id}")
 @check_role(Permission.CAN_ADMINISTER, Permission.CAN_ORDER)
 async def delete_order(
-    order_id: int, token: TokenJwt = Depends(validate_token)
+    order_id: int,
+    token: TokenJwt = Depends(validate_token)
 ):
     """
     Delete an order from the id.
 
-    **Permission**: can_administer, can_order
+     **Permission**: can_administer, can_order
     """
 
     async with in_transaction() as connection:

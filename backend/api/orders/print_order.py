@@ -13,7 +13,10 @@ print_order_router = APIRouter()
 
 
 @print_order_router.post("/{order_id}/print", response_model=BaseResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(
+    Permission.CAN_ORDER,
+    Permission.CAN_COMPLETE_TICKETS,
+)
 async def print_order(
     order_id: int,
     item: PrintOrderItem,
@@ -22,7 +25,7 @@ async def print_order(
     """
     Print order.
 
-    **Permission**: can_administer
+     **Permission**: can_order, can_complete_tickets
     """
 
     async with in_transaction() as connection:

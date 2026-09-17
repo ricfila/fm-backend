@@ -12,7 +12,7 @@ delete_tickets_router = APIRouter()
 
 
 @delete_tickets_router.delete("/{order_id}/tickets", response_model=BaseResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(Permission.CAN_ADMINISTER, Permission.CAN_COMPLETE_TICKETS)
 async def delete_tickets(
     order_id: int,
     token: TokenJwt = Depends(validate_token)
@@ -20,7 +20,7 @@ async def delete_tickets(
     """
     Delete all the tickets of an order.
 
-    **Permission**: can_administer
+     **Permission**: can_administer, can_complete_tickets
     """
 
     async with in_transaction() as connection:

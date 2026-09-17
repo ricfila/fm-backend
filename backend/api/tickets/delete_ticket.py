@@ -11,7 +11,7 @@ delete_ticket_router = APIRouter()
 
 
 @delete_ticket_router.delete("/{ticket_id}", response_model=BaseResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(Permission.CAN_ADMINISTER, Permission.CAN_COMPLETE_TICKETS)
 async def delete_ticket(
     ticket_id: int,
     token: TokenJwt = Depends(validate_token)
@@ -19,7 +19,7 @@ async def delete_ticket(
     """
     Delete a ticket from the id.
 
-     **Permission**: can_administer
+     **Permission**: can_administer, can_complete_tickets
     """
 
     async with in_transaction() as connection:

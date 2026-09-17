@@ -2,20 +2,14 @@ from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Order
-from backend.decorators import check_role
 from backend.models.error import Unauthorized, NotFound
 from backend.models.orders import GetOrderResponse
-from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
+from backend.utils import ErrorCodes, TokenJwt, validate_token
 
 get_order_router = APIRouter()
 
 
 @get_order_router.get("/{order_id}", response_model=GetOrderResponse)
-@check_role(
-    Permission.CAN_ADMINISTER,
-    Permission.CAN_ORDER,
-    Permission.CAN_CONFIRM_ORDERS
-)
 async def get_order(
     order_id: int,
     include_menus: bool = False,
@@ -48,8 +42,6 @@ async def get_order(
 ):
     """
     Get information about an order.
-
-    **Permission**: can_administer, can_order, can_confirm_orders
     """
 
     if not token.permissions["can_administer"]:

@@ -1,6 +1,3 @@
-import datetime
-import pytz
-
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 from tortoise.exceptions import IntegrityError
@@ -10,9 +7,7 @@ from backend.database.models import Order, OrderProduct, Product, Revision
 from backend.decorators import check_role
 from backend.models.error import Conflict, NotFound
 from backend.models import BaseResponse
-from backend.models.orders import (
-    CreateOrderItem
-)
+from backend.models.orders import CreateOrderItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 update_order_router = APIRouter()
@@ -28,7 +23,7 @@ async def create_order(
     """
     Update an order from id.
 
-    **Permission**: can_order
+     **Permission**: can_order
     """
 
     async with in_transaction() as connection:

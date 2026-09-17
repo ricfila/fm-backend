@@ -1,11 +1,9 @@
-import datetime
-import pytz
-
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
 from backend.database.models import Ticket
+from backend.database.utils import get_current_time
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
@@ -15,7 +13,7 @@ update_tickets_router = APIRouter()
 
 
 @update_tickets_router.put("/{order_id}/tickets", response_model=BaseResponse)
-@check_role(Permission.CAN_ADMINISTER)
+@check_role(Permission.CAN_COMPLETE_TICKETS)
 async def update_tickets(
     order_id: int,
     is_printed: bool,
@@ -24,7 +22,7 @@ async def update_tickets(
     """
     Update all the tickets of an order.
 
-    **Permission**: can_administer
+     **Permission**: can_administer
     """
 
     async with in_transaction() as connection:
@@ -33,11 +31,10 @@ async def update_tickets(
         if not tickets:
             raise NotFound(code=ErrorCodes.TICKET_NOT_FOUND)
 
-        rome_tz = pytz.timezone("Europe/Rome")
-        now_in_rome = datetime.datetime.now(rome_tz)
+        current_time = get_current_time()
 
         for ticket in tickets:
-            ticket.printed_at = now_in_rome if is_printed else None
+            ticket.printed_at = current_time if is_printed else None
 
         try:
             await Ticket.bulk_update(objects=tickets, fields=['printed_at'], using_db=connection)
