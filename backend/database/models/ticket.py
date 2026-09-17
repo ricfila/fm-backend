@@ -49,14 +49,3 @@ class Ticket(Model):
             "completed_at": self.completed_at,
             "has_collapsed_categories": self.has_collapsed_categories
         }
-    
-    async def to_dict_order(self) -> dict:
-        return {
-            "id": self.id,
-            "order_id": self.order_id,
-            "category_id": self.category_id,
-            "printed_at": self.printed_at,
-            "completed_at": self.completed_at,
-            "has_collapsed_categories": self.has_collapsed_categories,
-            "order": await self.order.to_dict(include_user=True, include_confirmer_user=True)
-        }

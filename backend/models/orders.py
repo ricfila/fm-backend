@@ -175,16 +175,6 @@ class PrintOrderItem(BaseModel):
     printer_types: list[PrinterType] | None = None
 
 
-class TicketOrder(BaseModel):
-    id: int
-    order_id: int
-    category_id: int
-    printed_at: datetime.datetime | None
-    completed_at: datetime.datetime | None
-    has_collapsed_categories: bool
-    order: Order | None
-
-
 class GetTicketsResponse(BaseResponse):
     total_count: int
-    tickets: list[Ticket | TicketOrder | TicketCategory]
+    tickets: list[Ticket | TicketCategory]
