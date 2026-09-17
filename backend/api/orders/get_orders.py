@@ -107,7 +107,9 @@ async def get_orders(
             query &= Q(customer__icontains=search_by_customer.strip())
 
         if search_by_table is not None:
-            query &= Q(table__icontains=search_by_table.strip())
+            table_query = Q(table__icontains=search_by_table.strip())
+            table_query |= Q(parent_order__table__icontains=search_by_table.strip())
+            query &= table_query
 
         orders_query, total_count, limit = await process_query_with_pagination(
             Order, query, connection, offset, limit, order_by
