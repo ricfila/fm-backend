@@ -9,8 +9,8 @@ class PaymentMethod(Model):
 
     id = fields.IntField(pk=True)
     name = fields.CharField(32, unique=True)
-    order = fields.IntField(default=0)
-    is_deleted = fields.BooleanField(default=False)
+    order = fields.IntField(db_default=0)
+    is_deleted = fields.BooleanField(db_default=False)
 
     class Meta:
         table = "payment_method"

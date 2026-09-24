@@ -17,11 +17,11 @@ class Order(Model):
     guests = fields.IntField(null=True)
     is_take_away = fields.BooleanField()
     table = fields.CharField(32, null=True)
-    needs_confirmation = fields.BooleanField(default=False)
-    is_deleted = fields.BooleanField(default=False)
-    is_voucher = fields.BooleanField(default=False)
-    is_for_service = fields.BooleanField(default=False)
-    has_tickets = fields.BooleanField(default=True)
+    needs_confirmation = fields.BooleanField(db_default=False)
+    is_deleted = fields.BooleanField(db_default=False)
+    is_voucher = fields.BooleanField(db_default=False)
+    is_for_service = fields.BooleanField(db_default=False)
+    has_tickets = fields.BooleanField(db_default=True)
     notes = fields.CharField(64, null=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     payment_method = fields.ForeignKeyField(
@@ -38,8 +38,8 @@ class Order(Model):
         on_delete=fields.RESTRICT,
         null=True
     )
-    created_at = fields.DatetimeField(auto_now_add=True)
-    confirmed_at = fields.DatetimeField(default=None, null=True)
+    created_at = fields.DatetimeField(db_default=fields.Now())
+    confirmed_at = fields.DatetimeField(db_default=None, null=True)
     parent_order = fields.ForeignKeyField(
         to="models.Order",
         related_name="child_orders",

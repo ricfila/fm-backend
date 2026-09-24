@@ -15,7 +15,7 @@ class Category(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(32, unique=True)
     print_delay = fields.IntField()
-    wait_parent_category = fields.BooleanField(default=False)
+    wait_parent_category = fields.BooleanField(db_default=False)
     printer = fields.ForeignKeyField(
         to="models.Printer",
         related_name="category_printer",

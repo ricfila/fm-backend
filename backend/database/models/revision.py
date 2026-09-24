@@ -17,7 +17,7 @@ class Revision(Model):
         to="models.User",
         on_delete=fields.RESTRICT
     )
-    revised_at = fields.DatetimeField(auto_now_add=True)
+    revised_at = fields.DatetimeField(db_default=fields.Now())
     price_difference = fields.DecimalField(max_digits=10, decimal_places=2)
     edited_products = fields.IntField()
 

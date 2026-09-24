@@ -10,7 +10,7 @@ class ProductVariant(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(32)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
-    is_deleted = fields.BooleanField(default=False)
+    is_deleted = fields.BooleanField(db_default=False)
     product = fields.ForeignKeyField(
         to="models.Product",
         related_name="variants",

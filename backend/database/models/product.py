@@ -21,8 +21,8 @@ class Product(Model):
     name = fields.CharField(64, unique=True)
     short_name = fields.CharField(32, unique=True)
     print_name = fields.CharField(64, unique=True)
-    is_priority = fields.BooleanField(default=False)
-    is_main = fields.BooleanField(default=True)
+    is_priority = fields.BooleanField(db_default=False)
+    is_main = fields.BooleanField(db_default=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     category = fields.ForeignKeyField(
         to="models.Category",
@@ -33,9 +33,9 @@ class Product(Model):
         to="models.Subcategory",
         on_delete=fields.RESTRICT
     )
-    order = fields.IntField(default=0)
+    order = fields.IntField(db_default=0)
     daily_max_sales = fields.IntField(null=True)
-    color = fields.CharField(7, null=True, default=None)
+    color = fields.CharField(7, null=True, db_default=None)
 
     category_id: int
     subcategory_id: int

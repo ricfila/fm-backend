@@ -17,11 +17,11 @@ class Ingredient(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(32, unique=True)
     ward = fields.CharField(16)
-    is_deleted = fields.BooleanField(default=False)
-    is_monitored = fields.BooleanField(default=True)
-    sell_if_stocked = fields.BooleanField(default=False)
-    cooking_time = fields.IntField(null=True, default=None)
-    target_quantity = fields.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
+    is_deleted = fields.BooleanField(db_default=False)
+    is_monitored = fields.BooleanField(db_default=True)
+    sell_if_stocked = fields.BooleanField(db_default=False)
+    cooking_time = fields.IntField(null=True, db_default=None)
+    target_quantity = fields.DecimalField(max_digits=10, decimal_places=2, null=True, db_default=None)
 
     order_product_ingredients_ingredient: fields.ReverseRelation["OrderProductIngredient"]
     product_ingredient: fields.ReverseRelation["ProductIngredient"]

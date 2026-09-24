@@ -16,12 +16,12 @@ class Role(Model):
 
     id = fields.IntField(pk=True)
     name = fields.CharField(32, unique=True)
-    can_administer = fields.BooleanField(default=False)
-    can_order = fields.BooleanField(default=False)
-    can_statistics = fields.BooleanField(default=False)
-    can_priority_statistics = fields.BooleanField(default=False)
-    can_confirm_orders = fields.BooleanField(default=False)
-    can_complete_tickets = fields.BooleanField(default=False)
+    can_administer = fields.BooleanField(db_default=False)
+    can_order = fields.BooleanField(db_default=False)
+    can_statistics = fields.BooleanField(db_default=False)
+    can_priority_statistics = fields.BooleanField(db_default=False)
+    can_confirm_orders = fields.BooleanField(db_default=False)
+    can_complete_tickets = fields.BooleanField(db_default=False)
     order_confirmer = fields.ForeignKeyField(
         to="models.Role",
         related_name="roles_to_confirm",

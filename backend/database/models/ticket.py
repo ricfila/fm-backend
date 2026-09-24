@@ -18,9 +18,9 @@ class Ticket(Model):
         related_name="ticket_category",
         on_delete=fields.RESTRICT
     )
-    printed_at = fields.DatetimeField(null=True, default=None)
-    completed_at = fields.DatetimeField(null=True, default=None)
-    has_collapsed_categories = fields.BooleanField(default=False)
+    printed_at = fields.DatetimeField(null=True, db_default=None)
+    completed_at = fields.DatetimeField(null=True, db_default=None)
+    has_collapsed_categories = fields.BooleanField(db_default=False)
 
     order_id: int
     category_id: int

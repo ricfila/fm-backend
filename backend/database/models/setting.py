@@ -8,11 +8,11 @@ class Setting(Model):
     """
 
     id = fields.IntField(pk=True)
-    order_requires_confirmation = fields.BooleanField(default=False)
-    receipt_header = fields.TextField(default="")
-    cover_charge = fields.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    max_guests_for_main_products = fields.IntField(default=None, null=True)
-    delay_after_confirmation = fields.IntField(default=0)
+    order_requires_confirmation = fields.BooleanField(db_default=False)
+    receipt_header = fields.TextField(db_default="")
+    cover_charge = fields.DecimalField(max_digits=10, decimal_places=2, db_default=0.00)
+    max_guests_for_main_products = fields.IntField(db_default=None, null=True)
+    delay_after_confirmation = fields.IntField(db_default=0)
 
     class Meta:
         name = "setting"

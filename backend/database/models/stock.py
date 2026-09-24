@@ -14,8 +14,8 @@ class Stock(Model):
         on_delete=fields.CASCADE
     )
     quantity = fields.DecimalField(max_digits=10, decimal_places=2)
-    available_from = fields.DatetimeField(auto_now_add=True)
-    is_valid = fields.BooleanField(default=True)
+    available_from = fields.DatetimeField(db_default=fields.Now())
+    is_valid = fields.BooleanField(db_default=True)
 
     ingredient_id: int
 

@@ -19,9 +19,9 @@ class ProductIngredient(Model):
         on_delete=fields.RESTRICT
     )
     price = fields.DecimalField(max_digits=10, decimal_places=2)
-    max_quantity = fields.DecimalField(max_digits=10, decimal_places=2, default=1)
-    is_default = fields.BooleanField(default=True)
-    is_deleted = fields.BooleanField(default=False)
+    max_quantity = fields.DecimalField(max_digits=10, decimal_places=2, db_default=1)
+    is_default = fields.BooleanField(db_default=True)
+    is_deleted = fields.BooleanField(db_default=False)
 
     product_id: int
     ingredient_id: int

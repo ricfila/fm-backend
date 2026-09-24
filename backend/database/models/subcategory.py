@@ -9,8 +9,8 @@ class Subcategory(Model):
 
     id = fields.IntField(pk=True)
     name = fields.CharField(32, unique=True)
-    order = fields.IntField(default=0)
-    include_cover_charge = fields.BooleanField(default=True)
+    order = fields.IntField(db_default=0)
+    include_cover_charge = fields.BooleanField(db_default=True)
 
     class Meta:
         table = "subcategory"
