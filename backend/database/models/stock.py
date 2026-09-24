@@ -9,10 +9,9 @@ class Stock(Model):
 
     id = fields.IntField(pk=True)
     ingredient = fields.ForeignKeyField(
-        model_name="models.Ingredient",
+        to="models.Ingredient",
         related_name="ingredient_stock",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
     quantity = fields.DecimalField(max_digits=10, decimal_places=2)
     available_from = fields.DatetimeField(auto_now_add=True)

@@ -23,11 +23,10 @@ class Role(Model):
     can_confirm_orders = fields.BooleanField(default=False)
     can_complete_tickets = fields.BooleanField(default=False)
     order_confirmer = fields.ForeignKeyField(
-        model_name="models.Role",
+        to="models.Role",
         related_name="roles_to_confirm",
-        null=True,
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
 
     printers: fields.ReverseRelation["RolePrinter"]

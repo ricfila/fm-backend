@@ -11,15 +11,13 @@ class RolePrinter(Model):
 
     id = fields.IntField(pk=True)
     role = fields.ForeignKeyField(
-        model_name="models.Role",
+        to="models.Role",
         related_name="printers",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
     printer = fields.ForeignKeyField(
-        model_name="models.Printer",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.Printer",
+        on_delete=fields.RESTRICT
     )
     printer_type = fields.CharEnumField(PrinterType)
 

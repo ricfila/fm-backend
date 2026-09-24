@@ -17,31 +17,27 @@ class Category(Model):
     print_delay = fields.IntField()
     wait_parent_category = fields.BooleanField(default=False)
     printer = fields.ForeignKeyField(
-        model_name="models.Printer",
+        to="models.Printer",
         related_name="category_printer",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        on_delete=fields.RESTRICT
     )
     parent_category = fields.ForeignKeyField(
-        model_name="models.Category",
+        to="models.Category",
         related_name="children_category",
-        null=True,
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
     parent_for_take_away = fields.ForeignKeyField(
-        model_name="models.Category",
+        to="models.Category",
         related_name="take_away_children",
-        null=True,
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
     parent_for_main_products = fields.ForeignKeyField(
-        model_name="models.Category",
+        to="models.Category",
         related_name="main_products_children",
-        null=True,
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
 
     products = fields.ReverseRelation["Product"]

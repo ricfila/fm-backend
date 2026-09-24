@@ -25,15 +25,13 @@ class Product(Model):
     is_main = fields.BooleanField(default=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     category = fields.ForeignKeyField(
-        model_name="models.Category",
-        null=True,
+        to="models.Category",
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
     subcategory = fields.ForeignKeyField(
-        model_name="models.Subcategory",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.Subcategory",
+        on_delete=fields.RESTRICT
     )
     order = fields.IntField(default=0)
     daily_max_sales = fields.IntField(null=True)

@@ -14,10 +14,9 @@ class MenuDate(Model):
     start_date = fields.DatetimeField()
     end_date = fields.DatetimeField()
     menu = fields.ForeignKeyField(
-        model_name="models.Menu",
+        to="models.Menu",
         related_name="dates",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
 
     menu_id: int

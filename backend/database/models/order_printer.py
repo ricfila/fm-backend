@@ -9,15 +9,13 @@ class OrderPrinter(Model):
 
     id = fields.IntField(pk=True)
     order = fields.ForeignKeyField(
-        model_name="models.Order",
+        to="models.Order",
         related_name="order_printers",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
     role_printer = fields.ForeignKeyField(
-        model_name="models.RolePrinter",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.RolePrinter",
+        on_delete=fields.RESTRICT
     )
 
     order_id: int

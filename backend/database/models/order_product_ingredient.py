@@ -9,16 +9,14 @@ class OrderProductIngredient(Model):
 
     id = fields.IntField(pk=True)
     order_product = fields.ForeignKeyField(
-        model_name="models.OrderProduct",
+        to="models.OrderProduct",
         related_name="order_product_ingredients",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
     ingredient = fields.ForeignKeyField(
-        model_name="models.Ingredient",
+        to="models.Ingredient",
         related_name="order_product_ingredients_ingredient",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        on_delete=fields.RESTRICT
     )
     quantity = fields.DecimalField(max_digits=10, decimal_places=2)
 

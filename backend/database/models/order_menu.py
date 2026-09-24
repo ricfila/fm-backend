@@ -14,15 +14,13 @@ class OrderMenu(Model):
 
     id = fields.IntField(pk=True)
     order = fields.ForeignKeyField(
-        model_name="models.Order",
+        to="models.Order",
         related_name="order_menus",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
     menu = fields.ForeignKeyField(
-        model_name="models.Menu",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.Menu",
+        on_delete=fields.RESTRICT
     )
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     quantity = fields.IntField()

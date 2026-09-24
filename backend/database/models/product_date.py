@@ -14,10 +14,9 @@ class ProductDate(Model):
     start_date = fields.DatetimeField()
     end_date = fields.DatetimeField()
     product = fields.ForeignKeyField(
-        model_name="models.Product",
+        to="models.Product",
         related_name="dates",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
 
     product_id: int

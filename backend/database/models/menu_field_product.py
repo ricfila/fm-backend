@@ -10,15 +10,13 @@ class MenuFieldProduct(Model):
     id = fields.IntField(pk=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     product = fields.ForeignKeyField(
-        model_name="models.Product",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.Product",
+        on_delete=fields.RESTRICT
     )
     menu_field = fields.ForeignKeyField(
-        model_name="models.MenuField",
+        to="models.MenuField",
         related_name="field_products",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
 
     product_id: int

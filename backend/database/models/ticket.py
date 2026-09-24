@@ -9,16 +9,14 @@ class Ticket(Model):
 
     id = fields.IntField(pk=True)
     order = fields.ForeignKeyField(
-        model_name="models.Order",
+        to="models.Order",
         related_name="order_tickets",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
     category = fields.ForeignKeyField(
-        model_name="models.Category",
+        to="models.Category",
         related_name="ticket_category",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        on_delete=fields.RESTRICT
     )
     printed_at = fields.DatetimeField(null=True, default=None)
     completed_at = fields.DatetimeField(null=True, default=None)

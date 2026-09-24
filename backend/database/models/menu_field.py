@@ -19,10 +19,9 @@ class MenuField(Model):
     is_optional = fields.BooleanField(default=False)
     can_exceed_max_sortable = fields.BooleanField(default=False)
     menu = fields.ForeignKeyField(
-        model_name="models.Menu",
+        to="models.Menu",
         related_name="menu_fields",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
 
     menu_id: int

@@ -12,10 +12,9 @@ class ProductVariant(Model):
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     is_deleted = fields.BooleanField(default=False)
     product = fields.ForeignKeyField(
-        model_name="models.Product",
+        to="models.Product",
         related_name="variants",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
 
     product_id: int

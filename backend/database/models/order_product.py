@@ -14,38 +14,33 @@ class OrderProduct(Model):
 
     id = fields.IntField(pk=True)
     order = fields.ForeignKeyField(
-        model_name="models.Order",
+        to="models.Order",
         related_name="order_products",
-        on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        on_delete=fields.CASCADE
     )
     product = fields.ForeignKeyField(
-        model_name="models.Product",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.Product",
+        on_delete=fields.RESTRICT
     )
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     quantity = fields.IntField()
     notes = fields.CharField(64, null=True)
     variant = fields.ForeignKeyField(
-        model_name="models.ProductVariant",
-        null=True,
+        to="models.ProductVariant",
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
     order_menu_field = fields.ForeignKeyField(
-        model_name="models.OrderMenuField",
+        to="models.OrderMenuField",
         related_name="order_menu_field_products",
-        null=True,
         on_delete=fields.CASCADE,
-        on_update=fields.CASCADE
+        null=True
     )
     category = fields.ForeignKeyField(
-        model_name="models.Category",
+        to="models.Category",
         related_name="order_product_category",
-        null=True,
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
 
     order_menu_field_id: int

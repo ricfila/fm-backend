@@ -25,30 +25,26 @@ class Order(Model):
     notes = fields.CharField(64, null=True)
     price = fields.DecimalField(max_digits=10, decimal_places=2)
     payment_method = fields.ForeignKeyField(
-        model_name="models.PaymentMethod",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.PaymentMethod",
+        on_delete=fields.RESTRICT
     )
     user = fields.ForeignKeyField(
-        model_name="models.User",
-        on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        to="models.User",
+        on_delete=fields.RESTRICT
     )
     confirmed_by = fields.ForeignKeyField(
-        model_name="models.User",
+        to="models.User",
         related_name="confirmed_by",
-        null=True,
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
     created_at = fields.DatetimeField(auto_now_add=True)
     confirmed_at = fields.DatetimeField(default=None, null=True)
     parent_order = fields.ForeignKeyField(
-        model_name="models.Order",
+        to="models.Order",
         related_name="child_orders",
-        null=True,
         on_delete=fields.RESTRICT,
-        on_update=fields.CASCADE
+        null=True
     )
 
     payment_method_id: int
