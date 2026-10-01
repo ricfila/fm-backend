@@ -4,23 +4,14 @@ from backend.models import BaseResponse
 from backend.utils import validate_name_field, validate_order_field
 
 
-class Subgroup(BaseModel):
+class Group(BaseModel):
     id: int
     name: str
     order: int
-    include_cover_charge: bool
-    group_id: int
 
 
-class SubgroupName(BaseModel):
-    id: int
+class CreateGroupItem(BaseModel):
     name: str
-    include_cover_charge: bool
-
-
-class CreateSubgroupItem(BaseModel):
-    name: str
-    group_id: int
 
     @field_validator("name")
     @classmethod
@@ -28,24 +19,20 @@ class CreateSubgroupItem(BaseModel):
         return validate_name_field(name)
 
 
-class CreateSubgroupResponse(BaseResponse):
-    subgroup: Subgroup
+class CreateGroupResponse(BaseResponse):
+    group: Group
 
 
-class GetSubgroupsResponse(BaseResponse):
+class GetGroupsResponse(BaseResponse):
     total_count: int
-    subgroups: list[Subgroup | SubgroupName]
+    groups: list[Group]
 
 
-class GetSubgroupResponse(BaseResponse, Subgroup):
+class GetGroupResponse(BaseResponse, Group):
     pass
 
 
-class UpdateSubgroupGroupItem(BaseModel):
-    group_id: int
-
-
-class UpdateSubgroupNameItem(BaseModel):
+class UpdateGroupNameItem(BaseModel):
     name: str
 
     @field_validator("name")
@@ -54,14 +41,10 @@ class UpdateSubgroupNameItem(BaseModel):
         return validate_name_field(name)
 
 
-class UpdateSubgroupOrderItem(BaseModel):
+class UpdateGroupOrderItem(BaseModel):
     order: int
 
     @field_validator("order")
     @classmethod
     def validate_order_field(cls, order: int):
         return validate_order_field(order)
-
-
-class UpdateSubgroupIncludeCoverChargeItem(BaseModel):
-    include_cover_charge: bool

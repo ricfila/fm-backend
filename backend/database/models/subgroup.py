@@ -11,6 +11,12 @@ class Subgroup(Model):
     name = fields.CharField(32, unique=True)
     order = fields.IntField(db_default=0)
     include_cover_charge = fields.BooleanField(db_default=True)
+    group = fields.ForeignKeyField(
+        to="models.Group",
+        on_delete=fields.RESTRICT
+    )
+
+    group_id: int
 
     class Meta:
         table = "subgroup"
@@ -28,4 +34,5 @@ class Subgroup(Model):
             "name": self.name,
             "order": self.order,
             "include_cover_charge": self.include_cover_charge,
+            "group_id": self.group_id,
         }

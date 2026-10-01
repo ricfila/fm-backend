@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Subgroup
+from backend.database.models import Group, Subgroup
 from backend.decorators import check_role
-from backend.models.error import Conflict
+from backend.models.error import Conflict, NotFound
 from backend.models.subgroups import (
     CreateSubgroupItem,
     CreateSubgroupResponse,
@@ -27,7 +27,11 @@ async def create_subgroup(
     """
 
     async with in_transaction() as connection:
-        new_subgroup = Subgroup(name=item.name)
+        group = await Group.get_or_none(id=item.group_id, using_db=connection)
+        if not group:
+            raise NotFound(ErrorCodes.GROUP_NOT_FOUND)
+        
+        new_subgroup = Subgroup(name=item.name, group=group)
 
         try:
             await new_subgroup.save(using_db=connection)

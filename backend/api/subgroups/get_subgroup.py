@@ -33,8 +33,5 @@ async def get_subgroup(
             raise NotFound(code=ErrorCodes.SUBGROUP_NOT_FOUND)
 
     return GetSubgroupResponse(
-        id=subgroup_id,
-        name=subgroup.name,
-        order=subgroup.order,
-        include_cover_charge=subgroup.include_cover_charge,
+        **await subgroup.to_dict()
     )

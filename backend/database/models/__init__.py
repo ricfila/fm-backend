@@ -1,5 +1,6 @@
 __all__ = (
 	"Category",
+	"Group",
 	"Ingredient",
     "Menu",
     "MenuDate",
@@ -32,6 +33,7 @@ __all__ = (
 )
 
 from .category import Category
+from .group import Group
 from .ingredient import Ingredient
 from .menu import Menu
 from .menu_date import MenuDate

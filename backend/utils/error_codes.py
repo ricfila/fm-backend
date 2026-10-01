@@ -133,6 +133,11 @@ class ErrorCodes(Enum):
     # Create
     SUBGROUP_ALREADY_EXISTS = auto()
 
+    # Groups
+    GROUP_NOT_FOUND = auto()
+    # Create
+    GROUP_ALREADY_EXISTS = auto()
+
     # Tables
     TABLE_NOT_FOUND = auto()
     # Create
