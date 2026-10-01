@@ -56,7 +56,7 @@ class PrintManager:
     async def update_worker(self):
         prefetch_values = [
             "category__printer",
-            "order__order_products__product__subcategory",
+            "order__order_products__product__subgroup",
             "order__order_products__order_product_ingredients__ingredient",
             "order__order_products__variant",
             "order__order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__ingredient",

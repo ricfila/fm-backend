@@ -24,7 +24,7 @@ __all__ = (
     "update_product_price_router",
     "update_product_print_name_router",
     "update_product_short_name_router",
-    "update_product_subcategory_router",
+    "update_product_subgroup_router",
 )
 
 from fastapi import APIRouter
@@ -53,7 +53,7 @@ from .update_product_order import update_product_order_router
 from .update_product_price import update_product_price_router
 from .update_product_print_name import update_product_print_name_router
 from .update_product_short_name import update_product_short_name_router
-from .update_product_subcategory import update_product_subcategory_router
+from .update_product_subgroup import update_product_subgroup_router
 
 products = APIRouter(prefix="/products", tags=["products"])
 products.include_router(add_product_date_router)
@@ -80,4 +80,4 @@ products.include_router(update_product_order_router)
 products.include_router(update_product_price_router)
 products.include_router(update_product_print_name_router)
 products.include_router(update_product_short_name_router)
-products.include_router(update_product_subcategory_router)
+products.include_router(update_product_subgroup_router)

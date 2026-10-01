@@ -29,8 +29,8 @@ class Product(Model):
         on_delete=fields.RESTRICT,
         null=True
     )
-    subcategory = fields.ForeignKeyField(
-        to="models.Subcategory",
+    subgroup = fields.ForeignKeyField(
+        to="models.Subgroup",
         on_delete=fields.RESTRICT
     )
     order = fields.IntField(db_default=0)
@@ -38,7 +38,7 @@ class Product(Model):
     color = fields.CharField(7, null=True, db_default=None)
 
     category_id: int
-    subcategory_id: int
+    subgroup_id: int
 
     dates: fields.ReverseRelation["ProductDate"]
     ingredients: fields.ReverseRelation["ProductIngredient"]
@@ -61,7 +61,7 @@ class Product(Model):
         include_dates: bool = False,
         include_ingredients: bool = False,
         include_roles: bool = False,
-        include_subcategory: bool = False,
+        include_subgroup: bool = False,
         include_variants: bool = False,
     ):
         # Build the base result
@@ -74,7 +74,7 @@ class Product(Model):
             "is_main": self.is_main,
             "price": self.price,
             "category_id": self.category_id,
-            "subcategory_id": self.subcategory_id,
+            "subgroup_id": self.subgroup_id,
             "order": self.order,
             "daily_max_sales": self.daily_max_sales,
             "color": self.color
@@ -94,10 +94,10 @@ class Product(Model):
         if include_roles and hasattr(self, "roles"):
             result["roles"] = [await role.to_dict() for role in self.roles]
 
-        # Add subcategory if pre-fetched and requested
-        if include_subcategory and hasattr(self, "subcategory"):
-            subcategory = await self.subcategory
-            result["subcategory"] = await subcategory.to_dict()
+        # Add subgroup if pre-fetched and requested
+        if include_subgroup and hasattr(self, "subgroup"):
+            subgroup = await self.subgroup
+            result["subgroup"] = await subgroup.to_dict()
 
         # Add variants if pre-fetched and requested
         if include_variants and hasattr(self, "variants"):

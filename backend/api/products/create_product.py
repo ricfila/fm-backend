@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Category, Product, Subcategory
+from backend.database.models import Category, Product, Subgroup
 from backend.decorators import check_role
 from backend.models.error import Conflict, NotFound
 from backend.models.products import CreateProductItem, CreateProductResponse
@@ -30,18 +30,18 @@ async def create_product(
         if not category:
             raise NotFound(code=ErrorCodes.CATEGORY_NOT_FOUND)
         
-        subcategory = await Subcategory.get_or_none(
-            id=item.subcategory_id, using_db=connection
+        subgroup = await Subgroup.get_or_none(
+            id=item.subgroup_id, using_db=connection
         )
-        if not subcategory:
-            raise NotFound(code=ErrorCodes.SUBCATEGORY_NOT_FOUND)
+        if not subgroup:
+            raise NotFound(code=ErrorCodes.SUBGROUP_NOT_FOUND)
 
         new_product = Product(
             name=item.name,
             short_name=item.short_name,
             print_name=item.print_name,
             price=item.price,
-            subcategory=subcategory,
+            subgroup=subgroup,
         )
 
         try:

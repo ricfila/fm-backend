@@ -2,9 +2,9 @@ from tortoise import fields
 from tortoise.models import Model
 
 
-class Subcategory(Model):
+class Subgroup(Model):
     """
-    The Subcategory model
+    The Subgroup model
     """
 
     id = fields.IntField(pk=True)
@@ -13,7 +13,7 @@ class Subcategory(Model):
     include_cover_charge = fields.BooleanField(db_default=True)
 
     class Meta:
-        table = "subcategory"
+        table = "subgroup"
 
     async def to_dict_name(self) -> dict:
         return {

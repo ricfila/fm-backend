@@ -3,7 +3,7 @@ import datetime
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
-from backend.models.subcategories import Subcategory
+from backend.models.subgroups import Subgroup
 from backend.utils import (
     validate_product_name_field,
     validate_short_name_field,
@@ -48,8 +48,8 @@ class Product(BaseModel):
     is_main: bool
     price: float
     category_id: int | None
-    subcategory_id: int
-    subcategory: Subcategory | None = None
+    subgroup_id: int
+    subgroup: Subgroup | None = None
     order: int
     daily_max_sales: int | None
     color: str | None
@@ -109,7 +109,7 @@ class CreateProductItem(BaseModel):
     short_name: str
     print_name: str
     price: float = Field(ge=0)
-    subcategory_id: int
+    subgroup_id: int
 
     @field_validator("name")
     @classmethod
@@ -205,8 +205,8 @@ class UpdateProductDailyMaxSalesItem(BaseModel):
     daily_max_sales: int | None = Field(ge=0)
 
 
-class UpdateProductSubcategoryItem(BaseModel):
-    subcategory_id: int
+class UpdateProductSubgroupItem(BaseModel):
+    subgroup_id: int
 
 
 class UpdateProductIngredientItem(BaseModel):

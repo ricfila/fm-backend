@@ -2,45 +2,45 @@ from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Subcategory
+from backend.database.models import Subgroup
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
-from backend.models.subcategories import UpdateSubcategoryNameItem
+from backend.models.subgroups import UpdateSubgroupNameItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-update_subcategory_name_router = APIRouter()
+update_subgroup_name_router = APIRouter()
 
 
-@update_subcategory_name_router.put(
-    "/{subcategory_id}/name", response_model=BaseResponse
+@update_subgroup_name_router.put(
+    "/{subgroup_id}/name", response_model=BaseResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
-async def update_subcategory_name(
-    subcategory_id: int,
-    item: UpdateSubcategoryNameItem,
+async def update_subgroup_name(
+    subgroup_id: int,
+    item: UpdateSubgroupNameItem,
     token: TokenJwt = Depends(validate_token),
 ):
     """
-    Update name of subcategory.
+    Update name of subgroup.
 
      **Permission**: can_administer
     """
 
     async with in_transaction() as connection:
-        subcategory = await Subcategory.get_or_none(
-            id=subcategory_id, using_db=connection
+        subgroup = await Subgroup.get_or_none(
+            id=subgroup_id, using_db=connection
         )
 
-        if not subcategory:
-            raise NotFound(code=ErrorCodes.SUBCATEGORY_NOT_FOUND)
+        if not subgroup:
+            raise NotFound(code=ErrorCodes.SUBGROUP_NOT_FOUND)
 
-        subcategory.name = item.name
+        subgroup.name = item.name
 
         try:
-            await subcategory.save(using_db=connection)
+            await subgroup.save(using_db=connection)
 
         except IntegrityError:
-            raise Conflict(code=ErrorCodes.SUBCATEGORY_ALREADY_EXISTS)
+            raise Conflict(code=ErrorCodes.SUBGROUP_ALREADY_EXISTS)
 
     return BaseResponse()

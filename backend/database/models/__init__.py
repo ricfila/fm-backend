@@ -25,7 +25,7 @@ __all__ = (
     "RoleTable",
     "Setting",
 	"Stock",
-    "Subcategory",
+    "Subgroup",
     "Table",
 	"Ticket",
     "User",
@@ -57,7 +57,7 @@ from .role_printer import RolePrinter
 from .role_table import RoleTable
 from .setting import Setting
 from .stock import Stock
-from .subcategory import Subcategory
+from .subgroup import Subgroup
 from .table import Table
 from .ticket import Ticket
 from .user import User

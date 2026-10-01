@@ -2,39 +2,39 @@ from fastapi import APIRouter, Depends
 from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Subcategory
+from backend.database.models import Subgroup
 from backend.decorators import check_role
 from backend.models.error import Conflict
-from backend.models.subcategories import (
-    CreateSubcategoryItem,
-    CreateSubcategoryResponse,
+from backend.models.subgroups import (
+    CreateSubgroupItem,
+    CreateSubgroupResponse,
 )
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-create_subcategory_router = APIRouter()
+create_subgroup_router = APIRouter()
 
 
-@create_subcategory_router.post("/", response_model=CreateSubcategoryResponse)
+@create_subgroup_router.post("/", response_model=CreateSubgroupResponse)
 @check_role(Permission.CAN_ADMINISTER)
-async def create_subcategory(
-    item: CreateSubcategoryItem,
+async def create_subgroup(
+    item: CreateSubgroupItem,
     token: TokenJwt = Depends(validate_token),
 ):
     """
-    Create a new subcategory.
+    Create a new subgroup.
 
     **Permission**: can_administer
     """
 
     async with in_transaction() as connection:
-        new_subcategory = Subcategory(name=item.name)
+        new_subgroup = Subgroup(name=item.name)
 
         try:
-            await new_subcategory.save(using_db=connection)
+            await new_subgroup.save(using_db=connection)
 
         except IntegrityError:
-            raise Conflict(code=ErrorCodes.SUBCATEGORY_ALREADY_EXISTS)
+            raise Conflict(code=ErrorCodes.SUBGROUP_ALREADY_EXISTS)
 
-    return CreateSubcategoryResponse(
-        subcategory=await new_subcategory.to_dict()
+    return CreateSubgroupResponse(
+        subgroup=await new_subgroup.to_dict()
     )

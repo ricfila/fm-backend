@@ -19,7 +19,7 @@ async def get_payment_method(
     token: TokenJwt = Depends(validate_token)
 ):
     """
-    Get information about a subcategory.
+    Get information about a payment method.
 
     **Permission**: can_administer, can_order
     """

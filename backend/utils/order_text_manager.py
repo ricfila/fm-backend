@@ -352,13 +352,13 @@ class OrderTextManager:
                 continue
 
             product = op.product
-            subcategory = product.subcategory if product else None
+            subgroup = product.subgroup if product else None
 
-            subcategory_order = subcategory.order if subcategory else 0
+            subgroup_order = subgroup.order if subgroup else 0
             product_order = product.order if product else 0
 
             enriched_products.append(
-                ((subcategory_order, product_order, op.id), op)
+                ((subgroup_order, product_order, op.id), op)
             )
 
         return [op for _, op in sorted(enriched_products)]

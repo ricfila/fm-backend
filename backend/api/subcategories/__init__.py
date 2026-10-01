@@ -1,29 +1,29 @@
 __all__ = (
-    "subcategories",
-    "create_subcategory_router",
-    "delete_subcategory_router",
-    "get_subcategories_router",
-    "get_subcategory_router",
-    "update_subcategory_include_cover_charge_router",
-    "update_subcategory_name_router",
-    "update_subcategory_order_router",
+    "subgroups",
+    "create_subgroup_router",
+    "delete_subgroup_router",
+    "get_subgroups_router",
+    "get_subgroup_router",
+    "update_subgroup_include_cover_charge_router",
+    "update_subgroup_name_router",
+    "update_subgroup_order_router",
 )
 
 from fastapi import APIRouter
 
-from .create_subcategory import create_subcategory_router
-from .delete_subcategory import delete_subcategory_router
-from .get_subcategories import get_subcategories_router
-from .get_subcategory import get_subcategory_router
-from .update_subcategory_include_cover_charge import update_subcategory_include_cover_charge_router
-from .update_subcategory_name import update_subcategory_name_router
-from .update_subcategory_order import update_subcategory_order_router
+from .create_subgroup import create_subgroup_router
+from .delete_subgroup import delete_subgroup_router
+from .get_subgroups import get_subgroups_router
+from .get_subgroup import get_subgroup_router
+from .update_subgroup_include_cover_charge import update_subgroup_include_cover_charge_router
+from .update_subgroup_name import update_subgroup_name_router
+from .update_subgroup_order import update_subgroup_order_router
 
-subcategories = APIRouter(prefix="/subcategories", tags=["subcategories"])
-subcategories.include_router(create_subcategory_router)
-subcategories.include_router(delete_subcategory_router)
-subcategories.include_router(get_subcategories_router)
-subcategories.include_router(get_subcategory_router)
-subcategories.include_router(update_subcategory_include_cover_charge_router)
-subcategories.include_router(update_subcategory_name_router)
-subcategories.include_router(update_subcategory_order_router)
+subgroups = APIRouter(prefix="/subgroups", tags=["subgroups"])
+subgroups.include_router(create_subgroup_router)
+subgroups.include_router(delete_subgroup_router)
+subgroups.include_router(get_subgroups_router)
+subgroups.include_router(get_subgroup_router)
+subgroups.include_router(update_subgroup_include_cover_charge_router)
+subgroups.include_router(update_subgroup_name_router)
+subgroups.include_router(update_subgroup_order_router)

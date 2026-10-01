@@ -123,7 +123,7 @@ async def _check_generic_product(
 
     # Assign calculated price to the product
     product._price = product_price
-    product._has_cover_charge = product_db.subcategory.include_cover_charge
+    product._has_cover_charge = product_db.subgroup.include_cover_charge
 
     return False, None
 
@@ -140,7 +140,7 @@ async def check_products(
     products_db = (
         Product.filter(id__in=product_ids)
         .prefetch_related(
-            "dates", "ingredients", "roles", "variants", "subcategory"
+            "dates", "ingredients", "roles", "variants", "subgroup"
         )
         .using_db(connection)
     )
@@ -365,7 +365,7 @@ async def check_menus(
             "dates",
             "menu_fields",
             "menu_fields__field_products",
-            "menu_fields__field_products__product__subcategory",
+            "menu_fields__field_products__product__subgroup",
             "menu_fields__field_products__product__ingredients",
             "menu_fields__field_products__product__variants",
             "roles",

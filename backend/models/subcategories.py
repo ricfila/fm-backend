@@ -4,20 +4,20 @@ from backend.models import BaseResponse
 from backend.utils import validate_name_field, validate_order_field
 
 
-class Subcategory(BaseModel):
+class Subgroup(BaseModel):
     id: int
     name: str
     order: int
     include_cover_charge: bool
 
 
-class SubcategoryName(BaseModel):
+class SubgroupName(BaseModel):
     id: int
     name: str
     include_cover_charge: bool
 
 
-class CreateSubcategoryItem(BaseModel):
+class CreateSubgroupItem(BaseModel):
     name: str
 
     @field_validator("name")
@@ -26,20 +26,20 @@ class CreateSubcategoryItem(BaseModel):
         return validate_name_field(name)
 
 
-class CreateSubcategoryResponse(BaseResponse):
-    subcategory: Subcategory
+class CreateSubgroupResponse(BaseResponse):
+    subgroup: Subgroup
 
 
-class GetSubcategoriesResponse(BaseResponse):
+class GetSubgroupsResponse(BaseResponse):
     total_count: int
-    subcategories: list[Subcategory | SubcategoryName]
+    subgroups: list[Subgroup | SubgroupName]
 
 
-class GetSubcategoryResponse(BaseResponse, Subcategory):
+class GetSubgroupResponse(BaseResponse, Subgroup):
     pass
 
 
-class UpdateSubcategoryNameItem(BaseModel):
+class UpdateSubgroupNameItem(BaseModel):
     name: str
 
     @field_validator("name")
@@ -48,7 +48,7 @@ class UpdateSubcategoryNameItem(BaseModel):
         return validate_name_field(name)
 
 
-class UpdateSubcategoryOrderItem(BaseModel):
+class UpdateSubgroupOrderItem(BaseModel):
     order: int
 
     @field_validator("order")
@@ -57,5 +57,5 @@ class UpdateSubcategoryOrderItem(BaseModel):
         return validate_order_field(order)
 
 
-class UpdateSubcategoryIncludeCoverChargeItem(BaseModel):
+class UpdateSubgroupIncludeCoverChargeItem(BaseModel):
     include_cover_charge: bool

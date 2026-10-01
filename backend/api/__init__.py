@@ -11,7 +11,7 @@ __all__ = (
     "roles",
     "settings",
     "statistics",
-    "subcategories",
+    "subgroups",
     "tables",
 	"tickets",
     "users",
@@ -30,7 +30,7 @@ from .products import products
 from .roles import roles
 from .settings import settings
 from .statistics import statistics
-from .subcategories import subcategories
+from .subgroups import subgroups
 from .tables import tables
 from .tickets import tickets
 from .users import users
@@ -47,7 +47,7 @@ api.include_router(products)
 api.include_router(roles)
 api.include_router(settings)
 api.include_router(statistics)
-api.include_router(subcategories)
+api.include_router(subgroups)
 api.include_router(tables)
 api.include_router(tickets)
 api.include_router(users)

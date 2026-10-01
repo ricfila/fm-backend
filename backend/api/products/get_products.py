@@ -27,11 +27,11 @@ async def get_products(
     only_name: bool = False,
     order_by: str = None,
     category_id: int = None,
-    subcategory_id: int = None,
+    subgroup_id: int = None,
     include_dates: bool = False,
     include_ingredients: bool = False,
     include_roles: bool = False,
-    include_subcategory: bool = False,
+    include_subgroup: bool = False,
     include_variants: bool = False,
     include_locks: bool = False,
     token: TokenJwt = Depends(validate_token),
@@ -48,8 +48,8 @@ async def get_products(
         if category_id:
             products_query_filter &= Q(category_id=category_id)
 
-        if subcategory_id:
-            products_query_filter &= Q(subcategory_id=subcategory_id)
+        if subgroup_id:
+            products_query_filter &= Q(subgroup_id=subgroup_id)
 
         products_query, total_count, limit = (
             await process_query_with_pagination(
@@ -113,7 +113,7 @@ async def get_products(
                         include_dates,
                         include_ingredients,
                         include_roles,
-                        include_subcategory,
+                        include_subgroup,
                         include_variants,
                     ),
                     locked=(

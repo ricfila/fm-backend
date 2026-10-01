@@ -1,27 +1,27 @@
 from fastapi import APIRouter, Depends
 from tortoise.transactions import in_transaction
 
-from backend.database.models import Product, Subcategory
+from backend.database.models import Product, Subgroup
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import NotFound
-from backend.models.products import UpdateProductSubcategoryItem
+from backend.models.products import UpdateProductSubgroupItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-update_product_subcategory_router = APIRouter()
+update_product_subgroup_router = APIRouter()
 
 
-@update_product_subcategory_router.put(
-    "/{product_id}/subcategory", response_model=BaseResponse
+@update_product_subgroup_router.put(
+    "/{product_id}/subgroup", response_model=BaseResponse
 )
 @check_role(Permission.CAN_ADMINISTER)
-async def update_product_subcategory(
+async def update_product_subgroup(
     product_id: int,
-    item: UpdateProductSubcategoryItem,
+    item: UpdateProductSubgroupItem,
     token: TokenJwt = Depends(validate_token),
 ):
     """
-    Update subcategory of product.
+    Update subgroup of product.
 
      **Permission**: can_administer
     """
@@ -32,14 +32,14 @@ async def update_product_subcategory(
         if not product:
             raise NotFound(code=ErrorCodes.PRODUCT_NOT_FOUND)
 
-        subcategory = await Subcategory.get_or_none(
-            id=item.subcategory_id, using_db=connection
+        subgroup = await Subgroup.get_or_none(
+            id=item.subgroup_id, using_db=connection
         )
 
-        if not subcategory:
-            raise NotFound(code=ErrorCodes.SUBCATEGORY_NOT_FOUND)
+        if not subgroup:
+            raise NotFound(code=ErrorCodes.SUBGROUP_NOT_FOUND)
 
-        product.subcategory = subcategory
+        product.subgroup = subgroup
 
         await product.save(using_db=connection)
 

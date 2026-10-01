@@ -128,10 +128,10 @@ class ErrorCodes(Enum):
     # Delete role table
     ROLE_TABLE_NOT_FOUND = auto()
 
-    # Subcategories
-    SUBCATEGORY_NOT_FOUND = auto()
+    # Subgroups
+    SUBGROUP_NOT_FOUND = auto()
     # Create
-    SUBCATEGORY_ALREADY_EXISTS = auto()
+    SUBGROUP_ALREADY_EXISTS = auto()
 
     # Tables
     TABLE_NOT_FOUND = auto()
