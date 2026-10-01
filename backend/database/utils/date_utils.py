@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 def get_current_time() -> datetime.datetime:
     tz = ZoneInfo("Europe/Rome")
+    #tz = pytz.timezone("Europe/Rome")
 
     return datetime.datetime.now(tz)
 

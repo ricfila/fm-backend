@@ -81,6 +81,7 @@ async def get_orders(
     async with in_transaction() as connection:
         query = Q(is_deleted=False)
 
+        #TODO: add date filters
         #if from_date is not None:
         #    query &= Q(created_at__ge=from_date)
 

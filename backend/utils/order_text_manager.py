@@ -433,6 +433,7 @@ class OrderTextManager:
             pytz.timezone("Europe/Rome")
         ).strftime("%d/%m/%Y %H:%M")
 
+        #TODO remove this
         if self.category.id == 5:
             row1 = "« HOSTARIA »".center(self.MAX_WIDTH // 2)
             row2 = "CENTRO PARROCCHIALE".center(self.MAX_WIDTH // 2)

@@ -85,6 +85,7 @@ async def _check_generic_product(
     }
 
     # Validate ingredients
+    # TODO: check for stock availability of ingredients
     if len(set(x.ingredient_id for x in product.ingredients)) != len(
         product.ingredients
     ):

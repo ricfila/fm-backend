@@ -10,6 +10,7 @@ from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
 delete_tickets_router = APIRouter()
 
+#TODO implement logical elimination (and remove update_tickets.py)
 
 @delete_tickets_router.delete("/{order_id}/tickets", response_model=BaseResponse)
 @check_role(Permission.CAN_ADMINISTER, Permission.CAN_COMPLETE_TICKETS)
