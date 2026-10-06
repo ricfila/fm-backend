@@ -15,7 +15,7 @@ class Order(Model):
     id = fields.IntField(pk=True)
     customer = fields.CharField(32)
     guests = fields.IntField(null=True)
-    is_take_away = fields.BooleanField()
+    take_away_type = fields.IntField(null=True)
     table = fields.CharField(32, null=True)
     needs_confirmation = fields.BooleanField(db_default=False)
     is_deleted = fields.BooleanField(db_default=False)
@@ -92,7 +92,7 @@ class Order(Model):
             "id": self.id,
             "customer": self.customer,
             "guests": self.guests,
-            "is_take_away": self.is_take_away,
+            "take_away_type": self.take_away_type,
             "table": self.table,
             "needs_confirmation": self.needs_confirmation,
             "is_voucher": self.is_voucher,

@@ -6,22 +6,21 @@ from backend.database.models import Category
 from backend.decorators import check_role
 from backend.models import BaseResponse
 from backend.models.error import Conflict, NotFound
-from backend.models.categories import UpdateParentCategoryItem
-from backend.utils.categories import check_cyclic_links
+from backend.models.categories import UpdateTakeAwayTypeItem
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 
-update_category_parent_take_away_router = APIRouter()
+update_category_take_away_type_router = APIRouter()
 
 
-@update_category_parent_take_away_router.put("/{category_id}/parent_take_away", response_model=BaseResponse)
+@update_category_take_away_type_router.put("/{category_id}/take_away_type", response_model=BaseResponse)
 @check_role(Permission.CAN_ADMINISTER)
-async def update_category_parent_take_away(
+async def update_category_take_away_type(
     category_id: int,
-    item: UpdateParentCategoryItem,
+    item: UpdateTakeAwayTypeItem,
     token: TokenJwt = Depends(validate_token),
 ):
     """
-    Update a parent category for take away.
+    Update the take away type of a category.
 
      **Permission**: can_administer
     """
@@ -31,16 +30,17 @@ async def update_category_parent_take_away(
         if not category:
             raise NotFound(code=ErrorCodes.CATEGORY_NOT_FOUND)
 
-        if item.parent_category_id is None:
-            category.parent_for_take_away = None
-        else:
-            parent = await Category.get_or_none(id=item.parent_category_id, using_db=connection)
-            if not parent:
-                raise NotFound(code=ErrorCodes.PARENT_CATEGORY_NOT_FOUND)
-            
-            await check_cyclic_links(category_id, parent, 'parent_for_take_away')
+        if (
+            item.take_away_type is not None and
+            category.parent_category is not None or category.parent_for_main_products is not None
+        ):
+            raise Conflict(code=ErrorCodes.TAKE_AWAY_CATEGORY_CANNOT_HAVE_PARENT)
 
-            category.parent_for_take_away = parent
+        take_away_category = await Category.get_or_none(take_away_type=item.take_away_type, using_db=connection)
+        if take_away_category and take_away_category.id != category_id:
+            raise Conflict(code=ErrorCodes.TAKE_AWAY_CATEGORY_ALREADY_EXISTS)
+        
+        category.take_away_type = item.take_away_type
 
         try:
             await category.save(using_db=connection)

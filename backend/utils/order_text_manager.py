@@ -390,9 +390,9 @@ class OrderTextManager:
         result += "* CLIENTE: " + customer.upper() + "\n"
 
         is_take_away = (
-            self.order.is_take_away
+            bool(self.order.take_away_type is not None)
             if not self.order.parent_order
-            else self.order.parent_order.is_take_away
+            else bool(self.order.parent_order.take_away_type is not None)
         )
 
         if is_take_away:
@@ -478,7 +478,7 @@ class OrderTextManager:
         receipt_text = self._get_header()
 
         if (
-            not self.order.is_take_away
+            not self.order.take_away_type
             and not self.order.parent_order
             and self.order.guests
         ):

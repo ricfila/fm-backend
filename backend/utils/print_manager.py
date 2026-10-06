@@ -104,7 +104,7 @@ class PrintManager:
                 if trigger_time is None:
                     continue
 
-                if getattr(t.order, "guests") is None and not getattr(t.order, "is_take_away"):
+                if getattr(t.order, "guests") is None:
                     # print_delay is forced to 0 for adding orders
                     print_delay = 0
                 else:

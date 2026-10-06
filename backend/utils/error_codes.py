@@ -25,6 +25,8 @@ class ErrorCodes(Enum):
     CATEGORY_NOT_FOUND = auto()
     CYCLIC_LINK_OF_CATEGORIES = auto()
     PARENT_CATEGORY_NOT_FOUND = auto()
+    TAKE_AWAY_CATEGORY_ALREADY_EXISTS = auto()
+    TAKE_AWAY_CATEGORY_CANNOT_HAVE_PARENT = auto()
 
     # Menus
     MENU_ALREADY_EXISTS = auto()

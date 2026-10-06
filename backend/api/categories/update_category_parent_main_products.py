@@ -34,6 +34,9 @@ async def update_category_parent_main_products(
         if item.parent_category_id is None:
             category.parent_for_main_products = None
         else:
+            if category.take_away_type is not None:
+                raise Conflict(code=ErrorCodes.TAKE_AWAY_CATEGORY_CANNOT_HAVE_PARENT)
+            
             parent = await Category.get_or_none(id=item.parent_category_id, using_db=connection)
             if not parent:
                 raise NotFound(code=ErrorCodes.PARENT_CATEGORY_NOT_FOUND)

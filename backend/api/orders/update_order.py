@@ -43,7 +43,7 @@ async def create_order(
 
         order.customer = item.customer
         order.guests = item.guests
-        order.is_take_away = item.is_take_away
+        order.take_away_type = item.take_away_type
         order.table = item.table
         order.is_voucher = item.is_voucher
         order.has_tickets = item.has_tickets

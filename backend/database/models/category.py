@@ -16,6 +16,7 @@ class Category(Model):
     name = fields.CharField(32, unique=True)
     print_delay = fields.IntField()
     wait_parent_category = fields.BooleanField(db_default=False)
+    take_away_type = fields.IntField(null=True, db_default=None)
     printer = fields.ForeignKeyField(
         to="models.Printer",
         related_name="category_printer",
@@ -24,12 +25,6 @@ class Category(Model):
     parent_category = fields.ForeignKeyField(
         to="models.Category",
         related_name="children_category",
-        on_delete=fields.RESTRICT,
-        null=True
-    )
-    parent_for_take_away = fields.ForeignKeyField(
-        to="models.Category",
-        related_name="take_away_children",
         on_delete=fields.RESTRICT,
         null=True
     )
@@ -45,7 +40,6 @@ class Category(Model):
 
     printer_id: int
     parent_category_id: int
-    parent_for_take_away_id: int
     parent_for_main_products_id: int
 
     class Meta:
@@ -57,9 +51,9 @@ class Category(Model):
             "name": self.name,
             "print_delay": self.print_delay,
             "wait_parent_category": self.wait_parent_category,
+            "take_away_type": self.take_away_type,
             "printer_id": self.printer_id,
             "parent_category_id": self.parent_category_id,
-            "parent_for_take_away_id": self.parent_for_take_away_id,
             "parent_for_main_products_id": self.parent_for_main_products_id
         }
 

@@ -39,7 +39,7 @@ async def create_order(
     if not item.products and not item.menus:
         raise BadRequest(code=ErrorCodes.NO_PRODUCTS_AND_MENUS, message="Nessun prodotto e nessun menù selezionato")
 
-    eat_in = not item.is_take_away and item.has_tickets and not item.parent_order_id
+    eat_in = not item.take_away_type and item.has_tickets and not item.parent_order_id
 
     if eat_in:
         if not item.table:
@@ -56,10 +56,10 @@ async def create_order(
         if item.table:
             raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED, message="Per quest'ordine non è consentito specificare il tavolo")
     
-        if item.is_take_away and item.parent_order_id:
+        if item.take_away_type and item.parent_order_id:
             raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED, message="Un ordine figlio non può essere da asporto")
             
-        if item.is_take_away and not item.has_tickets:
+        if item.take_away_type and not item.has_tickets:
             raise BadRequest(code=ErrorCodes.METHOD_NOT_ALLOWED, message="Un ordine per asporto deve avere delle comande")
 
 
@@ -111,7 +111,7 @@ async def create_order(
         order = await Order.create(
             customer=item.customer,
             guests=guests,
-            is_take_away=item.is_take_away,
+            take_away_type=item.take_away_type,
             table=item.table if eat_in else None,
             needs_confirmation=bool(eat_in and not item.table),
             is_voucher=item.is_voucher,

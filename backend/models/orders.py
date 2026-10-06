@@ -58,7 +58,7 @@ class Order(BaseModel):
     id: int
     customer: str
     guests: int | None = Field(ge=1, default=None)
-    is_take_away: bool
+    take_away_type: int | None = None
     table: str | None = None
     needs_confirmation: bool
     is_voucher: bool
@@ -141,7 +141,7 @@ class CreateOrderMenuItem(BaseModel):
 class CreateOrderItem(BaseModel):
     customer: str
     guests: int | None = Field(ge=1, default=None)
-    is_take_away: bool
+    take_away_type: int | None = None
     table: str | None = None
     is_voucher: bool
     is_for_service: bool

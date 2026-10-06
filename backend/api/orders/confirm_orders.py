@@ -80,7 +80,7 @@ async def confirm_orders(
                 errors.append({"order_id": order_id, "type": "confirm",  "message": "Utente non autorizzato alla conferma di quest'ordine"})
                 continue
 
-            if not order.is_take_away and not await is_table_allowed_for_role(
+            if not order.take_away_type and not await is_table_allowed_for_role(
                 token.role_id, confirm.table, connection
             ):
                 errors.append({"order_id": order_id, "type": "confirm",  "message": "Utente non autorizzato all'associazione di questo tavolo"})

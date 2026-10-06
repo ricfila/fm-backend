@@ -18,7 +18,7 @@ async def get_category(
     """
     Get information about a category.
 
-    **Permission**: can_administer, can_confirm_orders
+     **Permission**: can_administer, can_confirm_orders
     """
 
     async with in_transaction() as connection:
@@ -27,11 +27,4 @@ async def get_category(
         if not category:
             raise NotFound(code=ErrorCodes.CATEGORY_NOT_FOUND)
 
-    return GetCategoryResponse(
-        id=category_id,
-        name=category.name,
-        print_delay=category.print_delay,
-        printer_id=category.printer_id,
-        parent_for_take_away_id=category.parent_for_take_away_id,
-        parent_for_main_products_id=category.parent_for_main_products_id
-    )
+    return GetCategoryResponse(**await category.to_dict(), success=True)

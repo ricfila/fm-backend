@@ -20,6 +20,29 @@ async def check_cyclic_links(
         parent_category = await getattr(parent_category, type_of_parent)
 
 
+async def collapseTakeAwayCategories(
+    categories: list[Category],
+    take_away_type: int,
+    changes: dict,
+    connection: BaseDBAsyncClient
+) -> tuple[list[Category], dict]:
+    if take_away_type is None:
+        return categories, changes
+
+    take_away_category = await Category.get_or_none(take_away_type=take_away_type, using_db=connection)
+
+    if not take_away_category:
+        return categories, changes
+
+    new_categories = [take_away_category]
+    for c in categories:
+        if c.id != take_away_category.id:
+            changes[c.id] = take_away_category.id
+
+    return new_categories, collapseChangesChains(changes)
+
+    
+
 async def collapseCategories(
     categories: list[Category],
     parent_field: str,

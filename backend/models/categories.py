@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 
 from backend.models import BaseResponse
-from backend.utils import validate_name_field, validate_order_field
+from backend.utils import validate_name_field
 
 
 class Category(BaseModel):
@@ -9,9 +9,9 @@ class Category(BaseModel):
     name: str
     print_delay: int
     wait_parent_category: bool
+    take_away_type: int | None
     printer_id: int
     parent_category_id: int | None
-    parent_for_take_away_id: int | None
     parent_for_main_products_id: int | None
 
 
@@ -55,6 +55,10 @@ class UpdateCategoryNameItem(BaseModel):
 
 class UpdateCategoryPrintDelayItem(BaseModel):
     print_delay: int = Field(ge=0)
+
+
+class UpdateTakeAwayTypeItem(BaseModel):
+    take_away_type: int | None
 
 
 class UpdateCategoryPrinterItem(BaseModel):

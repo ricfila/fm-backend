@@ -51,9 +51,9 @@ async def get_statistic(
             .using_db(connection)
         )
 
-        total_take_away = sum(1 for order in orders if order.is_take_away)
+        total_take_away = sum(1 for order in orders if order.take_away_type)
         total_seated = sum(
-            order.guests or 0 for order in orders if not order.is_take_away
+            order.guests or 0 for order in orders if not order.take_away_type
         )
         total_voucher = sum(1 for order in orders if order.is_voucher)
         total_price_with_cover = Decimal(

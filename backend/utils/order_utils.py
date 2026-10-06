@@ -25,7 +25,7 @@ from backend.models.orders import (
 from backend.models.error import Conflict
 from backend.services.orders import get_today_quantities
 from backend.utils import ErrorCodes
-from backend.utils.categories import collapseCategories, collapseOrphanCategories
+from backend.utils.categories import collapseCategories, collapseOrphanCategories, collapseTakeAwayCategories
 
 ZERO_DECIMAL = Decimal("0.00")
 
@@ -470,10 +470,10 @@ async def create_tickets(order: Order, connection: BaseDBAsyncClient):
 
 
     # Collapsing categories for take_away orders
-    if order.is_take_away:
-        categories, changes = await collapseCategories(
+    if order.take_away_type is not None:
+        categories, changes = await collapseTakeAwayCategories(
             categories=categories,
-            parent_field='parent_for_take_away_id',
+            take_away_type=order.take_away_type,
             changes=changes,
             connection=connection
         )
@@ -501,7 +501,7 @@ async def create_tickets(order: Order, connection: BaseDBAsyncClient):
 
 
     # Collapsing categories for adding orders
-    if not order.guests and not order.is_take_away:
+    if not order.guests and not order.take_away_type:
         categories, changes = await collapseCategories(
             categories=categories,
             parent_field='parent_category_id',
