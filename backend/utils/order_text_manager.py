@@ -150,7 +150,7 @@ class OrderTextManager:
             unit_price = product.get("unit_price")
             total_price = product.get("total_price")
 
-            price_text = f"EURO {total_price:.2f}" if include_price else ""
+            price_text = f"€ {total_price:.2f}" if include_price else ""
             width = (
                 (max_width - len(price_text) - 1)
                 if include_price
@@ -433,13 +433,7 @@ class OrderTextManager:
             pytz.timezone("Europe/Rome")
         ).strftime("%d/%m/%Y %H:%M")
 
-        #TODO remove this
-        if self.category.id == 5:
-            row1 = "« HOSTARIA »".center(self.MAX_WIDTH // 2)
-            row2 = "CENTRO PARROCCHIALE".center(self.MAX_WIDTH // 2)
-            result += f"<DOUBLE>{row1}</DOUBLE>\n<DOUBLE>{row2}</DOUBLE>\n"
-        else:
-            result += f"<DOUBLE>{category_name}</DOUBLE>\n"
+        result += f"<DOUBLE>{category_name}</DOUBLE>\n"
         row = f"Ordine n. {self.order.id} - {self.order.user.username} - {date_time}"
         result += row + " "*(self.MAX_WIDTH - len(row))
 

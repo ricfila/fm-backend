@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import ParamsError
 from tortoise.expressions import Q
@@ -30,6 +32,8 @@ async def get_ingredients(
     include_stock_quantities: bool = False,
     include_completed_quantities: bool = False,
     await_cooking_time: bool = False,
+    from_date: datetime = None,
+    to_date: datetime = None,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -38,7 +42,7 @@ async def get_ingredients(
 
     async with in_transaction() as connection:
         if include_stock_quantities:
-            ingredients = await get_ingredient_stock(connection, ward=ward, await_cooking_time=await_cooking_time)
+            ingredients = await get_ingredient_stock(connection, ward=ward, await_cooking_time=await_cooking_time, from_date=from_date, to_date=to_date)
 
             return GetIngredientsResponse(
                 total_count=len(ingredients),
@@ -49,7 +53,7 @@ async def get_ingredients(
             )
         
         elif include_completed_quantities:
-            ingredients = await get_ingredients_completed_quantities(connection, ward=ward, only_monitored=True)
+            ingredients = await get_ingredients_completed_quantities(connection, ward=ward, only_monitored=True, from_date=from_date, to_date=to_date)
 
             return GetIngredientsResponse(
                 total_count=len(ingredients),

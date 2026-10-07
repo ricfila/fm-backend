@@ -25,7 +25,7 @@ async def update_stock(
 
     **Permission**: can_order
     """
-
+    #TODO: Update is_valid field
     async with in_transaction() as connection:
         stock = await Stock.get_or_none(id=stock_id, ingredient_id=ingredient_id, using_db=connection)
         

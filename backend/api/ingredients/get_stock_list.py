@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
 from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
@@ -15,20 +17,20 @@ get_stock_list_router = APIRouter()
 @check_role(Permission.CAN_CONFIRM_ORDERS)
 async def get_stock_list(
     ingredient_id: int,
-    from_date: str = None,
-    to_date: str = None,
+    from_date: datetime = None,
+    to_date: datetime = None,
     valid: bool = True,
     token: TokenJwt = Depends(validate_token),
 ):
     """
     Get the stock list for an ingredient.
 
-    **Permission**: can_confirm_orders
+     **Permission**: can_confirm_orders
     """
 
     async with in_transaction() as connection:
         query = Q(available_from__gte=from_date) if from_date is not None else Q()
-        query &= Q(available_to__lte=to_date) if to_date is not None else Q()
+        query &= Q(available_from__lt=to_date) if to_date is not None else Q()
 
         stocks = await Stock.filter(
             query,
