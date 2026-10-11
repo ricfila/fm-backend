@@ -91,7 +91,7 @@ class OrderTextManager:
             product = order_product.product
 
             product_quantity = order_product.quantity
-            product_name = product.name
+            product_name = product.print_name
             product_notes = order_product.notes
 
             product_variant = ""
@@ -427,12 +427,18 @@ class OrderTextManager:
     def _get_short_header(self) -> str:
         result = ""
 
-        category_name = self.category.name.upper()
+        if self.order.guests is None and self.order.take_away_type is None:
+            category_name = "AGGIUNTA"
+        else:
+            category_name = self.category.name.upper()
         category_name = (f"« {category_name} »").center(self.MAX_WIDTH // 2)
         date_time = self.order.created_at.astimezone(
             pytz.timezone("Europe/Rome")
         ).strftime("%d/%m/%Y %H:%M")
 
+        for i in range (5):
+            temp = ".".center(self.MAX_WIDTH // 2)
+            result += f"<DOUBLE>{temp}</DOUBLE>\n"
         result += f"<DOUBLE>{category_name}</DOUBLE>\n"
         row = f"Ordine n. {self.order.id} - {self.order.user.username} - {date_time}"
         result += row + " "*(self.MAX_WIDTH - len(row))
