@@ -24,6 +24,17 @@ class PrintManager:
     def __init__(self):
         self.printers: dict[int, Network] = {}
         self._printer_locks: dict[int, threading.Lock] = {}
+        self.prefetch_values = [
+            "category__printer",
+            "order__order_products__product__subgroup",
+            "order__order_products__order_product_ingredients__ingredient",
+            "order__order_products__variant",
+            "order__order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__ingredient",
+            "order__order_menus__menu",
+            "order__parent_order",
+            "order__user",
+            "order__confirmed_by"
+        ]
     
     
     @classmethod
@@ -54,18 +65,6 @@ class PrintManager:
 
 
     async def update_worker(self):
-        prefetch_values = [
-            "category__printer",
-            "order__order_products__product__subgroup",
-            "order__order_products__order_product_ingredients__ingredient",
-            "order__order_products__variant",
-            "order__order_menus__order_menu_fields__order_menu_field_products__order_product_ingredients__ingredient",
-            "order__order_menus__menu",
-            "order__parent_order",
-            "order__user",
-            "order__confirmed_by"
-        ]
-
         while True:
             # Fetch all ticket that are not printed and not completed
             tickets = (
@@ -74,7 +73,7 @@ class PrintManager:
                     completed_at=None,
                     order__is_deleted=False
                 )
-                .prefetch_related(*prefetch_values)
+                .prefetch_related(*self.prefetch_values)
             )
 
             current_time = get_current_time()
@@ -158,7 +157,7 @@ class PrintManager:
         printer.cut()
 
 
-    async def print_ticket(self, ticket: Ticket, update_db: bool) -> bool:
+    async def print_ticket(self, ticket: Ticket, update_db: bool, forced_printer_id: int = None) -> bool:
         logger.debug(
             f"Stampa comanda #{ticket.id} (categoria {ticket.category_id} dell'ordine {ticket.order_id})"
         )
@@ -166,7 +165,10 @@ class PrintManager:
         text = OrderTextManager(ticket.order, ticket.category)
         content = text.generate_text_for_printer(PrinterType.TICKET)
 
-        printer_id = ticket.category.printer_id
+        if forced_printer_id is None:
+            printer_id = ticket.category.printer_id
+        else:
+            printer_id = forced_printer_id
 
         printer = self.printers[printer_id]
         lock = self._printer_locks.get(printer_id, threading.Lock())
