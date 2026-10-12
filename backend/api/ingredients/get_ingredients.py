@@ -26,6 +26,7 @@ async def get_ingredients(
     offset: int = 0,
     limit: int | None = None,
     only_name: bool = False,
+    only_monitored: bool = False,
     order_by: str = None,
     ward: str = None,
     deleted: bool = False,
@@ -42,7 +43,13 @@ async def get_ingredients(
 
     async with in_transaction() as connection:
         if include_stock_quantities:
-            ingredients = await get_ingredient_stock(connection, ward=ward, await_cooking_time=await_cooking_time, from_date=from_date, to_date=to_date)
+            ingredients = await get_ingredient_stock(
+                connection,
+                ward=ward,
+                await_cooking_time=await_cooking_time,
+                from_date=from_date,
+                to_date=to_date
+            )
 
             return GetIngredientsResponse(
                 total_count=len(ingredients),
@@ -53,7 +60,13 @@ async def get_ingredients(
             )
         
         elif include_completed_quantities:
-            ingredients = await get_ingredients_completed_quantities(connection, ward=ward, only_monitored=True, from_date=from_date, to_date=to_date)
+            ingredients = await get_ingredients_completed_quantities(
+                connection,
+                ward=ward,
+                only_monitored=only_monitored,
+                from_date=from_date,
+                to_date=to_date
+            )
 
             return GetIngredientsResponse(
                 total_count=len(ingredients),
@@ -65,6 +78,9 @@ async def get_ingredients(
         
         else:
             query = Q(is_deleted=deleted)
+
+            if only_monitored:
+                query &= Q(is_monitored=True)
 
             if ward is not None:
                 query &= Q(ward=ward)
