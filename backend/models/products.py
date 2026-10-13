@@ -58,6 +58,7 @@ class Product(BaseModel):
     roles: list[ProductRole] | None = None
     variants: list[ProductVariant] | None = None
     locked: bool | None = None
+    salable_quantity: int | None = None
 
 
 class ProductName(BaseModel):

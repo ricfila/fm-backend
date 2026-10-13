@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
 from tortoise.exceptions import ParamsError
 from tortoise.expressions import Q
@@ -34,6 +36,9 @@ async def get_products(
     include_subgroup: bool = False,
     include_variants: bool = False,
     include_locks: bool = False,
+    include_salable_quantity: bool = False,
+    from_date: datetime = None,
+    to_date: datetime = None,
     token: TokenJwt = Depends(validate_token),
 ):
     """
@@ -96,8 +101,13 @@ async def get_products(
             ]
         
         ingredient_stock_levels = {}
-        if include_locks:
-            ingredients = await get_ingredient_stock(connection, only_locked=True)
+        if include_locks or include_salable_quantity:
+            ingredients = await get_ingredient_stock(
+                connection,
+                only_locked=True,
+                from_date=from_date,
+                to_date=to_date
+            )
             for ing in ingredients:
                 added = ing["added_stock"] if ing["added_stock"] is not None else 0
                 ingredient_stock_levels[ing["id"]] = added - ing["consumed_stock"]
@@ -122,7 +132,14 @@ async def get_products(
                             for ing in product.ingredients
                             if ing.is_default and ing.max_quantity > ingredient_stock_levels.get(ing.ingredient_id, ing.max_quantity)]
                         ) > 0
-                    ) if include_locks else None
+                    ) if include_locks else None,
+                    salable_quantity=(
+                        min([
+                            ingredient_stock_levels.get(ing.ingredient_id) // ing.max_quantity
+                            for ing in product.ingredients
+                            if ing.is_default and ing.max_quantity > 0 and ingredient_stock_levels.get(ing.ingredient_id) is not None
+                        ]) if any(ing.is_default and ing.max_quantity > 0 and ingredient_stock_levels.get(ing.ingredient_id) is not None for ing in product.ingredients) else None
+                    ) if include_salable_quantity else None,
                 )
             )
             for product in products

@@ -462,6 +462,9 @@ async def create_tickets(order: Order, connection: BaseDBAsyncClient):
     changes = {}
 
     for op in order_products:
+        if op.product.category is None:
+            continue
+
         if op.product.category not in categories:
             categories.append(op.product.category)
 
@@ -484,6 +487,9 @@ async def create_tickets(order: Order, connection: BaseDBAsyncClient):
     max_guests = Session.settings.max_guests_for_main_products
 
     for op in order_products:
+        if op.product.category is None:
+            continue
+
         if op.product.is_main:
             category_id = changes.get(op.product.category_id, op.product.category_id)
             categories_main_products[category_id] = categories_main_products.get(category_id, 0) + op.quantity

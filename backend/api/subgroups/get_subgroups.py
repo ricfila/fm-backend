@@ -28,7 +28,7 @@ async def get_subgroups(
     """
     Get list of subgroups.
 
-    **Permission**: can_administer, can_order, can_confirm_orders
+     **Permission**: can_administer, can_order, can_confirm_orders
     """
 
     async with in_transaction() as connection:

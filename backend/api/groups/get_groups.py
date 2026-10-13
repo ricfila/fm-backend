@@ -8,8 +8,7 @@ from backend.decorators import check_role
 from backend.models.error import BadRequest
 from backend.models.groups import (
     GetGroupsResponse,
-    Group as GroupModel,
-    GroupName,
+    Group as GroupModel
 )
 from backend.utils import ErrorCodes, Permission, TokenJwt, validate_token
 from backend.utils.query_utils import process_query_with_pagination
@@ -27,7 +26,7 @@ async def get_groups(
     """
     Get list of groups.
 
-    **Permission**: can_administer, can_order, can_confirm_orders
+     **Permission**: can_administer, can_order, can_confirm_orders
     """
 
     async with in_transaction() as connection:
